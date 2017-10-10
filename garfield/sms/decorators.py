@@ -9,8 +9,8 @@ from django.http import HttpResponseForbidden
 from django.http import HttpResponseNotAllowed
 from django.views.decorators.csrf import csrf_exempt
 
-from twilio.twiml import Verb
-from twilio.util import RequestValidator
+from twilio.twiml import TwiML
+from twilio.request_validator import RequestValidator
 
 
 if sys.version_info[0] == 3:  # pragma: no cover
@@ -31,6 +31,7 @@ def sms_view(func, **kwargs):
 
         if use_forgery_protection:
             test = protect_forged_request(request)
+
             if isinstance(test, HttpResponseForbidden) or \
                isinstance(test, HttpResponseNotAllowed):
                 return test
@@ -39,7 +40,7 @@ def sms_view(func, **kwargs):
 
         if isinstance(response, (text_type, bytes)):  # pragma: no cover
             return HttpResponse(response, content_type='application/xml')
-        elif isinstance(response, Verb):
+        elif isinstance(response, TwiML):
             return HttpResponse(str(response), content_type='application/xml')
         else:
             return response
