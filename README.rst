@@ -11,6 +11,9 @@ Powered by `Django`_ and `Twilio`_.
 .. image:: https://travis-ci.org/RobSpectre/garfield.svg?branch=master
     :target: https://travis-ci.org/RobSpectre/garfield
 
+.. image:: https://codecov.io/gh/RobSpectre/garfield/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/RobSpectre/garfield
+
 
 **Table of Contents**
 
