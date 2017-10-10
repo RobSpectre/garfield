@@ -7,4 +7,4 @@ script:
 env:
   - TOXENV: py34
 after_success:
-    codecov --file garfield/.coverage
+    codecov
