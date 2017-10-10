@@ -6,5 +6,3 @@ script:
   - tox
 env:
   - TOXENV: py34
-after_success:
-    codecov
