@@ -51,3 +51,12 @@ class GarfieldSmsTestCase(TestCase):
     def assert_twiml(self, response):
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, "<Response")
+
+
+@override_settings(TWILIO_AUTH_TOKEN="yyyyyyyy",
+                   ALLOWED_HOSTS=['example.com'])
+class RouterTestCase(GarfieldSmsTestCase):
+    def test_extra_parameters(self):
+        response = self.client.sms("Test.", extra_params={'Stuff': "Things"})
+
+        self.assert_twiml(response)
