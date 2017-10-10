@@ -2,7 +2,8 @@
 Garfield
 *************
 
-A platform for deterring frequent buyers of underground commrecial sex. 
+A communications platform for deterring high frequency buyers of underground
+commercial sex.
 
 Powered by `Django`_ and `Twilio`_.
 
