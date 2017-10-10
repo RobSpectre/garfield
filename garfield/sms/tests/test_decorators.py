@@ -23,3 +23,4 @@ class GarfieldSmsDecoratorsTestCase(GarfieldSmsTestCase):
     def test_correct_twilio_signature(self):
         response = self.client.sms("Test.")
         self.assertEquals(response.status_code, 200)
+        self.assert_twiml(response)
