@@ -1,3 +1,7 @@
+from django.test import override_settings
+
+from sms.decorators import sms_view
+
 from .test_sms import GarfieldSmsTestCase
 
 
@@ -20,7 +24,20 @@ class GarfieldSmsDecoratorsTestCase(GarfieldSmsTestCase):
                                    HTTP_HOST="example.com")
         self.assertEquals(response.status_code, 403)
 
+    def test_missing_twilio_signature(self):
+        response = self.client.post("/sms/", params={"Body": "foo"},
+                                    HTTP_HOST="example.com")
+        self.assertEquals(response.status_code, 403)
+
     def test_correct_twilio_signature(self):
         response = self.client.sms("Test.")
         self.assertEquals(response.status_code, 200)
         self.assert_twiml(response)
+
+    @override_settings(DEBUG=True)
+    def test_non_twiml_response(self):
+        @sms_view
+        def return_empty_list(request):
+            return request
+
+        self.assertEquals([], return_empty_list([]))
