@@ -25,7 +25,7 @@ SECRET_KEY = 'CHANGE ME'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['tunnel.brooklynhacker.com']
 
 
 # Application definition
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'sms',
     'johns',
     'phone_numbers',
+    'sims',
     'django_celery_results',
     'django_celery_beat'
 ]

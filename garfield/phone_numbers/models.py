@@ -1,5 +1,7 @@
 from django.db import models
 
+from sims.models import Sim
+
 
 class PhoneNumber(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
@@ -14,3 +16,7 @@ class PhoneNumber(models.Model):
     formatted = models.CharField(max_length=255)
     friendly_name = models.CharField(max_length=255)
     country_code = models.CharField(max_length=255)
+
+    related_sim = models.ForeignKey(Sim,
+                                    null=True,
+                                    related_name="phone_numbers")
