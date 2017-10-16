@@ -1,11 +1,11 @@
 from django.test import override_settings
 
-from sms.decorators import sms_view
+from sms.decorators import twilio_view
 
-from .test_sms import GarfieldSmsTestCase
+from .test_sms import GarfieldTwilioTestCase
 
 
-class GarfieldSmsDecoratorsTestCase(GarfieldSmsTestCase):
+class GarfieldSmsDecoratorsTestCase(GarfieldTwilioTestCase):
     def test_not_get_or_post(self):
         response = self.client.delete("/sms/",
                                       HTTP_HOST="example.com")
@@ -36,7 +36,7 @@ class GarfieldSmsDecoratorsTestCase(GarfieldSmsTestCase):
 
     @override_settings(DEBUG=True)
     def test_non_twiml_response(self):
-        @sms_view
+        @twilio_view
         def return_empty_list(request):
             return request
 

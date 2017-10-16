@@ -19,7 +19,7 @@ else:  # pragma: no cover
     text_type = unicode  # pragma: no cover
 
 
-def sms_view(func, **kwargs):
+def twilio_view(func, **kwargs):
     @csrf_exempt
     @wraps(func)
     def decorator(request, *args, **kwargs):

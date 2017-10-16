@@ -4,6 +4,8 @@ from sims import views
 
 app_name = 'sims'
 urlpatterns = [
-    url(r'^inbound/$', views.sim_inbound, name="sim_inbound"),
-    url(r'^outbound/$', views.sim_outbound, name="sim_outbound"),
+    url(r'^sms/receive/$', views.receive_sms, name="receive_sms"),
+    url(r'^sms/send/$', views.send_sms, name="send_sms"),
+    url(r'^voice/receive/$', views.receive_call, name="receive_call"),
+    url(r'^voice/send/$', views.send_call, name="send_call"),
 ]
