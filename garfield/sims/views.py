@@ -5,21 +5,19 @@ from sms.decorators import twilio_view
 
 
 @twilio_view
-def receive_sms(request):
+def sms_receive(request):
     response = MessagingResponse()
     response.message(request.POST['Body'],
-                     path="/sims/sms/receive/",
-                     to="sim:DE5f66bbec066f92dfda5d881926fd292d",
+                     to="sim:DE184e039058c056aab5dd9c3555667942",
                      from_=request.POST['From'])
 
     return response
 
 
 @twilio_view
-def send_sms(request):
+def sms_send(request):
     response = MessagingResponse()
     response.message(request.POST['Body'],
-                     path="/sims/sms/send/",
                      from_="+16465064701",
                      to=request.POST['To'])
 
@@ -27,20 +25,18 @@ def send_sms(request):
 
 
 @twilio_view
-def receive_call(request):
+def voice_receive(request):
     response = VoiceResponse()
-    response.dial(request.POST['From'],
-                  path="/sims/voice/receive/",
-                  to="sim:DE5f66bbec066f92dfda5d881926fd292d")
+    response.dial("sim:DE184e039058c056aab5dd9c3555667942",
+                  from_=request.POST['From'])
 
     return response
 
 
 @twilio_view
-def send_call(request):
+def voice_send(request):
     response = VoiceResponse()
     response.dial(request.POST['To'],
-                  path="/sims/voice/send/",
                   from_="+16465064701")
 
     return response

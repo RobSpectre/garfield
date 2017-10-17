@@ -1,3 +1,8 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import SmsMessage
+
+
+@admin.register(SmsMessage)
+class SmsMessageAdmin(admin.ModelAdmin):
+    pass
