@@ -64,3 +64,8 @@ class John(models.Model):
 
     photo = models.ImageField(upload_to="john_photos/",
                               blank=True)
+
+    def __str__(self):
+        return "{0}: {1} {2}".format(self.phone_number,
+                                     self.nextcaller_first_name,
+                                     self.nextcaller_last_name)

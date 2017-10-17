@@ -11,3 +11,7 @@ class Sim(models.Model):
     iccid = models.CharField(max_length=255)
     status = models.CharField(max_length=255)
     rate_plan = models.CharField(max_length=255)
+
+    def __str_(self):
+        return "{0}: {1}".format(self.sid,
+                                 self.friendly_name)

@@ -20,3 +20,8 @@ class SmsMessage(GarfieldSmsModel):
     related_phone_number = models.ForeignKey(PhoneNumber,
                                              null=True,
                                              related_name="phone_number")
+
+    def __str__(self):
+        return "{0}: from {1} to {2}".format(self.date_created,
+                                             self.from_number,
+                                             self.to_number)
