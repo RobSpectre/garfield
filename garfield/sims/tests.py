@@ -1,18 +1,25 @@
+from mock import patch
+
 from sms.tests.test_sms import GarfieldTwilioTestCase
+from sms.tests.test_sms import GarfieldTwilioTestClient
 
 
-class GarfieldTestSimSmsCase(GarfieldTwilioTestCase):
-    def test_sim_receive_sms(self):
+class GarfieldTestSimSmsCaseNewJohn(GarfieldTwilioTestCase):
+    @patch('sms.tasks.save_sms_message.apply_async')
+    def test_sim_receive_sms(self, mock_save_sms_message):
         response = self.client.sms("Test.",
                                    path="/sims/sms/receive/")
 
         self.assert_twiml(response)
+        self.assertTrue(mock_save_sms_message.called)
 
-    def test_sim_send_sms(self):
+    @patch('sms.tasks.save_sms_message.apply_async')
+    def test_sim_send_sms(self, mock_save_sms_message):
         response = self.client.sms("Test.",
                                    path="/sims/sms/send/")
 
         self.assert_twiml(response)
+        self.assertTrue(mock_save_sms_message.called)
 
 
 class GarfieldTestSimVoiceCase(GarfieldTwilioTestCase):

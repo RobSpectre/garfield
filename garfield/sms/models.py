@@ -11,6 +11,7 @@ class GarfieldSmsModel(models.Model):
 
 
 class SmsMessage(GarfieldSmsModel):
+    sid = models.CharField(max_length=255)
     from_number = models.CharField(max_length=255)
     to_number = models.CharField(max_length=255)
     body = models.TextField()

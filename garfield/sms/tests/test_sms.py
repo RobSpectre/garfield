@@ -42,7 +42,7 @@ class GarfieldTwilioTestClient(Client):
                          HTTP_HOST=HTTP_HOST)
 
     def call(self, to, path="/voice/", from_="+15556667777",
-            extra_params=None):
+             extra_params=None):
         params = {"CallSid": "CAtesting",
                   "AccountSid": "ACxxxxx",
                   "To": to,

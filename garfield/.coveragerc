@@ -1,9 +1,17 @@
+[run]
+source =
+    ./
+
 [report]
 omit =
     manage.py
     garfield/*
     **/migrations/**
     **/apps.py
+    .virtualenvs
+    .virtualenv
+    venv
+    .env
 
 show_missing = True
 
