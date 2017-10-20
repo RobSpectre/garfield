@@ -1,9 +1,12 @@
+from django.test import override_settings
+
 from mock import patch
 
 from sms.tests.test_sms import GarfieldTwilioTestCase
 from sms.tests.test_sms import GarfieldTwilioTestClient
 
 
+@override_settings(TWILIO_PHONE_NUMBER="+15558675309")
 class GarfieldTestSimSmsCaseNewJohn(GarfieldTwilioTestCase):
     @patch('sms.tasks.save_sms_message.apply_async')
     def test_sim_receive_sms(self, mock_save_sms_message):
@@ -22,6 +25,7 @@ class GarfieldTestSimSmsCaseNewJohn(GarfieldTwilioTestCase):
         self.assertTrue(mock_save_sms_message.called)
 
 
+@override_settings(TWILIO_PHONE_NUMBER="+15558675309")
 class GarfieldTestSimVoiceCase(GarfieldTwilioTestCase):
     def test_sims_receive_call(self):
         response = self.client.call("Test.",
