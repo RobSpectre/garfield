@@ -1,3 +1,6 @@
+from base64 import b64encode
+import json
+
 from celery import shared_task
 
 from django.conf import settings
@@ -34,6 +37,28 @@ def save_sms_message(message):
             record.save()
 
         check_john.apply_async(args=[message])
+
+
+@shared_task
+def send_sms_message(from_=None, to=None, body=None):
+    client = Client(settings.TWILIO_ACCOUNT_SID,
+                    settings.TWILIO_AUTH_TOKEN)
+    client.messages.create(to,
+                           from_=from_,
+                           body=body)
+
+
+@shared_task
+def send_whisper(from_=None, to=None, body=None):
+    whisper = {"To": to,
+               "From": from_,
+               "Body": body}
+
+    whisper_json = json.dumps(whisper)
+
+    send_sms_message(from_=settings.TWILIO_WHISPER_NUMBER,
+                     to=settings.TWILIO_PHONE_NUMBER,
+                     body="whisper:{0}".format(whisper_json))
 
 
 @shared_task
@@ -150,13 +175,4 @@ def send_notification_whitepages(john_id, twilio_number):
               'to': "sim:{0}".format(number.related_sim.sid),
               'body': body}
 
-    send_sms_message.apply_async(kwargs=kwargs)
-
-
-@shared_task
-def send_sms_message(from_=None, to=None, body=None):
-    client = Client(settings.TWILIO_ACCOUNT_SID,
-                    settings.TWILIO_AUTH_TOKEN)
-    client.messages.create(to,
-                           from_=from_,
-                           body=body)
+    send_whisper.apply_async(kwargs=kwargs)

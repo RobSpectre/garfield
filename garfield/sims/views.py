@@ -1,5 +1,8 @@
+import json
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
+from django.urls import reverse
 
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.twiml.voice_response import VoiceResponse
@@ -13,6 +16,11 @@ from phone_numbers.models import PhoneNumber
 @twilio_view
 def sms_receive(request):
     response = MessagingResponse()
+
+    if request.POST['Body'].startswith("whisper:"):
+        response.redirect(reverse("sims:whisper"))
+        return response
+
     try:
         result = PhoneNumber.objects.get(e164=request.POST['To'])
     except ObjectDoesNotExist:
@@ -84,5 +92,20 @@ def voice_send(request):
         response.dial(request.POST['To'],
                       caller_id=settings.TWILIO_PHONE_NUMBER,
                       record=True)
+
+    return response
+
+
+@twilio_view
+def whisper(request):
+    body = request.POST['Body'].strip("whisper:")
+
+    whisper = json.loads(body)
+
+    response = MessagingResponse()
+
+    response.message(whisper['Body'],
+                     to=whisper['To'],
+                     from_=whisper['From'])
 
     return response
