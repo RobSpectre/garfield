@@ -578,6 +578,8 @@ class TaskLookupJohnNextCallerTestCase(TestCase):
         test = sms.tasks.apply_lookup_nextcaller_to_john(self.john,
                                                          mock_lookup)
 
+        test.save()
+
         self.assertTrue(test.identified)
         self.assertEquals(test.nextcaller_first_name,
                           "John")

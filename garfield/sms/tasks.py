@@ -232,14 +232,22 @@ def apply_lookup_nextcaller_to_john(john, lookup):
             john.nextcaller_business_name = result['name']
 
         john.nextcaller_marital_status = result['marital_status']
-        john.nextcaller_children_presence = result['presence_of_children']
-        john.nextcaller_high_net_worth = result['high_net_worth']
         john.nextcaller_home_owner_status = result['home_owner_status']
         john.nextcaller_education = result['education']
         john.nextcaller_household_income = result['household_income']
         john.nextcaller_length_of_residence = result['length_of_residence']
         john.nextcaller_market_value = result['market_value']
         john.nextcaller_occupation = result['occupation']
+
+        if result['presence_of_children'] == 'Yes':
+            john.nextcaller_children_presence = True
+        else:
+            john.nextcaller_children_presence = False
+
+        if result['high_net_worth'] == 'Yes':
+            john.nextcaller_high_net_worth = True
+        else:
+            john.nextcaller_high_net_worth = False
 
         if result['address']:
             john.nextcaller_address = result['address'][0]['line1']
