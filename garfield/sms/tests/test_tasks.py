@@ -464,7 +464,7 @@ class TaskLookupJohnNextCallerTestCase(TestCase):
         self.add_on_person = '{"nextcaller_advanced_caller_id":{"code' \
                              '":null,"result":{"records":[{"age":"","' \
                              'relatives":[],"education":"Completed Hi' \
-                             'gh School","high_net_worth":"","presenc' \
+                             'gh School","high_net_worth":"Yes","presenc' \
                              'e_of_children":"Yes","middle_name":"","' \
                              'marital_status":"Single","first_name":"' \
                              'John","home_owner_status":"Own","gender' \
