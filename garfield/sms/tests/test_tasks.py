@@ -430,6 +430,8 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
         self.assertEquals(test.phone_number_type, "Test.")
 
 
+@override_settings(TWILIO_ACCOUNT_SID='ACxxxx',
+                   TWILIO_AUTH_TOKEN='yyyyyyy')
 class TaskUtilitiesTestCase(TestCase):
     @patch('twilio.rest.lookups.v1.phone_number.PhoneNumberContext')
     def test_lookup_phone_number(self, mock_context):
