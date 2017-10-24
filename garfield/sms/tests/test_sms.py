@@ -1,15 +1,8 @@
-try:  # pragma: no cover
-    from http.cookies import SimpleCookie
-except ImportError:  # pragma: no cover
-    from Cookie import SimpleCookie
-
 from django.test import TestCase
 from django.test import Client
 from django.test import override_settings
 
 from twilio.request_validator import RequestValidator
-
-from mock import patch
 
 
 class GarfieldTwilioTestClient(Client):
@@ -83,7 +76,13 @@ class GarfieldTwilioTestCase(TestCase):
 @override_settings(TWILIO_AUTH_TOKEN="yyyyyyyy",
                    ALLOWED_HOSTS=['example.com'])
 class RouterTestCase(GarfieldTwilioTestCase):
-    def test_extra_parameters(self):
+    def test_sms_extra_parameters(self):
         response = self.client.sms("Test.", extra_params={'Stuff': "Things"})
+
+        self.assert_twiml(response)
+
+    def test_call_extra_parameters(self):
+        response = self.client.call("Test.", path="/sms/",
+                                    extra_params={'Stuff': "Things"})
 
         self.assert_twiml(response)

@@ -1,4 +1,3 @@
-from base64 import b64encode
 import json
 
 from celery import shared_task
@@ -26,7 +25,7 @@ def save_sms_message(message):
             SmsMessage.objects.filter(from_number=message['To']) \
             .latest('date_created')
         if result:
-            record.related_phone_number = result
+            record.related_phone_number = result.related_phone_number
             record.save()
     else:
         phone_number = \
@@ -43,9 +42,19 @@ def save_sms_message(message):
 def send_sms_message(from_=None, to=None, body=None):
     client = Client(settings.TWILIO_ACCOUNT_SID,
                     settings.TWILIO_AUTH_TOKEN)
-    client.messages.create(to,
-                           from_=from_,
-                           body=body)
+
+    return client.messages.create(to,
+                                  from_=from_,
+                                  body=body)
+
+
+@shared_task
+def lookup_phone_number(phone_number, type=None, addons=None):
+    client = Client(settings.TWILIO_ACCOUNT_SID,
+                    settings.TWILIO_AUTH_TOKEN)
+
+    return client.lookups.phone_numbers(phone_number).fetch(add_ons=addons,
+                                                            type=type)
 
 
 @shared_task
@@ -88,62 +97,69 @@ def lookup_john(john_number, twilio_number):
 @shared_task
 def lookup_john_whitepages(john_id, twilio_number):
     john = John.objects.get(pk=john_id)
-    add_on = "whitepages_pro_caller_id"
 
-    client = Client(settings.TWILIO_ACCOUNT_SID,
-                    settings.TWILIO_AUTH_TOKEN)
-
-    lookup = \
-        client.lookups.phone_numbers(john.phone_number) \
-        .fetch(add_ons=add_on, type="carrier")
+    lookup = lookup_phone_number(john.phone_number,
+                                 type="carrier",
+                                 addons="whitepages_pro_caller_id")
 
     if lookup.add_ons['status'] == 'successful':
-        result = lookup.add_ons['results'][add_on]['result']
+        john = apply_lookup_whitepages_to_john(john, lookup)
 
-        if result['belongs_to']:
+        john.save()
+
+    if lookup.add_ons['status'] == 'successful':
+        send_notification_whitepages.apply_async(args=[john.id,
+                                                       twilio_number])
+
+
+def apply_lookup_whitepages_to_john(john, lookup):
+    result = lookup.add_ons['results']["whitepages_pro_caller_id"]['result']
+
+    if result['belongs_to']:
+        john.whitepages_entity_type = result['belongs_to'][0]['type']
+
+        if john.whitepages_entity_type == "Person":
             john.whitepages_first_name = result['belongs_to'][0]['firstname']
             john.whitepages_middle_name = result['belongs_to'][0]['middlename']
             john.whitepages_last_name = result['belongs_to'][0]['lastname']
             john.whitepages_gender = result['belongs_to'][0]['gender']
+        else:
+            john.whitepages_business_name = result['belongs_to'][0]['name']
 
-        if result['current_addresses']:
-            john.whitepages_address = \
-                result['current_addresses'][0]['street_line_1']
-            john.whitepages_address_two = \
-                result['current_addresses'][0]['street_line_2']
-            john.whitepages_city = result['current_addresses'][0]['city']
-            john.whitepages_state = result['current_addresses'
-                                           ''][0]['state_code']
-            john.whitepages_country = \
-                result['current_addresses'][0]['country_code']
-            john.whitepages_zip_code = \
-                result['current_addresses'][0]['postal_code']
-            john.whitepages_address_type = \
-                result['current_addresses'][0]['location_type']
+    if result['current_addresses']:
+        john.whitepages_address = \
+            result['current_addresses'][0]['street_line_1']
+        john.whitepages_address_two = \
+            result['current_addresses'][0]['street_line_2']
+        john.whitepages_city = result['current_addresses'][0]['city']
+        john.whitepages_state = result['current_addresses'
+                                       ''][0]['state_code']
+        john.whitepages_country = \
+            result['current_addresses'][0]['country_code']
+        john.whitepages_zip_code = \
+            result['current_addresses'][0]['postal_code']
+        john.whitepages_address_type = \
+            result['current_addresses'][0]['location_type']
 
-            if result['current_addresses'][0]['lat_long']:
-                john.whitepages_latitude = \
-                    result['current_addresses'][0]['lat_long']['latitude']
-                john.whitepages_longitude = \
-                    result['current_addresses'][0]['lat_long']['longitude']
-                john.whitepages_accuracy = \
-                    result['current_addresses'][0]['lat_long']['accuracy']
+        if result['current_addresses'][0]['lat_long']:
+            john.whitepages_latitude = \
+                result['current_addresses'][0]['lat_long']['latitude']
+            john.whitepages_longitude = \
+                result['current_addresses'][0]['lat_long']['longitude']
+            john.whitepages_accuracy = \
+                result['current_addresses'][0]['lat_long']['accuracy']
 
-        john.whitepages_prepaid = result['is_prepaid']
-        john.whitepages_phone_type = result['line_type']
-        john.whitepages_commercial = result['is_commercial']
+    john.whitepages_prepaid = result['is_prepaid']
+    john.whitepages_phone_type = result['line_type']
+    john.whitepages_commercial = result['is_commercial']
 
-        john.identified = True
+    john.identified = True
 
     john.carrier = lookup.carrier['name']
     john.phone_number_type = lookup.carrier['type']
     john.phone_number_friendly = lookup.national_format
 
-    john.save()
-
-    if lookup.add_ons['status'] == 'successful':
-        send_notification_whitepages.apply_async(args=[john.id,
-                                                       twilio_number])
+    return john
 
 
 @shared_task
@@ -176,3 +192,5 @@ def send_notification_whitepages(john_id, twilio_number):
               'body': body}
 
     send_whisper.apply_async(kwargs=kwargs)
+
+    return body

@@ -18,6 +18,12 @@ class John(models.Model):
     whitepages_gender = models.CharField(max_length=255,
                                          blank=True,
                                          null=True)
+    whitepages_entity_type = models.CharField(max_length=255,
+                                              blank=True,
+                                              null=True)
+    whitepages_business_name = models.CharField(max_length=255,
+                                                blank=True,
+                                                null=True)
     whitepages_address = models.CharField(max_length=255,
                                           blank=True,
                                           null=True)
