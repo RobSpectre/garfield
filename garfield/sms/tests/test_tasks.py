@@ -141,12 +141,18 @@ class TaskLookupJohnTestCase(TestCase):
 
         self.assertFalse(mock_lookup_john.called)
 
+    @patch('sms.tasks.lookup_john_nextcaller.apply_async')
     @patch('sms.tasks.lookup_john_whitepages.apply_async')
-    def test_lookup_john(self, mock_lookup_john_whitepages):
+    def test_lookup_john(self,
+                         mock_lookup_john_whitepages,
+                         mock_lookup_john_nextcaller):
         sms.tasks.lookup_john(self.message["From"],
                               self.message["To"])
 
         mock_lookup_john_whitepages \
+            .assert_called_with(args=[self.john.id,
+                                      self.message['To']])
+        mock_lookup_john_nextcaller \
             .assert_called_with(args=[self.john.id,
                                       self.message['To']])
 
@@ -428,6 +434,220 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
         self.assertEquals(test.carrier, "Test.")
         self.assertEquals(test.whitepages_phone_type, "NonFixedVOIP")
         self.assertEquals(test.phone_number_type, "Test.")
+
+
+class TaskLookupJohnNextCallerTestCase(TestCase):
+    def setUp(self):
+        self.john = John.objects.create(phone_number="+15556667777")
+
+        self.message = {"From": "+15556667777",
+                        "To": "+15558675309",
+                        "Body": "Test."}
+
+        self.sim = Sim.objects.create(friendly_name="TestSim",
+                                      sid="DExxx",
+                                      iccid="asdf",
+                                      status="active",
+                                      rate_plan="RExxx")
+
+        self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
+                                                       account_sid="ACxxx",
+                                                       service_sid="SExxx",
+                                                       url="http://exmple.com",
+                                                       e164="+15558675309",
+                                                       formatted="(555) "
+                                                                 "867-5309",
+                                                       friendly_name="Stuff.",
+                                                       country_code="1",
+                                                       related_sim=self.sim)
+
+        self.add_on_person = '{"nextcaller_advanced_caller_id":{"code' \
+                             '":null,"result":{"records":[{"age":"","' \
+                             'relatives":[],"education":"Completed Hi' \
+                             'gh School","high_net_worth":"","presenc' \
+                             'e_of_children":"Yes","middle_name":"","' \
+                             'marital_status":"Single","first_name":"' \
+                             'John","home_owner_status":"Own","gender' \
+                             '":"Male","occupation":"Professional","l' \
+                             'ength_of_residence":"11-15 years","last' \
+                             '_name":"Doe","email":"johndoe@john.com"' \
+                             ',"telco_zip":"","address":[{"line1":"12' \
+                             '3 Johnny Street","country":"USA","city"' \
+                             ':"Johnstown","home_data":null,"line2":"' \
+                             '","extended_zip":"","state":"PA","zip_c' \
+                             'ode":"15901"}],"household_income":"125k' \
+                             '-150k","id":"x","telco_zip_4":"","marke' \
+                             't_value":"500k-1mm","linked_emails":[],' \
+                             '"name":"John Doe","first_pronounced":"J' \
+                             'AWN","phone":[{"line_type":"Mobile","ca' \
+                             'rrier":"At&t Wireless","number":"555666' \
+                             '7777"}],"social_links":[{"followers":0,' \
+                             '"type":"facebook","url":"https://www.fa' \
+                             'cebook.com/johndoe"},{"followers":0, "t' \
+                             'ype":"twitter","url":"https://www.twitt' \
+                             'er.com/johndoe"},{"followers":0, "type"' \
+                             ':"linkedin","url":"https://www.linked.c' \
+                             'om/johndoe"}]}]},"request_sid":' \
+                             '"x","status":"successful","message":null}}'
+
+        self.add_on_business = '{"nextcaller_advanced_caller_id":{"co' \
+                               'de":null,"result":{"records":[{"age":' \
+                               '"","relatives":[],"education":"","hig' \
+                               'h_net_worth":"","presence_of_children' \
+                               '":"","middle_name":"","marital_status' \
+                               '":"","first_name":"","home_owner_stat' \
+                               'us":"","gender":"Male","occupation":"' \
+                               '","length_of_residence":"","last_name' \
+                               '":"","email":"","telco_zip":"95101","' \
+                               'address":[{"line1":"123 Johnny Street' \
+                               '","country":"USA","city":"Johnstown",' \
+                               '"home_data":null,"line2":"","extended' \
+                               '_zip":"","state":"PA","zip_code":"159' \
+                               '01"}],"household_income":"","id":"x",' \
+                               '"telco_zip_4":"","market_value":"","l' \
+                               'inked_emails":[],"name":"The John Sto' \
+                               're","first_pronounced":"JAWN","phone"' \
+                               ':[{"line_type":"Landline","carrier":"' \
+                               'Verizon","number":"5556667778"}],"soc' \
+                               'ial_links":[]}]},"request_sid":"x","s' \
+                               'tatus":"successful","message":null}}'
+
+        self.add_on_voip = '{"nextcaller_advanced_caller_id":{"code":' \
+                           'null,"result":{"records":[{"age":"","rela' \
+                           'tives":[],"education":"","high_net_worth"' \
+                           ':"","presence_of_children":"","middle_nam' \
+                           'e":"","marital_status":"","first_name":""' \
+                           ',"home_owner_status":"","gender":"","occu' \
+                           'pation":"","length_of_residence":"","last' \
+                           '_name":"","email":"","telco_zip":"15901",' \
+                           '"address":[],"household_income":"","id":"' \
+                           'x","telco_zip_4":"","market_value":"","li' \
+                           'nked_emails":[],"name":"","first_pronounc' \
+                           'ed":"","phone":[{"line_type":"Landline","' \
+                           'carrier":"Level 3 Communications Llc ","n' \
+                           'umber":"5556667779"}],"social_links":[]}]' \
+                           '},"request_sid":"x","status":"successful"' \
+                           ',"message":null}}'
+
+    @patch('sms.tasks.send_notification_nextcaller.apply_async')
+    @patch('sms.tasks.apply_lookup_nextcaller_to_john')
+    @patch('sms.tasks.lookup_phone_number')
+    def test_lookup_john_nextcaller(self,
+                                    mock_lookup,
+                                    mock_apply,
+                                    mock_notification):
+        mock_return = Mock()
+        mock_return.add_ons = MagicMock()
+        mock_return.add_ons.__getitem__.return_value = "successful"
+        mock_lookup.return_value = mock_return
+
+        mock_apply.return_value = self.john
+
+        sms.tasks.lookup_john_nextcaller(self.john.id, "+15558675309")
+
+        self.assertTrue(mock_lookup.called)
+        self.assertTrue(mock_apply.called)
+        self.assertTrue(mock_notification.called)
+
+    @patch('sms.tasks.send_notification_nextcaller.apply_async')
+    @patch('sms.tasks.apply_lookup_nextcaller_to_john')
+    @patch('sms.tasks.lookup_phone_number')
+    def test_lookup_john_nextcaller_unsuccessful(self,
+                                                 mock_lookup,
+                                                 mock_apply,
+                                                 mock_notification):
+        mock_return = Mock()
+        mock_return.add_ons = MagicMock()
+        mock_return.add_ons.__getitem__.return_value = "failure"
+        mock_lookup.return_value = mock_return
+
+        mock_apply.return_value = self.john
+
+        sms.tasks.lookup_john_nextcaller(self.john.id, "+15558675309")
+
+        self.assertTrue(mock_lookup.called)
+        self.assertFalse(mock_apply.called)
+        self.assertFalse(mock_notification.called)
+
+    def test_apply_lookup_nextcaller_to_john_person(self):
+        payload = json.loads(self.add_on_person)
+        mock_lookup = Mock()
+        mock_lookup.add_ons = MagicMock()
+        mock_lookup.add_ons.__getitem__.return_value = payload
+
+        test = sms.tasks.apply_lookup_nextcaller_to_john(self.john,
+                                                         mock_lookup)
+
+        self.assertTrue(test.identified)
+        self.assertEquals(test.nextcaller_first_name,
+                          "John")
+        self.assertEquals(test.nextcaller_last_name,
+                          "Doe")
+        self.assertEquals(test.nextcaller_address,
+                          "123 Johnny Street")
+        self.assertEquals(test.nextcaller_email,
+                          "johndoe@john.com")
+
+    def test_apply_lookup_nextcaller_to_john_person_no_records(self):
+        payload = json.loads(self.add_on_person)
+
+        payload['nextcaller_advanced_caller_id'
+                ]['result']['records'] = []
+
+        mock_lookup = Mock()
+        mock_lookup.add_ons = MagicMock()
+        mock_lookup.add_ons.__getitem__.return_value = payload
+
+        test = sms.tasks.apply_lookup_nextcaller_to_john(self.john,
+                                                         mock_lookup)
+
+        self.assertFalse(test.identified)
+
+    def test_apply_lookup_nextcaller_to_john_business(self):
+        payload = json.loads(self.add_on_business)
+        mock_lookup = Mock()
+        mock_lookup.add_ons = MagicMock()
+        mock_lookup.add_ons.__getitem__.return_value = payload
+
+        test = sms.tasks.apply_lookup_nextcaller_to_john(self.john,
+                                                         mock_lookup)
+
+        self.assertTrue(test.identified)
+        self.assertEquals(test.nextcaller_business_name,
+                          "The John Store")
+
+    def test_apply_lookup_nextcaller_to_john_voip(self):
+        payload = json.loads(self.add_on_voip)
+        mock_lookup = Mock()
+        mock_lookup.add_ons = MagicMock()
+        mock_lookup.add_ons.__getitem__.return_value = payload
+
+        test = sms.tasks.apply_lookup_nextcaller_to_john(self.john,
+                                                         mock_lookup)
+
+        self.assertTrue(test.identified)
+        self.assertEquals(test.nextcaller_carrier,
+                          "Level 3 Communications Llc ")
+
+    @patch('sms.tasks.send_whisper.apply_async')
+    def test_notification_nextcaller(self, mock_whisper):
+        self.john.nextcaller_first_name = "John"
+        self.john.nextcaller_middle_name = "F."
+        self.john.nextcaller_last_name = "Doe"
+        self.john.nextcaller_address = "123 Paper Street"
+        self.john.nextcaller_address_two = "Apt. A"
+        self.john.nextcaller_city = "Johnstown"
+        self.john.nextcaller_state = "VA"
+        self.john.nextcaller_zip_code = "55555"
+        self.john.save()
+
+        body = sms.tasks.send_notification_nextcaller(self.john.id,
+                                                      "+15558675309")
+
+        self.assertTrue(mock_whisper.called)
+        self.assertIn("NextCaller Info", body)
+        self.assertIn("John F. Doe", body)
+        self.assertIn("123 Paper Street", body)
 
 
 @override_settings(TWILIO_ACCOUNT_SID='ACxxxx',

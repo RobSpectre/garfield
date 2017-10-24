@@ -82,8 +82,29 @@ class John(models.Model):
     nextcaller_age = models.CharField(max_length=255,
                                       blank=True,
                                       null=True)
-    nextcaller_marital_status = models.NullBooleanField(default=False)
+    nextcaller_marital_status = models.CharField(max_length=255,
+                                                 blank=True,
+                                                 null=True)
     nextcaller_children_presence = models.NullBooleanField(default=False)
+    nextcaller_high_net_worth = models.NullBooleanField(default=False)
+    nextcaller_home_owner_status = models.CharField(max_length=255,
+                                                    blank=True,
+                                                    null=True)
+    nextcaller_household_income = models.CharField(max_length=255,
+                                                   blank=True,
+                                                   null=True)
+    nextcaller_length_of_residence = models.CharField(max_length=255,
+                                                      blank=True,
+                                                      null=True)
+    nextcaller_market_value = models.CharField(max_length=255,
+                                               blank=True,
+                                               null=True)
+    nextcaller_education = models.CharField(max_length=255,
+                                            blank=True,
+                                            null=True)
+    nextcaller_occupation = models.CharField(max_length=255,
+                                             blank=True,
+                                             null=True)
     nextcaller_address = models.CharField(max_length=255,
                                           blank=True,
                                           null=True)
@@ -102,16 +123,13 @@ class John(models.Model):
     nextcaller_zip_code = models.CharField(max_length=255,
                                            blank=True,
                                            null=True)
-    nextcaller_address_type = models.CharField(max_length=255,
-                                               blank=True,
-                                               null=True)
-    nextcaller_latitude = models.FloatField(null=True)
-    nextcaller_longitude = models.FloatField(null=True)
-    nextcaller_accuracy = models.CharField(max_length=255,
-                                           blank=True,
-                                           null=True)
     nextcaller_prepaid = models.NullBooleanField(default=False)
-    nextcaller_phone_type = models.NullBooleanField(default=False)
+    nextcaller_carrier = models.CharField(max_length=255,
+                                          blank=True,
+                                          null=True)
+    nextcaller_phone_type = models.CharField(max_length=255,
+                                             blank=True,
+                                             null=True)
     nextcaller_identity_type = models.CharField(max_length=255,
                                                 blank=True,
                                                 null=True)

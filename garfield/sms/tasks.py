@@ -91,7 +91,7 @@ def lookup_john(john_number, twilio_number):
     john = John.objects.get(phone_number=john_number)
 
     lookup_john_whitepages.apply_async(args=[john.id, twilio_number])
-    # lookup_john_nextcaller.apply_async(args=[john.id, twilio_number])
+    lookup_john_nextcaller.apply_async(args=[john.id, twilio_number])
 
 
 @shared_task
@@ -186,6 +186,110 @@ def send_notification_whitepages(john_id, twilio_number):
                john.whitepages_zip_code,
                john.carrier,
                john.phone_number_type)
+
+    kwargs = {'from_': john.phone_number,
+              'to': "sim:{0}".format(number.related_sim.sid),
+              'body': body}
+
+    send_whisper.apply_async(kwargs=kwargs)
+
+    return body
+
+
+@shared_task
+def lookup_john_nextcaller(john_id, twilio_number):
+    john = John.objects.get(pk=john_id)
+
+    lookup = lookup_phone_number(john.phone_number,
+                                 addons="nextcaller_advanced_caller_id")
+
+    if lookup.add_ons['status'] == 'successful':
+        john = apply_lookup_nextcaller_to_john(john, lookup)
+
+        john.save()
+
+    if lookup.add_ons['status'] == 'successful':
+        send_notification_nextcaller.apply_async(args=[john.id,
+                                                       twilio_number])
+
+
+def apply_lookup_nextcaller_to_john(john, lookup):
+    result = lookup.add_ons['results'
+                            ]['nextcaller_advanced_caller_id']['result']
+
+    if result['records']:
+        result = result['records'][0]
+
+        john.nextcaller_email = result['email']
+
+        john.nextcaller_first_name = result['first_name']
+        john.nextcaller_middle_name = result['middle_name']
+        john.nextcaller_last_name = result['last_name']
+        john.nextcaller_gender = result['gender']
+        john.nextcaller_age = result['age']
+
+        if not result['first_name'] and not result['last_name']:
+            john.nextcaller_business_name = result['name']
+
+        john.nextcaller_marital_status = result['marital_status']
+        john.nextcaller_children_presence = result['presence_of_children']
+        john.nextcaller_high_net_worth = result['high_net_worth']
+        john.nextcaller_home_owner_status = result['home_owner_status']
+        john.nextcaller_education = result['education']
+        john.nextcaller_household_income = result['household_income']
+        john.nextcaller_length_of_residence = result['length_of_residence']
+        john.nextcaller_market_value = result['market_value']
+        john.nextcaller_occupation = result['occupation']
+
+        if result['address']:
+            john.nextcaller_address = result['address'][0]['line1']
+            john.nextcaller_address_two = result['address'][0]['line2']
+            john.nextcaller_city = result['address'][0]['city']
+            john.nextcaller_state = result['address'][0]['state']
+            john.nextcaller_country = result['address'][0]['country']
+            john.nextcaller_zip_code = result['address'][0]['zip_code']
+
+        if result['phone']:
+            john.nextcaller_phone_type = result['phone'][0]['line_type']
+            john.nextcaller_carrier = result['phone'][0]['carrier']
+
+        for link in result['social_links']:
+            if link['type'] == 'facebook':
+                john.nextcaller_facebook = link['url']
+            elif link['type'] == 'twitter':
+                john.nextcaller_twitter = link['url']
+            elif link['type'] == 'linkedin':
+                john.nextcaller_linkedin = link['url']
+
+        john.identified = True
+
+    return john
+
+
+@shared_task
+def send_notification_nextcaller(john_id, twilio_number):
+    number = PhoneNumber.objects.get(e164=twilio_number)
+    john = John.objects.get(pk=john_id)
+
+    body = """[NextCaller Info]
+    ===
+    Name: {0} {1} {2}
+    Carrier: {8}
+    Phone Type: {9}
+    Address:
+    {3}
+    {4}
+    {5}, {6} {7}
+    """.format(john.nextcaller_first_name,
+               john.nextcaller_middle_name,
+               john.nextcaller_last_name,
+               john.nextcaller_address,
+               john.nextcaller_address_two,
+               john.nextcaller_city,
+               john.nextcaller_state,
+               john.nextcaller_zip_code,
+               john.nextcaller_carrier,
+               john.nextcaller_phone_type)
 
     kwargs = {'from_': john.phone_number,
               'to': "sim:{0}".format(number.related_sim.sid),
