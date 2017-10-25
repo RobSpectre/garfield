@@ -3,6 +3,8 @@ import json
 from celery import shared_task
 
 from django.conf import settings
+from django.forms.models import model_to_dict
+from django.template.loader import render_to_string
 
 from twilio.rest import Client
 
@@ -167,25 +169,9 @@ def send_notification_whitepages(john_id, twilio_number):
     number = PhoneNumber.objects.get(e164=twilio_number)
     john = John.objects.get(pk=john_id)
 
-    body = """[WhitePages Info]
-    ===
-    Name: {0} {1} {2}
-    Carrier: {8}
-    Phone Type: {9}
-    Address:
-    {3}
-    {4}
-    {5}, {6} {7}
-    """.format(john.whitepages_first_name,
-               john.whitepages_middle_name,
-               john.whitepages_last_name,
-               john.whitepages_address,
-               john.whitepages_address_two,
-               john.whitepages_city,
-               john.whitepages_state,
-               john.whitepages_zip_code,
-               john.carrier,
-               john.phone_number_type)
+    body = render_to_string("sms_notification_whitepages.html",
+                            model_to_dict(john,
+                                          exclude=['id']))
 
     kwargs = {'from_': john.phone_number,
               'to': "sim:{0}".format(number.related_sim.sid),
@@ -279,25 +265,9 @@ def send_notification_nextcaller(john_id, twilio_number):
     number = PhoneNumber.objects.get(e164=twilio_number)
     john = John.objects.get(pk=john_id)
 
-    body = """[NextCaller Info]
-    ===
-    Name: {0} {1} {2}
-    Carrier: {8}
-    Phone Type: {9}
-    Address:
-    {3}
-    {4}
-    {5}, {6} {7}
-    """.format(john.nextcaller_first_name,
-               john.nextcaller_middle_name,
-               john.nextcaller_last_name,
-               john.nextcaller_address,
-               john.nextcaller_address_two,
-               john.nextcaller_city,
-               john.nextcaller_state,
-               john.nextcaller_zip_code,
-               john.nextcaller_carrier,
-               john.nextcaller_phone_type)
+    body = render_to_string("sms_notification_nextcaller.html",
+                            model_to_dict(john,
+                                          exclude=['id']))
 
     kwargs = {'from_': john.phone_number,
               'to': "sim:{0}".format(number.related_sim.sid),

@@ -1,0 +1,35 @@
+{% spaceless %}
+{% autoescape off %}
+[NextCaller Results]
+===
+{% if nextcaller_first_name %}Name: {{ nextcaller_first_name }} {% endif %}{% if nextcaller_middle_name %}{{ nextcaller_middle_name }} {% endif %}{% if nextcaller_last_name %}{{ nextcaller_last_name }}{% endif %}{% if nextcaller_business_name %}Business: {{ nextcaller_business_name }}{% endif %}
+{% if nextcaller_gender %}Gender: {{ nextcaller_gender }}{% endif %}
+{% if nextcaller_age %}Age: {{ nextcaller_age }}{% endif %}
+{% if nextcaller_carrier %}Phone: {{ nextcaller_carrier }}{% endif %}
+{% if nextcaller_phone_type %}Type: {{ nextcaller_phone_type }}{% endif %}
+{% if nextcaller_email %}Email: {{ nextcaller_email }}{% endif %}
+
+Demographics
+---
+
+{% if nextcaller_marital_status %}Marital Status: {{ nextcaller_marital_status }}{% endif %}
+{% if nextcaller_home_owner_status %}Homeowner Status: {{ nextcaller_home_owner_status }}{% endif %}
+{% if nextcaller_education %}Education: {{ nextcaller_education }}{% endif %}
+{% if nextcaller_household_income %}Household Income: {{ nextcaller_household_income }}{% endif %}
+{% if nextcaller_length_of_residence %}Length of Residence: {{ nextcaller_length_of_residence }}{% endif %}
+{% if nextcaller_market_value %}Market Value: {{ nextcaller_market_value }}{% endif %}
+{% if nextcaller_occupation %}Occupation: {{ nextcaller_occupation }}{% endif %}
+{% if nextcaller_children_presence %}Presence of Children: {{ nextcaller_children_presence }}{% endif %}
+{% if nextcaller_high_net_worth %}High Net Worth: {{ nextcaller_high_net_worth }}{% endif %}
+{% if nextcaller_facebook %}Facebook: {{ nextcaller_facebook }}{% endif %}
+{% if nextcaller_twitter %}Twitter: {{ nextcaller_twitter }}{% endif %}
+{% if nextcaller_linkedin %}LinkedIn: {{ nextcaller_linkedin }}{% endif %}
+
+Address
+---
+{% if nextcaller_address %}{{ nextcaller_address }}{% endif %}
+{% if nextcaller_address_two %}{{ nextcaller_address_two }}{% endif %}
+{% if nextcaller_city %}{{ nextcaller_city}}{% endif %}, {% if nextcaller_state %}{{ nextcaller_state }}{% endif %}{% if nextcaller_zip_code %}{{ nextcaller_zip_code }}{% endif %}
+{% if nextcaller_country %}{{ nextcaller_country }}{% endif %}
+{% endautoescape %}
+{% endspaceless %}

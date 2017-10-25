@@ -1,0 +1,21 @@
+{% spaceless %}
+{% autoescape off %}
+[Whitepages Results]
+===
+{% if whitepages_entity_type %}{{ whitepages_entity_type }}: {% endif %}{% if whitepages_first_name %}{{ whitepages_first_name }} {% endif %}{% if whitepages_middle_name %}{{ whitepages_middle_name }} {% endif %}{% if whitepages_last_name %}{{ whitepages_last_name }}{% endif %}{% if whitepages_business_name %}{{ whitepages_business_name }}{% endif %}
+{% if gender %}Gender: {{ gender }}{% endif %}
+{% if carrier %}Carrier: {{ carrier }}{% endif %}
+{% if phone_number_type %}Phone Type: {{ phone_number_type }}{% endif %}
+{% if whitepages_prepaid %}Prepaid: {{ whitepages_prepaid }}{% endif %}
+{% if whitepages_latitude %}Location: https://www.google.com/maps/?q={{ whitepages_latitude }},{{ whitepages_longitude }}{% endif %}
+{% if whitepages_accuracy %}Location Accuracy: {{ whitepages_accuracy }}{% endif %}
+
+
+Address
+---
+{% if whitepages_address %}{{ whitepages_address }}{% endif %}
+{% if whitepages_address_two %}{{ whitepages_address_two }}{% endif %}
+{% if whitepages_city %}{{ whitepages_city}}{% endif %}, {% if whitepages_state %}{{ whitepages_state }}{% endif %}{% if whitepages_zip_code %}{{ whitepages_zip_code }}{% endif %}
+{% if whitepages_country %}{{ whitepages_country }}{% endif %}
+{% endautoescape %}
+{% endspaceless %}

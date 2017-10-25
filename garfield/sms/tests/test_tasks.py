@@ -310,7 +310,7 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
                                                       "+15558675309")
 
         self.assertTrue(mock_whisper.called)
-        self.assertIn("WhitePages Info", body)
+        self.assertIn("Whitepages Results", body)
         self.assertIn("John F. Doe", body)
         self.assertIn("123 Paper Street", body)
         self.assertIn("AT&T", body)
@@ -647,7 +647,7 @@ class TaskLookupJohnNextCallerTestCase(TestCase):
                                                       "+15558675309")
 
         self.assertTrue(mock_whisper.called)
-        self.assertIn("NextCaller Info", body)
+        self.assertIn("NextCaller Results", body)
         self.assertIn("John F. Doe", body)
         self.assertIn("123 Paper Street", body)
 
