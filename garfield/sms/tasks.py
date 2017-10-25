@@ -6,6 +6,8 @@ from django.conf import settings
 from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 
+import requests
+
 from twilio.rest import Client
 
 from phone_numbers.models import PhoneNumber
@@ -94,6 +96,7 @@ def lookup_john(john_number, twilio_number):
 
     lookup_john_whitepages.apply_async(args=[john.id, twilio_number])
     lookup_john_nextcaller.apply_async(args=[john.id, twilio_number])
+    lookup_john_tellfinder.apply_async(args=[john.id, twilio_number])
 
 
 @shared_task
@@ -268,6 +271,65 @@ def send_notification_nextcaller(john_id, twilio_number):
     body = render_to_string("sms_notification_nextcaller.html",
                             model_to_dict(john,
                                           exclude=['id']))
+
+    kwargs = {'from_': john.phone_number,
+              'to': "sim:{0}".format(number.related_sim.sid),
+              'body': body}
+
+    send_whisper.apply_async(kwargs=kwargs)
+
+    return body
+
+
+@shared_task
+def lookup_john_tellfinder(john_id, twilio_number):
+    number = PhoneNumber.objects.get(e164=twilio_number)
+    john = John.objects.get(pk=john_id)
+
+    uri = "https://api.tellfinder.com/facets" \
+          "?q=phone:{0}&keys[]=posttime".format(john.phone_number)
+
+    headers = {"x-api-key": settings.TELLFINDER_API_KEY}
+
+    results = requests.get(uri, headers=headers)
+
+    if results.status_code == 200:
+        result_dict = results.json()
+
+        if result_dict['total'] > 0:
+            data = {}
+
+            data['total'] = result_dict['total']
+            data['earliest_ad'] = result_dict['facets'][0]['metrics']['min']
+            data['latest_ad'] = result_dict['facets'][0]['metrics']['max']
+
+            send_notification_tellfinder.apply_async(args=[data,
+                                                           john_id,
+                                                           twilio_number])
+    elif results.status_code == 403:
+        kwargs = {'from_': john.phone_number,
+                  'to': "sim:{0}".format(number.related_sim.sid),
+                  'body': "Error authenticating to TellFinder API."}
+
+        send_whisper.apply_async(kwargs=kwargs)
+    elif results.status_code >= 500:
+        kwargs = {'from_': john.phone_number,
+                  'to': "sim:{0}".format(number.related_sim.sid),
+                  'body': "TellFinder API failed - service possible "
+                          "unavailable"}
+
+        send_whisper.apply_async(kwargs=kwargs)
+
+    return results.json()
+
+
+@shared_task
+def send_notification_tellfinder(data, john_id, twilio_number):
+    number = PhoneNumber.objects.get(e164=twilio_number)
+    john = John.objects.get(pk=john_id)
+
+    body = render_to_string("sms_notification_tellfinder.html",
+                            data)
 
     kwargs = {'from_': john.phone_number,
               'to': "sim:{0}".format(number.related_sim.sid),

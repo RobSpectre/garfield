@@ -8,6 +8,8 @@ from mock import patch
 from mock import Mock
 from mock import MagicMock
 
+import responses
+
 from johns.models import John
 from phone_numbers.models import PhoneNumber
 from sims.models import Sim
@@ -141,11 +143,13 @@ class TaskLookupJohnTestCase(TestCase):
 
         self.assertFalse(mock_lookup_john.called)
 
+    @patch('sms.tasks.lookup_john_tellfinder.apply_async')
     @patch('sms.tasks.lookup_john_nextcaller.apply_async')
     @patch('sms.tasks.lookup_john_whitepages.apply_async')
     def test_lookup_john(self,
                          mock_lookup_john_whitepages,
-                         mock_lookup_john_nextcaller):
+                         mock_lookup_john_nextcaller,
+                         mock_lookup_john_tellfinder):
         sms.tasks.lookup_john(self.message["From"],
                               self.message["To"])
 
@@ -153,6 +157,9 @@ class TaskLookupJohnTestCase(TestCase):
             .assert_called_with(args=[self.john.id,
                                       self.message['To']])
         mock_lookup_john_nextcaller \
+            .assert_called_with(args=[self.john.id,
+                                      self.message['To']])
+        mock_lookup_john_tellfinder \
             .assert_called_with(args=[self.john.id,
                                       self.message['To']])
 
@@ -650,6 +657,159 @@ class TaskLookupJohnNextCallerTestCase(TestCase):
         self.assertIn("NextCaller Results", body)
         self.assertIn("John F. Doe", body)
         self.assertIn("123 Paper Street", body)
+
+
+class TaskLookupJohnTellfinderTestCase(TestCase):
+    def setUp(self):
+        self.john = John.objects.create(phone_number="+15556667777")
+
+        self.message = {"From": "+15556667777",
+                        "To": "+15558675309",
+                        "Body": "Test."}
+
+        self.sim = Sim.objects.create(friendly_name="TestSim",
+                                      sid="DExxx",
+                                      iccid="asdf",
+                                      status="active",
+                                      rate_plan="RExxx")
+
+        self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
+                                                       account_sid="ACxxx",
+                                                       service_sid="SExxx",
+                                                       url="http://exmple.com",
+                                                       e164="+15558675309",
+                                                       formatted="(555) "
+                                                                 "867-5309",
+                                                       friendly_name="Stuff.",
+                                                       country_code="1",
+                                                       related_sim=self.sim)
+
+        self.tellfinder_positive_result = '{"took":52,"facets":[{"cardinal' \
+                                          'ity":null,"friendlyName":"Post ' \
+                                          'Time","values":[{"standardDev":' \
+                                          'null,"selected":null,"mean":nul' \
+                                          'l,"selectedTimeseries":null,"pr' \
+                                          'evRank":0,"filter":false,"curRa' \
+                                          'nk":0,"key":"posttime","expansi' \
+                                          'on":false,"value":"2012-01-01T0' \
+                                          '0:00:00Z","timeseries":[],"coun' \
+                                          't":1},{"standardDev":null,"sele' \
+                                          'cted":null,"mean":null,"selecte' \
+                                          'dTimeseries":null,"prevRank":0,' \
+                                          '"filter":false,"curRank":0,"key' \
+                                          '":"posttime","expansion":false,' \
+                                          '"value":"2013-01-01T00:00:00Z",' \
+                                          '"timeseries":[],"count":0},{"st' \
+                                          'andardDev":null,"selected":null' \
+                                          ',"mean":null,"selectedTimeserie' \
+                                          's":null,"prevRank":0,"filter":f' \
+                                          'alse,"curRank":0,"key":"posttim' \
+                                          'e","expansion":false,"value":"2' \
+                                          '014-01-01T00:00:00Z","timeserie' \
+                                          's":[],"count":30}],"otherDocCou' \
+                                          'nt":0,"key":"posttime","tags":[' \
+                                          '"STRING","DATE","ARRAY","FACET"' \
+                                          ',"PRIMARY_DATE","SORTABLE"],"me' \
+                                          'trics":{"max":"2014-11-01","sel' \
+                                          'ectedMin":null,"min":"2012-08-1' \
+                                          '1","selectedMax":null,"avg":nul' \
+                                          'l,"selectedAvg":null}}],"expans' \
+                                          'ionResults":[{"standardDev":nul' \
+                                          'l,"selected":null,"mean":null,"' \
+                                          'selectedTimeseries":null,"prevR' \
+                                          'ank":0,"filter":false,"curRank"' \
+                                          ':0,"key":null,"expansion":false' \
+                                          ',"value":"phone:xxx","timeserie' \
+                                          's":null,"count":31}],"total":31}'
+
+        self.tellfinder_negative_result = {'total': 0}
+
+    @responses.activate
+    @patch('sms.tasks.send_whisper.apply_async')
+    @patch('sms.tasks.send_notification_tellfinder.apply_async')
+    def test_lookup_john_tellfinder(self, mock_notification, mock_whisper):
+        responses.add(responses.GET,
+                      "https://api.tellfinder.com/facets"
+                      "?q=phone:+15556667777&keys[]=posttime",
+                      json=json.loads(self.tellfinder_positive_result),
+                      status=200)
+
+        test = sms.tasks.lookup_john_tellfinder(self.john.id,
+                                                "+15558675309")
+
+        self.assertEquals(len(responses.calls), 1)
+        self.assertTrue(mock_notification.called)
+        self.assertFalse(mock_whisper.called)
+        self.assertEquals(test['total'], 31)
+
+    @responses.activate
+    @patch('sms.tasks.send_whisper.apply_async')
+    @patch('sms.tasks.send_notification_tellfinder.apply_async')
+    def test_lookup_john_tellfinder_negative_results(self,
+                                                     mock_notification,
+                                                     mock_whisper):
+        responses.add(responses.GET,
+                      "https://api.tellfinder.com/facets"
+                      "?q=phone:+15556667777&keys[]=posttime",
+                      json=self.tellfinder_negative_result,
+                      status=200)
+
+        sms.tasks.lookup_john_tellfinder(self.john.id,
+                                         "+15558675309")
+
+        self.assertEquals(len(responses.calls), 1)
+        self.assertFalse(mock_notification.called)
+        self.assertFalse(mock_whisper.called)
+
+    @responses.activate
+    @patch('sms.tasks.send_whisper.apply_async')
+    @patch('sms.tasks.send_notification_tellfinder.apply_async')
+    def test_lookup_john_tellfinder_wrong_key(self,
+                                              mock_notification,
+                                              mock_whisper):
+        responses.add(responses.GET,
+                      "https://api.tellfinder.com/facets"
+                      "?q=phone:+15556667777&keys[]=posttime",
+                      json={"error": "not authorized"},
+                      status=403)
+
+        sms.tasks.lookup_john_tellfinder(self.john.id,
+                                         "+15558675309")
+
+        self.assertEquals(len(responses.calls), 1)
+        self.assertFalse(mock_notification.called)
+        self.assertTrue(mock_whisper.called)
+
+    @responses.activate
+    @patch('sms.tasks.send_whisper.apply_async')
+    @patch('sms.tasks.send_notification_tellfinder.apply_async')
+    def test_lookup_john_tellfinder_server_error(self,
+                                                 mock_notification,
+                                                 mock_whisper):
+        responses.add(responses.GET,
+                      "https://api.tellfinder.com/facets"
+                      "?q=phone:+15556667777&keys[]=posttime",
+                      json={"error": "not authorized"},
+                      status=502)
+
+        sms.tasks.lookup_john_tellfinder(self.john.id,
+                                         "+15558675309")
+
+        self.assertEquals(len(responses.calls), 1)
+        self.assertFalse(mock_notification.called)
+        self.assertTrue(mock_whisper.called)
+
+    @patch('sms.tasks.send_whisper.apply_async')
+    def test_send_notification_tellfinder(self, mock_whisper):
+        test_dict = {"Total": 31,
+                     "Earliest Ad": "1955-11-15",
+                     "Latest Ad": "2017-02-05"}
+
+        sms.tasks.send_notification_tellfinder(test_dict,
+                                               self.john.id,
+                                               "+15558675309")
+
+        self.assertTrue(mock_whisper.called)
 
 
 @override_settings(TWILIO_ACCOUNT_SID='ACxxxx',
