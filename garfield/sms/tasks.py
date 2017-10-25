@@ -110,7 +110,10 @@ def lookup_john_whitepages(john_id, twilio_number):
     if lookup.add_ons['status'] == 'successful':
         john = apply_lookup_whitepages_to_john(john, lookup)
 
-        john.save()
+        fields = [field.name for field in John._meta.get_fields()
+                  if field.name.startswith('whitepages')]
+
+        john.save(update_fields=fields)
 
     if lookup.add_ons['status'] == 'successful':
         send_notification_whitepages.apply_async(args=[john.id,
@@ -195,7 +198,10 @@ def lookup_john_nextcaller(john_id, twilio_number):
     if lookup.add_ons['status'] == 'successful':
         john = apply_lookup_nextcaller_to_john(john, lookup)
 
-        john.save()
+        fields = [field.name for field in John._meta.get_fields()
+                  if field.name.startswith('nextcaller')]
+
+        john.save(update_fields=fields)
 
     if lookup.add_ons['status'] == 'successful':
         send_notification_nextcaller.apply_async(args=[john.id,
