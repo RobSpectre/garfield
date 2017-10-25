@@ -659,6 +659,7 @@ class TaskLookupJohnNextCallerTestCase(TestCase):
         self.assertIn("123 Paper Street", body)
 
 
+@override_settings(TELLFINDER_API_KEY="xxx")
 class TaskLookupJohnTellfinderTestCase(TestCase):
     def setUp(self):
         self.john = John.objects.create(phone_number="+15556667777")
