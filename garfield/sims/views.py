@@ -10,16 +10,18 @@ from twilio.twiml.voice_response import VoiceResponse
 from sms.decorators import twilio_view
 from sms.tasks import save_sms_message
 from sms.models import SmsMessage
+
 from phone_numbers.models import PhoneNumber
+
+from voice.tasks import save_call
+from voice.tasks import save_voice_recording
+
+from .models import Whisper
 
 
 @twilio_view
 def sms_receive(request):
     response = MessagingResponse()
-
-    if request.POST['Body'].startswith("whisper:"):
-        response.redirect(reverse("sims:whisper"))
-        return response
 
     try:
         result = PhoneNumber.objects.get(e164=request.POST['To'])
@@ -31,6 +33,16 @@ def sms_receive(request):
                          to="sim:{0}".format(result.related_sim.sid),
                          from_=request.POST['From'])
 
+        whispers = Whisper.objects.filter(related_phone_number=result,
+                                          sent=False)
+
+        for whisper in whispers:
+            response.message(whisper.body,
+                             to="sim:{0}".format(result.related_sim.sid),
+                             from_=request.POST['From'])
+            whisper.sent = True
+            whisper.save()
+
     save_sms_message.apply_async(args=[request.POST])
 
     return response
@@ -39,6 +51,12 @@ def sms_receive(request):
 @twilio_view
 def sms_send(request):
     response = MessagingResponse()
+
+    if request.POST['To'] == settings.TWILIO_PHONE_NUMBER:
+        response.redirect(reverse('sms:index'))
+
+        return response
+
     try:
         result = \
             SmsMessage.objects \
@@ -67,11 +85,15 @@ def voice_receive(request):
         result = None
 
     if result and result.related_sim.sid:
-        with response.dial(caller_id=request.POST['From'],
-                           record=True) as dial:
-            dial.sim(result.related_sim.sid)
+        dial = response.dial(caller_id=request.POST['From'],
+                             record=True,
+                             recording_status_callback=reverse('sims:'
+                                                               'recording'))
+        dial.sim(result.related_sim.sid)
     else:
         response.record()
+
+    save_call.apply_async(args=[request.POST])
 
     return response
 
@@ -87,11 +109,24 @@ def voice_send(request):
 
         response.dial(request.POST['To'],
                       caller_id=result.related_phone_number.e164,
-                      record=True)
+                      record=True,
+                      recording_status_callback=reverse('sims:recording'))
     except ObjectDoesNotExist:
         response.dial(request.POST['To'],
                       caller_id=settings.TWILIO_PHONE_NUMBER,
-                      record=True)
+                      record=True,
+                      recording_status_callback=reverse('sims:recording'))
+
+    save_call.apply_async(args=[request.POST])
+
+    return response
+
+
+@twilio_view
+def voice_recording(request):
+    response = VoiceResponse()
+
+    save_voice_recording.apply_async(args=[request.POST])
 
     return response
 

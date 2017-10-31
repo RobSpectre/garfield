@@ -1,0 +1,10 @@
+{% spaceless %}
+{% autoescape off %}
+[NextCaller Location Results]
+===
+{% if nextcaller_address %}{{ nextcaller_address }}{% endif %}
+{% if nextcaller_address_two %}{{ nextcaller_address_two }}{% endif %}
+{% if nextcaller_city %}{{ nextcaller_city}}{% endif %}, {% if nextcaller_state %}{{ nextcaller_state }}{% endif %}{% if nextcaller_zip_code %}{{ nextcaller_zip_code }}{% endif %}
+{% if nextcaller_country %}{{ nextcaller_country }}{% endif %}
+{% endautoescape %}
+{% endspaceless %}

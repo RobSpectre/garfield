@@ -1,0 +1,13 @@
+{% spaceless %}
+{% autoescape off %}
+[Whitepages Location Results]
+===
+Address
+---
+{% if whitepages_latitude %}Location: https://www.google.com/maps/?q={{ whitepages_latitude }},{{ whitepages_longitude }}{% endif %}
+{% if whitepages_address %}{{ whitepages_address }}{% endif %}
+{% if whitepages_address_two %}{{ whitepages_address_two }}{% endif %}
+{% if whitepages_city %}{{ whitepages_city}}{% endif %}, {% if whitepages_state %}{{ whitepages_state }} {% endif %}{% if whitepages_zip_code %}{{ whitepages_zip_code }} {% endif %}
+{% if whitepages_country %}{{ whitepages_country }}{% endif %}
+{% endautoescape %}
+{% endspaceless %}

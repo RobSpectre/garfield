@@ -1,0 +1,15 @@
+{% spaceless %}
+{% autoescape off %}
+[NextCaller Demographic Results]
+===
+{% if nextcaller_marital_status %}Marital Status: {{ nextcaller_marital_status }}{% endif %}
+{% if nextcaller_home_owner_status %}Homeowner Status: {{ nextcaller_home_owner_status }}{% endif %}
+{% if nextcaller_education %}Education: {{ nextcaller_education }}{% endif %}
+{% if nextcaller_household_income %}Household Income: {{ nextcaller_household_income }}{% endif %}
+{% if nextcaller_length_of_residence %}Length of Residence: {{ nextcaller_length_of_residence }}{% endif %}
+{% if nextcaller_market_value %}Market Value: {{ nextcaller_market_value }}{% endif %}
+{% if nextcaller_occupation %}Occupation: {{ nextcaller_occupation }}{% endif %}
+{% if nextcaller_children_presence %}Presence of Children: {{ nextcaller_children_presence }}{% endif %}
+{% if nextcaller_high_net_worth %}High Net Worth: {{ nextcaller_high_net_worth }}{% endif %}
+{% endautoescape %}
+{% endspaceless %}

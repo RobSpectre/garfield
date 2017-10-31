@@ -15,3 +15,23 @@ class Sim(models.Model):
     def __str__(self):
         return "{0}: {1}".format(self.sid,
                                  self.friendly_name)
+
+
+class Whisper(models.Model):
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+    deleted = models.BooleanField(default=False)
+
+    body = models.TextField()
+    sent = models.BooleanField(default=False)
+    related_phone_number = models.ForeignKey('phone_numbers.PhoneNumber',
+                                             null=True,
+                                             related_name="whispers")
+    related_john = models.ForeignKey('johns.John',
+                                     null=True,
+                                     related_name="whispers")
+
+    def __str__(self):
+        return "Whisper for {0}: " \
+               "{1}".format(self.related_phone_number.phone_number,
+                            self.date_created)

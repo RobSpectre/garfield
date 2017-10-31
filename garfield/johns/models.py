@@ -1,5 +1,7 @@
 from django.db import models
 
+from phone_numbers.models import PhoneNumber
+
 
 class John(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
@@ -158,7 +160,10 @@ class John(models.Model):
     registed_offender = models.BooleanField(default=False)
     arrested = models.BooleanField(default=False)
     deterred = models.BooleanField(default=False)
+    do_not_deter = models.BooleanField(default=False)
     deterrents_received = models.IntegerField(default=0)
+
+    related_phone_numbers = models.ManyToManyField(PhoneNumber)
 
     def __str__(self):
         return "{0}: {1} {2}".format(self.phone_number,

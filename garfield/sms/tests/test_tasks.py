@@ -38,6 +38,8 @@ class TaskSmsMessageTestCase(TestCase):
                                                        country_code="1",
                                                        related_sim=self.sim)
 
+        self.john = John.objects.create(phone_number="+15556667778")
+
         self.sms_message = SmsMessage \
             .objects.create(sid="MMxxxx",
                             from_number="+15556667777",
@@ -90,11 +92,11 @@ class TaskSmsMessageTestCase(TestCase):
     @patch('twilio.rest.api.v2010.account.message.MessageList.create')
     def test_send_whisper(self, mock_messages_create):
         test_json = json.dumps({"From": "+15556667778",
-                                "To": "+1555867310",
+                                "To": "+1555867309",
                                 "Body": "Test."})
 
         sms.tasks.send_whisper(from_="+15556667778",
-                               to="+15558675310",
+                               to="+15558675309",
                                body="Test.")
 
         mock_messages_create.called_with(from_="+15556667777",

@@ -1,0 +1,12 @@
+{% spaceless %}
+{% autoescape off %}
+[NextCaller Identity Results]
+===
+{% if nextcaller_first_name %}Name: {{ nextcaller_first_name }} {% endif %}{% if nextcaller_middle_name %}{{ nextcaller_middle_name }} {% endif %}{% if nextcaller_last_name %}{{ nextcaller_last_name }}{% endif %}{% if nextcaller_business_name %}Business: {{ nextcaller_business_name }}{% endif %}
+{% if nextcaller_gender %}Gender: {{ nextcaller_gender }}{% endif %}
+{% if nextcaller_age %}Age: {{ nextcaller_age }}{% endif %}
+{% if nextcaller_carrier %}Phone: {{ nextcaller_carrier }}{% endif %}
+{% if nextcaller_phone_type %}Type: {{ nextcaller_phone_type }}{% endif %}
+{% if nextcaller_email %}Email: {{ nextcaller_email }}{% endif %}
+{% endautoescape %}
+{% endspaceless %}

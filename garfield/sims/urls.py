@@ -9,4 +9,5 @@ urlpatterns = [
     url(r'^voice/receive/$', views.voice_receive, name="voice_receive"),
     url(r'^voice/send/$', views.voice_send, name="voice_send"),
     url(r'^whisper/$', views.whisper, name="whisper"),
+    url(r'^voice/recording/$', views.voice_recording, name="recording"),
 ]

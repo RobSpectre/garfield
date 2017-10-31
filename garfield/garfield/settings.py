@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'johns',
     'phone_numbers',
     'sims',
+    'voice',
     'django_celery_results',
     'django_celery_beat'
 ]

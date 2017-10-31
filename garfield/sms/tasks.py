@@ -1,5 +1,3 @@
-import json
-
 from celery import shared_task
 
 from django.conf import settings
@@ -12,6 +10,7 @@ from twilio.rest import Client
 
 from phone_numbers.models import PhoneNumber
 from johns.models import John
+from sims.models import Whisper
 
 from .models import SmsMessage
 
@@ -41,15 +40,30 @@ def save_sms_message(message):
 
         check_john.apply_async(args=[message])
 
+    if John.objects.filter(phone_number=message['To']):
+        john = John.objects.get(phone_number=message['To'])
+        record.related_john = john
+        record.save()
+
+    if John.objects.filter(phone_number=message['From']):
+        john = John.objects.get(phone_number=message['From'])
+        record.related_john = john
+        record.save()
+
 
 @shared_task
-def send_sms_message(from_=None, to=None, body=None):
+def send_sms_message(from_=None, to=None, body=None, media_url=None):
     client = Client(settings.TWILIO_ACCOUNT_SID,
                     settings.TWILIO_AUTH_TOKEN)
 
-    return client.messages.create(to,
-                                  from_=from_,
-                                  body=body)
+    client.messages.create(to,
+                           from_=from_,
+                           body=body,
+                           media_url=media_url)
+
+    return "SMS Message from {0} to {1}: {2}".format(from_,
+                                                     to,
+                                                     body)
 
 
 @shared_task
@@ -63,26 +77,30 @@ def lookup_phone_number(phone_number, type=None, addons=None):
 
 @shared_task
 def send_whisper(from_=None, to=None, body=None):
-    whisper = {"To": to,
-               "From": from_,
-               "Body": body}
+    phone_number = PhoneNumber.objects.get(e164=to)
+    john = John.objects.get(phone_number=from_)
 
-    whisper_json = json.dumps(whisper)
+    whisper = Whisper(related_phone_number=phone_number,
+                      related_john=john,
+                      body=body)
 
-    send_sms_message(from_=settings.TWILIO_WHISPER_NUMBER,
-                     to=settings.TWILIO_PHONE_NUMBER,
-                     body="whisper:{0}".format(whisper_json))
+    whisper.save()
 
 
 @shared_task
 def check_john(message):
+    phone_number = PhoneNumber.objects.get(e164=message['To'])
+
     result = \
         John.objects.filter(phone_number=message['From'])
 
     if not result:
         john = John(phone_number=message['From'])
-
         john.save()
+
+        john.related_phone_numbers.add(phone_number)
+        john.save()
+
         lookup_john.apply_async(args=[message['From'],
                                       message['To']])
     elif not result[0].identified:
@@ -114,6 +132,9 @@ def lookup_john_whitepages(john_id, twilio_number):
                   if field.name.startswith('whitepages')]
 
         john.save(update_fields=fields)
+
+        john.identified = True
+        john.save(update_fields=['identified'])
 
     if lookup.add_ons['status'] == 'successful':
         send_notification_whitepages.apply_async(args=[john.id,
@@ -175,17 +196,22 @@ def send_notification_whitepages(john_id, twilio_number):
     number = PhoneNumber.objects.get(e164=twilio_number)
     john = John.objects.get(pk=john_id)
 
-    body = render_to_string("sms_notification_whitepages.html",
-                            model_to_dict(john,
-                                          exclude=['id']))
-
     kwargs = {'from_': john.phone_number,
-              'to': "sim:{0}".format(number.related_sim.sid),
-              'body': body}
+              'to': number.e164}
 
+    identity = render_to_string("sms_notification_whitepages_identity.html",
+                                model_to_dict(john))
+
+    kwargs['body'] = identity
     send_whisper.apply_async(kwargs=kwargs)
 
-    return body
+    location = render_to_string("sms_notification_whitepages_location.html",
+                                model_to_dict(john))
+
+    kwargs['body'] = location
+    send_whisper.apply_async(kwargs=kwargs)
+
+    return {'results': [identity, location]}
 
 
 @shared_task
@@ -274,17 +300,34 @@ def send_notification_nextcaller(john_id, twilio_number):
     number = PhoneNumber.objects.get(e164=twilio_number)
     john = John.objects.get(pk=john_id)
 
-    body = render_to_string("sms_notification_nextcaller.html",
+    kwargs = {'from_': john.phone_number,
+              'to': number.e164}
+
+    identity = render_to_string("sms_notification_nextcaller_identity.html",
                             model_to_dict(john,
                                           exclude=['id']))
 
-    kwargs = {'from_': john.phone_number,
-              'to': "sim:{0}".format(number.related_sim.sid),
-              'body': body}
+    kwargs['body'] = identity
 
     send_whisper.apply_async(kwargs=kwargs)
 
-    return body
+    location = render_to_string("sms_notification_nextcaller_location.html",
+                            model_to_dict(john,
+                                          exclude=['id']))
+
+    kwargs['body'] = location
+
+    send_whisper.apply_async(kwargs=kwargs)
+
+    demo = render_to_string("sms_notification_nextcaller_demographics.html",
+                            model_to_dict(john,
+                                          exclude=['id']))
+
+    kwargs['body'] = demo
+
+    send_whisper.apply_async(kwargs=kwargs)
+
+    return {"results": [identity, location, demo]}
 
 
 @shared_task
@@ -314,13 +357,13 @@ def lookup_john_tellfinder(john_id, twilio_number):
                                                            twilio_number])
     elif results.status_code == 403:
         kwargs = {'from_': john.phone_number,
-                  'to': "sim:{0}".format(number.related_sim.sid),
+                  'to': number.e164,
                   'body': "Error authenticating to TellFinder API."}
 
         send_whisper.apply_async(kwargs=kwargs)
     elif results.status_code >= 500:
         kwargs = {'from_': john.phone_number,
-                  'to': "sim:{0}".format(number.related_sim.sid),
+                  'to': number.e164,
                   'body': "TellFinder API failed - service possible "
                           "unavailable"}
 
@@ -338,9 +381,37 @@ def send_notification_tellfinder(data, john_id, twilio_number):
                             data)
 
     kwargs = {'from_': john.phone_number,
-              'to': "sim:{0}".format(number.related_sim.sid),
+              'to': number.e164,
               'body': body}
 
     send_whisper.apply_async(kwargs=kwargs)
 
     return body
+
+
+@shared_task
+def send_deterrence(message):
+    number = PhoneNumber.objects.get(e164=message['To'])
+
+    for john in number.john_set.all():
+        if not john.deterred and not john.do_not_deter:
+            if john.whitepages_first_name:
+                kwargs = {"from_": number.e164,
+                          "to": john.phone_number,
+                          "body": "{0}, a message from "
+                                  "NYPD.".format(john.whitepages_first_name),
+                          "media_url": "https://john-honey-pot.herok"
+                                       "uapp.com/static/images/john_"
+                                       "ad.jpg"}
+                send_sms_message.apply_async(kwargs=kwargs)
+            else:
+                kwargs = {"from_": number.e164,
+                          "to": john.phone_number,
+                          "body": "A message from NYPD.",
+                          "media_url": "https://john-honey-pot.herok"
+                                       "uapp.com/static/images/john_"
+                                       "ad.jpg"}
+                send_sms_message.apply_async(kwargs=kwargs)
+
+            john.deterred = True
+            john.save()
