@@ -1,3 +1,5 @@
+from mock import patch
+
 from django.test import TestCase
 from django.test import Client
 from django.test import override_settings
@@ -81,8 +83,10 @@ class RouterTestCase(GarfieldTwilioTestCase):
 
         self.assert_twiml(response)
 
-    def test_call_extra_parameters(self):
+    @patch('voice.tasks.save_call.apply_async')
+    def test_call_extra_parameters(self, mock_save_call):
         response = self.client.call("Test.", path="/sims/voice/receive/",
                                     extra_params={'Stuff': "Things"})
 
         self.assert_twiml(response)
+        self.assertTrue(mock_save_call.called)

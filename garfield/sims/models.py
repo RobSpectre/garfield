@@ -33,5 +33,5 @@ class Whisper(models.Model):
 
     def __str__(self):
         return "Whisper for {0}: " \
-               "{1}".format(self.related_phone_number.phone_number,
+               "{1}".format(self.related_phone_number.e164,
                             self.date_created)

@@ -12,7 +12,7 @@ from sms.tests.test_sms import GarfieldTwilioTestCase
 from sms.tests.test_sms import GarfieldTwilioTestClient
 
 
-@override_settings(TWILIO_PHONE_NUMBER="+15556667777")
+@override_settings(TWILIO_PHONE_NUMBER="+15558675309")
 class GarfieldTestSimSmsCaseNewJohn(GarfieldTwilioTestCase):
     @patch('sms.tasks.save_sms_message.apply_async')
     def test_sim_receive_sms(self, mock_save_sms_message):
@@ -90,22 +90,27 @@ class GarfieldTestSimSmsCaseExistingJohn(GarfieldTestCaseWithJohn):
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
 class GarfieldSimVoiceTestCase(GarfieldTwilioTestCase):
-    def test_sims_receive_call(self):
+    @patch('voice.tasks.save_call.apply_async')
+    def test_sims_receive_call(self, mock_save_call):
         response = self.client.call("Test.",
                                     path="/sims/voice/receive/")
 
         self.assert_twiml(response)
+        self.assertTrue(mock_save_call.called)
 
-    def test_sims_send_call(self):
+    @patch('voice.tasks.save_call.apply_async')
+    def test_sims_send_call(self, mock_save_call):
         response = self.client.call("Test.",
                                     path="/sims/voice/send/")
 
         self.assert_twiml(response)
+        self.assertTrue(mock_save_call.called)
 
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
 class GarfieldSimVoiceTestCaseExistingJohn(GarfieldTestCaseWithJohn):
-    def test_sims_receive_call(self):
+    @patch('voice.tasks.save_call.apply_async')
+    def test_sims_receive_call(self, mock_save_call):
         response = self.client.call("+15558675309",
                                     path="/sims/voice/receive/")
 
@@ -114,8 +119,10 @@ class GarfieldSimVoiceTestCaseExistingJohn(GarfieldTestCaseWithJohn):
                             'callerId="+15556667777"')
         self.assertContains(response,
                             "<Sim>DExxx</Sim>")
+        self.assertTrue(mock_save_call.called)
 
-    def test_sims_send_call(self):
+    @patch('voice.tasks.save_call.apply_async')
+    def test_sims_send_call(self, mock_save_call):
         response = self.client.call("+15556667777",
                                     path="/sims/voice/send/")
 
@@ -124,3 +131,4 @@ class GarfieldSimVoiceTestCaseExistingJohn(GarfieldTestCaseWithJohn):
                             'callerId="+15558675309"')
         self.assertContains(response,
                             "+15556667777</Dial>")
+        self.assertTrue(mock_save_call.called)
