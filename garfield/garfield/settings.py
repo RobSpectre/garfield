@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sms',
-    'johns',
+    'contacts',
     'phone_numbers',
     'sims',
     'voice',

@@ -3,7 +3,7 @@ from django.contrib import admin
 from sms.models import SmsMessage
 from voice.models import Call
 
-from .models import John
+from .models import Contact
 
 
 class SmsMessageInline(admin.TabularInline):
@@ -36,6 +36,6 @@ class CallInline(admin.TabularInline):
             return 1
 
 
-@admin.register(John)
-class JohnAdmin(admin.ModelAdmin):
+@admin.register(Contact)
+class ContactAdmin(admin.ModelAdmin):
     inlines = [SmsMessageInline, CallInline]

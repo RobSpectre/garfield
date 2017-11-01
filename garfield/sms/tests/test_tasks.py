@@ -10,7 +10,7 @@ from mock import MagicMock
 
 import responses
 
-from johns.models import John
+from contacts.models import Contact
 from phone_numbers.models import PhoneNumber
 from sims.models import Sim
 
@@ -38,7 +38,7 @@ class TaskSmsMessageTestCase(TestCase):
                                                        country_code="1",
                                                        related_sim=self.sim)
 
-        self.john = John.objects.create(phone_number="+15556667778")
+        self.contact = Contact.objects.create(phone_number="+15556667778")
 
         self.sms_message = SmsMessage \
             .objects.create(sid="MMxxxx",
@@ -47,8 +47,8 @@ class TaskSmsMessageTestCase(TestCase):
                             body="Test.",
                             related_phone_number=self.phone_number)
 
-    @patch('sms.tasks.check_john.apply_async')
-    def test_save_sms_message_received(self, mock_check_john):
+    @patch('sms.tasks.check_contact.apply_async')
+    def test_save_sms_message_received(self, mock_check_contact):
         sms.tasks.save_sms_message({'MessageSid': 'MMxxxx',
                                     'From': '+15556667777',
                                     'To': '+15558675309',
@@ -61,7 +61,7 @@ class TaskSmsMessageTestCase(TestCase):
         self.assertEquals(result.related_phone_number,
                           self.phone_number)
 
-        self.assertTrue(mock_check_john.called)
+        self.assertTrue(mock_check_contact.called)
 
     def test_save_sms_message_sent(self):
         sms.tasks.save_sms_message({'MessageSid': 'MMxxxx',
@@ -104,7 +104,7 @@ class TaskSmsMessageTestCase(TestCase):
                                          body="whisper:{0}".format(test_json))
 
 
-class TaskLookupJohnJohnDoesNotExistTestCase(TestCase):
+class TaskLookupContactContactDoesNotExistTestCase(TestCase):
     def setUp(self):
         self.sim = Sim.objects.create(friendly_name="TestSim",
                                       sid="DExxx",
@@ -123,25 +123,25 @@ class TaskLookupJohnJohnDoesNotExistTestCase(TestCase):
                                                        country_code="1",
                                                        related_sim=self.sim)
 
-    @patch('sms.tasks.lookup_john.apply_async')
-    def test_check_john_john_does_not_exist(self, mock_lookup_john):
-        sms.tasks.check_john({'MessageSid': 'MMxxxx',
-                              'To': '+15558675309',
-                              'From': '+15556667777',
-                              'Body': 'Test.'})
+    @patch('sms.tasks.lookup_contact.apply_async')
+    def test_check_contact_contact_does_not_exist(self, mock_lookup_contact):
+        sms.tasks.check_contact({'MessageSid': 'MMxxxx',
+                                 'To': '+15558675309',
+                                 'From': '+15556667777',
+                                 'Body': 'Test.'})
 
-        result = John.objects.all().latest('date_created')
+        result = Contact.objects.all().latest('date_created')
 
         self.assertEquals(result.phone_number,
                           '+15556667777')
-        self.assertTrue(mock_lookup_john.called)
+        self.assertTrue(mock_lookup_contact.called)
 
-    def test_lookup_john_john_does_not_exist(self):
+    def test_lookup_contact_contact_does_not_exist(self):
         with self.assertRaises(ObjectDoesNotExist):
-            sms.tasks.lookup_john("+15556667777", "+15558675309")
+            sms.tasks.lookup_contact("+15556667777", "+15558675309")
 
 
-class TaskLookupJohnTestCase(TestCase):
+class TaskLookupContactTestCase(TestCase):
     def setUp(self):
         self.sim = Sim.objects.create(friendly_name="TestSim",
                                       sid="DExxx",
@@ -160,50 +160,50 @@ class TaskLookupJohnTestCase(TestCase):
                                                        country_code="1",
                                                        related_sim=self.sim)
 
-        self.john = John.objects.create(phone_number="+15556667777")
+        self.contact = Contact.objects.create(phone_number="+15556667777")
 
         self.message = {"From": "+15556667777",
                         "To": "+15558675309",
                         "Body": "Test."}
 
-    @patch('sms.tasks.lookup_john.apply_async')
-    def test_check_john(self, mock_lookup_john):
-        sms.tasks.check_john(self.message)
+    @patch('sms.tasks.lookup_contact.apply_async')
+    def test_check_contact(self, mock_lookup_contact):
+        sms.tasks.check_contact(self.message)
 
-        mock_lookup_john.assert_called_with(args=[self.message['From'],
-                                                  self.message['To']])
+        mock_lookup_contact.assert_called_with(args=[self.message['From'],
+                                                     self.message['To']])
 
-    @patch('sms.tasks.lookup_john.apply_async')
-    def test_check_john_already_identified(self, mock_lookup_john):
-        self.john.identified = True
-        self.john.save()
+    @patch('sms.tasks.lookup_contact.apply_async')
+    def test_check_contact_already_identified(self, mock_lookup_contact):
+        self.contact.identified = True
+        self.contact.save()
 
-        self.assertFalse(mock_lookup_john.called)
+        self.assertFalse(mock_lookup_contact.called)
 
-    @patch('sms.tasks.lookup_john_tellfinder.apply_async')
-    @patch('sms.tasks.lookup_john_nextcaller.apply_async')
-    @patch('sms.tasks.lookup_john_whitepages.apply_async')
-    def test_lookup_john(self,
-                         mock_lookup_john_whitepages,
-                         mock_lookup_john_nextcaller,
-                         mock_lookup_john_tellfinder):
-        sms.tasks.lookup_john(self.message["From"],
-                              self.message["To"])
+    @patch('sms.tasks.lookup_contact_tellfinder.apply_async')
+    @patch('sms.tasks.lookup_contact_nextcaller.apply_async')
+    @patch('sms.tasks.lookup_contact_whitepages.apply_async')
+    def test_lookup_contact(self,
+                            mock_lookup_contact_whitepages,
+                            mock_lookup_contact_nextcaller,
+                            mock_lookup_contact_tellfinder):
+        sms.tasks.lookup_contact(self.message["From"],
+                                 self.message["To"])
 
-        mock_lookup_john_whitepages \
-            .assert_called_with(args=[self.john.id,
+        mock_lookup_contact_whitepages \
+            .assert_called_with(args=[self.contact.id,
                                       self.message['To']])
-        mock_lookup_john_nextcaller \
-            .assert_called_with(args=[self.john.id,
+        mock_lookup_contact_nextcaller \
+            .assert_called_with(args=[self.contact.id,
                                       self.message['To']])
-        mock_lookup_john_tellfinder \
-            .assert_called_with(args=[self.john.id,
+        mock_lookup_contact_tellfinder \
+            .assert_called_with(args=[self.contact.id,
                                       self.message['To']])
 
 
-class TaskLookupJohnWhitepagesTestCase(TestCase):
+class TaskLookupContactWhitepagesTestCase(TestCase):
     def setUp(self):
-        self.john = John.objects.create(phone_number="+15556667777")
+        self.contact = Contact.objects.create(phone_number="+15556667777")
 
         self.message = {"From": "+15556667777",
                         "To": "+15558675309",
@@ -297,40 +297,40 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
                             ':"xxxx","status":"successful","message":null}}'
 
     @patch('sms.tasks.send_notification_whitepages.apply_async')
-    @patch('sms.tasks.apply_lookup_whitepages_to_john')
+    @patch('sms.tasks.apply_lookup_whitepages_to_contact')
     @patch('sms.tasks.lookup_phone_number')
-    def test_lookup_john_whitepages(self,
-                                    mock_lookup,
-                                    mock_apply,
-                                    mock_notification):
+    def test_lookup_contact_whitepages(self,
+                                       mock_lookup,
+                                       mock_apply,
+                                       mock_notification):
         mock_return = Mock()
         mock_return.add_ons = MagicMock()
         mock_return.add_ons.__getitem__.return_value = "successful"
         mock_lookup.return_value = mock_return
 
-        mock_apply.return_value = self.john
+        mock_apply.return_value = self.contact
 
-        sms.tasks.lookup_john_whitepages(self.john.id, "+15558675309")
+        sms.tasks.lookup_contact_whitepages(self.contact.id, "+15558675309")
 
         self.assertTrue(mock_lookup.called)
         self.assertTrue(mock_apply.called)
         self.assertTrue(mock_notification.called)
 
     @patch('sms.tasks.send_notification_whitepages.apply_async')
-    @patch('sms.tasks.apply_lookup_whitepages_to_john')
+    @patch('sms.tasks.apply_lookup_whitepages_to_contact')
     @patch('sms.tasks.lookup_phone_number')
-    def test_lookup_john_whitepages_failure(self,
-                                            mock_lookup,
-                                            mock_apply,
-                                            mock_notification):
+    def test_lookup_contact_whitepages_failure(self,
+                                               mock_lookup,
+                                               mock_apply,
+                                               mock_notification):
         mock_return = Mock()
         mock_return.add_ons = MagicMock()
         mock_return.add_ons.__getitem__.return_value = "failed"
         mock_lookup.return_value = mock_return
 
-        mock_apply.return_value = self.john
+        mock_apply.return_value = self.contact
 
-        sms.tasks.lookup_john_whitepages(self.john.id, "+15558675309")
+        sms.tasks.lookup_contact_whitepages(self.contact.id, "+15558675309")
 
         self.assertTrue(mock_lookup.called)
         self.assertFalse(mock_apply.called)
@@ -338,28 +338,28 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
 
     @patch('sms.tasks.send_whisper.apply_async')
     def test_notification_whitepages(self, mock_whisper):
-        self.john.whitepages_first_name = "John"
-        self.john.whitepages_middle_name = "F."
-        self.john.whitepages_last_name = "Doe"
-        self.john.whitepages_address = "123 Paper Street"
-        self.john.whitepages_address_two = "Apt. A"
-        self.john.whitepages_city = "Johnstown"
-        self.john.whitepages_state = "VA"
-        self.john.whitepages_zip_code = "55555"
-        self.john.carrier = "AT&T"
-        self.john.phone_number_type = "mobile"
-        self.john.save()
+        self.contact.whitepages_first_name = "Contact"
+        self.contact.whitepages_middle_name = "F."
+        self.contact.whitepages_last_name = "Doe"
+        self.contact.whitepages_address = "123 Paper Street"
+        self.contact.whitepages_address_two = "Apt. A"
+        self.contact.whitepages_city = "Contactstown"
+        self.contact.whitepages_state = "VA"
+        self.contact.whitepages_zip_code = "55555"
+        self.contact.carrier = "AT&T"
+        self.contact.phone_number_type = "mobile"
+        self.contact.save()
 
-        body = sms.tasks.send_notification_whitepages(self.john.id,
+        body = sms.tasks.send_notification_whitepages(self.contact.id,
                                                       "+15558675309")
 
         self.assertTrue(mock_whisper.called)
         self.assertIn("Whitepages Identity Results", body['results'][0])
-        self.assertIn("John F. Doe", body['results'][0])
+        self.assertIn("Contact F. Doe", body['results'][0])
         self.assertIn("123 Paper Street", body['results'][1])
         self.assertIn("AT&T", body['results'][0])
 
-    def test_apply_lookup_whitepages_to_john_person(self):
+    def test_apply_lookup_whitepages_to_contact_person(self):
         payload = json.loads(self.add_ons_person)
         mock_lookup = Mock()
         mock_lookup.add_ons = MagicMock()
@@ -369,8 +369,8 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
         mock_lookup.carrier.__getitem__.return_value = "Test."
         mock_lookup.national_format.return_value = "(555) 666-7777"
 
-        test = sms.tasks.apply_lookup_whitepages_to_john(self.john,
-                                                         mock_lookup)
+        test = sms.tasks.apply_lookup_whitepages_to_contact(self.contact,
+                                                            mock_lookup)
 
         self.assertTrue(test.identified)
         self.assertEquals(test.whitepages_first_name,
@@ -383,7 +383,7 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
                           40.328487)
         self.assertEquals(test.carrier, "Test.")
 
-    def test_apply_lookup_whitepages_to_john_person_no_address(self):
+    def test_apply_lookup_whitepages_to_contact_person_no_address(self):
         payload = json.loads(self.add_ons_person)
 
         payload['whitepages_pro_caller_id'
@@ -397,8 +397,8 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
         mock_lookup.carrier.__getitem__.return_value = "Test."
         mock_lookup.national_format.return_value = "(555) 666-7777"
 
-        test = sms.tasks.apply_lookup_whitepages_to_john(self.john,
-                                                         mock_lookup)
+        test = sms.tasks.apply_lookup_whitepages_to_contact(self.contact,
+                                                            mock_lookup)
 
         self.assertTrue(test.identified)
         self.assertEquals(test.whitepages_first_name,
@@ -411,7 +411,7 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
         self.assertFalse(test.whitepages_latitude)
         self.assertEquals(test.carrier, "Test.")
 
-    def test_apply_lookup_whitepages_to_john_person_no_belongs(self):
+    def test_apply_lookup_whitepages_to_contact_person_no_belongs(self):
         payload = json.loads(self.add_ons_person)
 
         payload['whitepages_pro_caller_id'
@@ -425,15 +425,15 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
         mock_lookup.carrier.__getitem__.return_value = "Test."
         mock_lookup.national_format.return_value = "(555) 666-7777"
 
-        test = sms.tasks.apply_lookup_whitepages_to_john(self.john,
-                                                         mock_lookup)
+        test = sms.tasks.apply_lookup_whitepages_to_contact(self.contact,
+                                                            mock_lookup)
 
         self.assertTrue(test.identified)
         self.assertFalse(test.whitepages_first_name)
         self.assertFalse(test.whitepages_last_name)
         self.assertEquals(test.carrier, "Test.")
 
-    def test_apply_lookup_whitepages_to_john_business(self):
+    def test_apply_lookup_whitepages_to_contact_business(self):
         payload = json.loads(self.add_ons_business)
         mock_lookup = Mock()
         mock_lookup.add_ons = MagicMock()
@@ -443,8 +443,8 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
         mock_lookup.carrier.__getitem__.return_value = "Test."
         mock_lookup.national_format.return_value = "(555) 666-7777"
 
-        test = sms.tasks.apply_lookup_whitepages_to_john(self.john,
-                                                         mock_lookup)
+        test = sms.tasks.apply_lookup_whitepages_to_contact(self.contact,
+                                                            mock_lookup)
 
         self.assertTrue(test.identified)
         self.assertEquals(test.whitepages_entity_type,
@@ -457,7 +457,7 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
                           40.328487)
         self.assertEquals(test.carrier, "Test.")
 
-    def test_apply_lookup_whitepages_to_john_voip(self):
+    def test_apply_lookup_whitepages_to_contact_voip(self):
         payload = json.loads(self.add_ons_voip)
         mock_lookup = Mock()
         mock_lookup.add_ons = MagicMock()
@@ -467,8 +467,8 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
         mock_lookup.carrier.__getitem__.return_value = "Test."
         mock_lookup.national_format.return_value = "(555) 666-7777"
 
-        test = sms.tasks.apply_lookup_whitepages_to_john(self.john,
-                                                         mock_lookup)
+        test = sms.tasks.apply_lookup_whitepages_to_contact(self.contact,
+                                                            mock_lookup)
 
         self.assertTrue(test.identified)
         self.assertFalse(test.whitepages_first_name)
@@ -480,9 +480,9 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
         self.assertEquals(test.phone_number_type, "Test.")
 
 
-class TaskLookupJohnNextCallerTestCase(TestCase):
+class TaskLookupContactNextCallerTestCase(TestCase):
     def setUp(self):
-        self.john = John.objects.create(phone_number="+15556667777")
+        self.contact = Contact.objects.create(phone_number="+15556667777")
 
         self.message = {"From": "+15556667777",
                         "To": "+15558675309",
@@ -543,13 +543,13 @@ class TaskLookupJohnNextCallerTestCase(TestCase):
                                'us":"","gender":"Male","occupation":"' \
                                '","length_of_residence":"","last_name' \
                                '":"","email":"","telco_zip":"95101","' \
-                               'address":[{"line1":"123 Johnny Street' \
-                               '","country":"USA","city":"Johnstown",' \
+                               'address":[{"line1":"123 Contactny Street' \
+                               '","country":"USA","city":"Contactstown",' \
                                '"home_data":null,"line2":"","extended' \
                                '_zip":"","state":"PA","zip_code":"159' \
                                '01"}],"household_income":"","id":"x",' \
                                '"telco_zip_4":"","market_value":"","l' \
-                               'inked_emails":[],"name":"The John Sto' \
+                               'inked_emails":[],"name":"The Contact Sto' \
                                're","first_pronounced":"JAWN","phone"' \
                                ':[{"line_type":"Landline","carrier":"' \
                                'Verizon","number":"5556667778"}],"soc' \
@@ -574,53 +574,53 @@ class TaskLookupJohnNextCallerTestCase(TestCase):
                            ',"message":null}}'
 
     @patch('sms.tasks.send_notification_nextcaller.apply_async')
-    @patch('sms.tasks.apply_lookup_nextcaller_to_john')
+    @patch('sms.tasks.apply_lookup_nextcaller_to_contact')
     @patch('sms.tasks.lookup_phone_number')
-    def test_lookup_john_nextcaller(self,
-                                    mock_lookup,
-                                    mock_apply,
-                                    mock_notification):
+    def test_lookup_contact_nextcaller(self,
+                                       mock_lookup,
+                                       mock_apply,
+                                       mock_notification):
         mock_return = Mock()
         mock_return.add_ons = MagicMock()
         mock_return.add_ons.__getitem__.return_value = "successful"
         mock_lookup.return_value = mock_return
 
-        mock_apply.return_value = self.john
+        mock_apply.return_value = self.contact
 
-        sms.tasks.lookup_john_nextcaller(self.john.id, "+15558675309")
+        sms.tasks.lookup_contact_nextcaller(self.contact.id, "+15558675309")
 
         self.assertTrue(mock_lookup.called)
         self.assertTrue(mock_apply.called)
         self.assertTrue(mock_notification.called)
 
     @patch('sms.tasks.send_notification_nextcaller.apply_async')
-    @patch('sms.tasks.apply_lookup_nextcaller_to_john')
+    @patch('sms.tasks.apply_lookup_nextcaller_to_contact')
     @patch('sms.tasks.lookup_phone_number')
-    def test_lookup_john_nextcaller_unsuccessful(self,
-                                                 mock_lookup,
-                                                 mock_apply,
-                                                 mock_notification):
+    def test_lookup_contact_nextcaller_unsuccessful(self,
+                                                    mock_lookup,
+                                                    mock_apply,
+                                                    mock_notification):
         mock_return = Mock()
         mock_return.add_ons = MagicMock()
         mock_return.add_ons.__getitem__.return_value = "failure"
         mock_lookup.return_value = mock_return
 
-        mock_apply.return_value = self.john
+        mock_apply.return_value = self.contact
 
-        sms.tasks.lookup_john_nextcaller(self.john.id, "+15558675309")
+        sms.tasks.lookup_contact_nextcaller(self.contact.id, "+15558675309")
 
         self.assertTrue(mock_lookup.called)
         self.assertFalse(mock_apply.called)
         self.assertFalse(mock_notification.called)
 
-    def test_apply_lookup_nextcaller_to_john_person(self):
+    def test_apply_lookup_nextcaller_to_contact_person(self):
         payload = json.loads(self.add_on_person)
         mock_lookup = Mock()
         mock_lookup.add_ons = MagicMock()
         mock_lookup.add_ons.__getitem__.return_value = payload
 
-        test = sms.tasks.apply_lookup_nextcaller_to_john(self.john,
-                                                         mock_lookup)
+        test = sms.tasks.apply_lookup_nextcaller_to_contact(self.contact,
+                                                            mock_lookup)
 
         test.save()
 
@@ -634,7 +634,7 @@ class TaskLookupJohnNextCallerTestCase(TestCase):
         self.assertEquals(test.nextcaller_email,
                           "johndoe@john.com")
 
-    def test_apply_lookup_nextcaller_to_john_person_no_records(self):
+    def test_apply_lookup_nextcaller_to_contact_person_no_records(self):
         payload = json.loads(self.add_on_person)
 
         payload['nextcaller_advanced_caller_id'
@@ -644,32 +644,32 @@ class TaskLookupJohnNextCallerTestCase(TestCase):
         mock_lookup.add_ons = MagicMock()
         mock_lookup.add_ons.__getitem__.return_value = payload
 
-        test = sms.tasks.apply_lookup_nextcaller_to_john(self.john,
-                                                         mock_lookup)
+        test = sms.tasks.apply_lookup_nextcaller_to_contact(self.contact,
+                                                            mock_lookup)
 
         self.assertFalse(test.identified)
 
-    def test_apply_lookup_nextcaller_to_john_business(self):
+    def test_apply_lookup_nextcaller_to_contact_business(self):
         payload = json.loads(self.add_on_business)
         mock_lookup = Mock()
         mock_lookup.add_ons = MagicMock()
         mock_lookup.add_ons.__getitem__.return_value = payload
 
-        test = sms.tasks.apply_lookup_nextcaller_to_john(self.john,
-                                                         mock_lookup)
+        test = sms.tasks.apply_lookup_nextcaller_to_contact(self.contact,
+                                                            mock_lookup)
 
         self.assertTrue(test.identified)
         self.assertEquals(test.nextcaller_business_name,
-                          "The John Store")
+                          "The Contact Store")
 
-    def test_apply_lookup_nextcaller_to_john_voip(self):
+    def test_apply_lookup_nextcaller_to_contact_voip(self):
         payload = json.loads(self.add_on_voip)
         mock_lookup = Mock()
         mock_lookup.add_ons = MagicMock()
         mock_lookup.add_ons.__getitem__.return_value = payload
 
-        test = sms.tasks.apply_lookup_nextcaller_to_john(self.john,
-                                                         mock_lookup)
+        test = sms.tasks.apply_lookup_nextcaller_to_contact(self.contact,
+                                                            mock_lookup)
 
         self.assertTrue(test.identified)
         self.assertEquals(test.nextcaller_carrier,
@@ -677,17 +677,17 @@ class TaskLookupJohnNextCallerTestCase(TestCase):
 
     @patch('sms.tasks.send_whisper.apply_async')
     def test_notification_nextcaller(self, mock_whisper):
-        self.john.nextcaller_first_name = "John"
-        self.john.nextcaller_middle_name = "F."
-        self.john.nextcaller_last_name = "Doe"
-        self.john.nextcaller_address = "123 Paper Street"
-        self.john.nextcaller_address_two = "Apt. A"
-        self.john.nextcaller_city = "Johnstown"
-        self.john.nextcaller_state = "VA"
-        self.john.nextcaller_zip_code = "55555"
-        self.john.save()
+        self.contact.nextcaller_first_name = "John"
+        self.contact.nextcaller_middle_name = "F."
+        self.contact.nextcaller_last_name = "Doe"
+        self.contact.nextcaller_address = "123 Paper Street"
+        self.contact.nextcaller_address_two = "Apt. A"
+        self.contact.nextcaller_city = "Johnstown"
+        self.contact.nextcaller_state = "PA"
+        self.contact.nextcaller_zip_code = "55555"
+        self.contact.save()
 
-        body = sms.tasks.send_notification_nextcaller(self.john.id,
+        body = sms.tasks.send_notification_nextcaller(self.contact.id,
                                                       "+15558675309")
 
         self.assertTrue(mock_whisper.called)
@@ -697,9 +697,9 @@ class TaskLookupJohnNextCallerTestCase(TestCase):
 
 
 @override_settings(TELLFINDER_API_KEY="xxx")
-class TaskLookupJohnTellfinderTestCase(TestCase):
+class TaskLookupContactTellfinderTestCase(TestCase):
     def setUp(self):
-        self.john = John.objects.create(phone_number="+15556667777")
+        self.contact = Contact.objects.create(phone_number="+15556667777")
 
         self.message = {"From": "+15556667777",
                         "To": "+15558675309",
@@ -765,15 +765,15 @@ class TaskLookupJohnTellfinderTestCase(TestCase):
     @responses.activate
     @patch('sms.tasks.send_whisper.apply_async')
     @patch('sms.tasks.send_notification_tellfinder.apply_async')
-    def test_lookup_john_tellfinder(self, mock_notification, mock_whisper):
+    def test_lookup_contact_tellfinder(self, mock_notification, mock_whisper):
         responses.add(responses.GET,
                       "https://api.tellfinder.com/facets"
                       "?q=phone:+15556667777&keys[]=posttime",
                       json=json.loads(self.tellfinder_positive_result),
                       status=200)
 
-        test = sms.tasks.lookup_john_tellfinder(self.john.id,
-                                                "+15558675309")
+        test = sms.tasks.lookup_contact_tellfinder(self.contact.id,
+                                                   "+15558675309")
 
         self.assertEquals(len(responses.calls), 1)
         self.assertTrue(mock_notification.called)
@@ -783,17 +783,17 @@ class TaskLookupJohnTellfinderTestCase(TestCase):
     @responses.activate
     @patch('sms.tasks.send_whisper.apply_async')
     @patch('sms.tasks.send_notification_tellfinder.apply_async')
-    def test_lookup_john_tellfinder_negative_results(self,
-                                                     mock_notification,
-                                                     mock_whisper):
+    def test_lookup_contact_tellfinder_negative_results(self,
+                                                        mock_notification,
+                                                        mock_whisper):
         responses.add(responses.GET,
                       "https://api.tellfinder.com/facets"
                       "?q=phone:+15556667777&keys[]=posttime",
                       json=self.tellfinder_negative_result,
                       status=200)
 
-        sms.tasks.lookup_john_tellfinder(self.john.id,
-                                         "+15558675309")
+        sms.tasks.lookup_contact_tellfinder(self.contact.id,
+                                            "+15558675309")
 
         self.assertEquals(len(responses.calls), 1)
         self.assertFalse(mock_notification.called)
@@ -802,17 +802,17 @@ class TaskLookupJohnTellfinderTestCase(TestCase):
     @responses.activate
     @patch('sms.tasks.send_whisper.apply_async')
     @patch('sms.tasks.send_notification_tellfinder.apply_async')
-    def test_lookup_john_tellfinder_wrong_key(self,
-                                              mock_notification,
-                                              mock_whisper):
+    def test_lookup_contact_tellfinder_wrong_key(self,
+                                                 mock_notification,
+                                                 mock_whisper):
         responses.add(responses.GET,
                       "https://api.tellfinder.com/facets"
                       "?q=phone:+15556667777&keys[]=posttime",
                       json={"error": "not authorized"},
                       status=403)
 
-        sms.tasks.lookup_john_tellfinder(self.john.id,
-                                         "+15558675309")
+        sms.tasks.lookup_contact_tellfinder(self.contact.id,
+                                            "+15558675309")
 
         self.assertEquals(len(responses.calls), 1)
         self.assertFalse(mock_notification.called)
@@ -821,17 +821,17 @@ class TaskLookupJohnTellfinderTestCase(TestCase):
     @responses.activate
     @patch('sms.tasks.send_whisper.apply_async')
     @patch('sms.tasks.send_notification_tellfinder.apply_async')
-    def test_lookup_john_tellfinder_server_error(self,
-                                                 mock_notification,
-                                                 mock_whisper):
+    def test_lookup_contact_tellfinder_server_error(self,
+                                                    mock_notification,
+                                                    mock_whisper):
         responses.add(responses.GET,
                       "https://api.tellfinder.com/facets"
                       "?q=phone:+15556667777&keys[]=posttime",
                       json={"error": "not authorized"},
                       status=502)
 
-        sms.tasks.lookup_john_tellfinder(self.john.id,
-                                         "+15558675309")
+        sms.tasks.lookup_contact_tellfinder(self.contact.id,
+                                            "+15558675309")
 
         self.assertEquals(len(responses.calls), 1)
         self.assertFalse(mock_notification.called)
@@ -844,7 +844,7 @@ class TaskLookupJohnTellfinderTestCase(TestCase):
                      "Latest Ad": "2017-02-05"}
 
         sms.tasks.send_notification_tellfinder(test_dict,
-                                               self.john.id,
+                                               self.contact.id,
                                                "+15558675309")
 
         self.assertTrue(mock_whisper.called)

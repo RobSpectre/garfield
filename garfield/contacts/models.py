@@ -3,7 +3,7 @@ from django.db import models
 from phone_numbers.models import PhoneNumber
 
 
-class John(models.Model):
+class Contact(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)
@@ -153,7 +153,7 @@ class John(models.Model):
                                     blank=True,
                                     null=True)
 
-    photo = models.ImageField(upload_to="john_photos/",
+    photo = models.ImageField(upload_to="contact_photos/",
                               blank=True)
 
     identified = models.BooleanField(default=False)

@@ -9,7 +9,7 @@ import requests
 from twilio.rest import Client
 
 from phone_numbers.models import PhoneNumber
-from johns.models import John
+from contacts.models import Contact
 from sims.models import Whisper
 
 from .models import SmsMessage
@@ -38,16 +38,16 @@ def save_sms_message(message):
             record.related_phone_number = phone_number
             record.save()
 
-        check_john.apply_async(args=[message])
+        check_contact.apply_async(args=[message])
 
-    if John.objects.filter(phone_number=message['To']):
-        john = John.objects.get(phone_number=message['To'])
-        record.related_john = john
+    if Contact.objects.filter(phone_number=message['To']):
+        contact = Contact.objects.get(phone_number=message['To'])
+        record.related_contact = contact
         record.save()
 
-    if John.objects.filter(phone_number=message['From']):
-        john = John.objects.get(phone_number=message['From'])
-        record.related_john = john
+    if Contact.objects.filter(phone_number=message['From']):
+        contact = Contact.objects.get(phone_number=message['From'])
+        record.related_contact = contact
         record.save()
 
 
@@ -78,135 +78,137 @@ def lookup_phone_number(phone_number, type=None, addons=None):
 @shared_task
 def send_whisper(from_=None, to=None, body=None):
     phone_number = PhoneNumber.objects.get(e164=to)
-    john = John.objects.get(phone_number=from_)
+    contact = Contact.objects.get(phone_number=from_)
 
     whisper = Whisper(related_phone_number=phone_number,
-                      related_john=john,
+                      related_contact=contact,
                       body=body)
 
     whisper.save()
 
 
 @shared_task
-def check_john(message):
+def check_contact(message):
     phone_number = PhoneNumber.objects.get(e164=message['To'])
 
     result = \
-        John.objects.filter(phone_number=message['From'])
+        Contact.objects.filter(phone_number=message['From'])
 
     if not result:
-        john = John(phone_number=message['From'])
-        john.save()
+        contact = Contact(phone_number=message['From'])
+        contact.save()
 
-        john.related_phone_numbers.add(phone_number)
-        john.save()
+        contact.related_phone_numbers.add(phone_number)
+        contact.save()
 
-        lookup_john.apply_async(args=[message['From'],
-                                      message['To']])
+        lookup_contact.apply_async(args=[message['From'],
+                                         message['To']])
     elif not result[0].identified:
-        lookup_john.apply_async(args=[message['From'],
-                                      message['To']])
+        lookup_contact.apply_async(args=[message['From'],
+                                         message['To']])
 
 
 @shared_task
-def lookup_john(john_number, twilio_number):
-    john = John.objects.get(phone_number=john_number)
+def lookup_contact(contact_number, twilio_number):
+    contact = Contact.objects.get(phone_number=contact_number)
 
-    lookup_john_whitepages.apply_async(args=[john.id, twilio_number])
-    lookup_john_nextcaller.apply_async(args=[john.id, twilio_number])
-    lookup_john_tellfinder.apply_async(args=[john.id, twilio_number])
+    lookup_contact_whitepages.apply_async(args=[contact.id, twilio_number])
+    lookup_contact_nextcaller.apply_async(args=[contact.id, twilio_number])
+    lookup_contact_tellfinder.apply_async(args=[contact.id, twilio_number])
 
 
 @shared_task
-def lookup_john_whitepages(john_id, twilio_number):
-    john = John.objects.get(pk=john_id)
+def lookup_contact_whitepages(contact_id, twilio_number):
+    contact = Contact.objects.get(pk=contact_id)
 
-    lookup = lookup_phone_number(john.phone_number,
+    lookup = lookup_phone_number(contact.phone_number,
                                  type="carrier",
                                  addons="whitepages_pro_caller_id")
 
     if lookup.add_ons['status'] == 'successful':
-        john = apply_lookup_whitepages_to_john(john, lookup)
+        contact = apply_lookup_whitepages_to_contact(contact, lookup)
 
-        fields = [field.name for field in John._meta.get_fields()
+        fields = [field.name for field in Contact._meta.get_fields()
                   if field.name.startswith('whitepages')]
 
-        john.save(update_fields=fields)
+        contact.save(update_fields=fields)
 
-        john.identified = True
-        john.save(update_fields=['identified'])
+        contact.identified = True
+        contact.save(update_fields=['identified'])
 
     if lookup.add_ons['status'] == 'successful':
-        send_notification_whitepages.apply_async(args=[john.id,
+        send_notification_whitepages.apply_async(args=[contact.id,
                                                        twilio_number])
 
 
-def apply_lookup_whitepages_to_john(john, lookup):
+def apply_lookup_whitepages_to_contact(contact, lookup):
     result = lookup.add_ons['results']["whitepages_pro_caller_id"]['result']
 
     if result['belongs_to']:
-        john.whitepages_entity_type = result['belongs_to'][0]['type']
+        contact.whitepages_entity_type = result['belongs_to'][0]['type']
 
-        if john.whitepages_entity_type == "Person":
-            john.whitepages_first_name = result['belongs_to'][0]['firstname']
-            john.whitepages_middle_name = result['belongs_to'][0]['middlename']
-            john.whitepages_last_name = result['belongs_to'][0]['lastname']
-            john.whitepages_gender = result['belongs_to'][0]['gender']
+        if contact.whitepages_entity_type == "Person":
+            contact.whitepages_first_name = result['belongs_to'
+                                                   ][0]['firstname']
+            contact.whitepages_middle_name = result['belongs_to'
+                                                    ][0]['middlename']
+            contact.whitepages_last_name = result['belongs_to'][0]['lastname']
+            contact.whitepages_gender = result['belongs_to'][0]['gender']
         else:
-            john.whitepages_business_name = result['belongs_to'][0]['name']
+            contact.whitepages_business_name = result['belongs_to'][0]['name']
 
     if result['current_addresses']:
-        john.whitepages_address = \
+        contact.whitepages_address = \
             result['current_addresses'][0]['street_line_1']
-        john.whitepages_address_two = \
+        contact.whitepages_address_two = \
             result['current_addresses'][0]['street_line_2']
-        john.whitepages_city = result['current_addresses'][0]['city']
-        john.whitepages_state = result['current_addresses'
-                                       ''][0]['state_code']
-        john.whitepages_country = \
+        contact.whitepages_city = result['current_addresses'][0]['city']
+        contact.whitepages_state = result['current_addresses'
+                                          ][0]['state_code']
+        contact.whitepages_country = \
             result['current_addresses'][0]['country_code']
-        john.whitepages_zip_code = \
+        contact.whitepages_zip_code = \
             result['current_addresses'][0]['postal_code']
-        john.whitepages_address_type = \
+        contact.whitepages_address_type = \
             result['current_addresses'][0]['location_type']
 
         if result['current_addresses'][0]['lat_long']:
-            john.whitepages_latitude = \
+            contact.whitepages_latitude = \
                 result['current_addresses'][0]['lat_long']['latitude']
-            john.whitepages_longitude = \
+            contact.whitepages_longitude = \
                 result['current_addresses'][0]['lat_long']['longitude']
-            john.whitepages_accuracy = \
+            contact.whitepages_accuracy = \
                 result['current_addresses'][0]['lat_long']['accuracy']
 
-    john.whitepages_prepaid = result['is_prepaid']
-    john.whitepages_phone_type = result['line_type']
-    john.whitepages_commercial = result['is_commercial']
+    contact.whitepages_prepaid = result['is_prepaid']
+    contact.whitepages_phone_type = result['line_type']
+    contact.whitepages_commercial = result['is_commercial']
 
-    john.identified = True
+    contact.identified = True
 
-    john.carrier = lookup.carrier['name']
-    john.phone_number_type = lookup.carrier['type']
-    john.phone_number_friendly = lookup.national_format
+    contact.carrier = lookup.carrier['name']
+    contact.phone_number_type = lookup.carrier['type']
+    contact.phone_number_friendly = lookup.national_format
 
-    return john
+    return contact
 
 
 @shared_task
-def send_notification_whitepages(john_id, twilio_number):
+def send_notification_whitepages(contact_id, twilio_number):
     number = PhoneNumber.objects.get(e164=twilio_number)
-    john = John.objects.get(pk=john_id)
+    contact = Contact.objects.get(pk=contact_id)
 
-    kwargs = {'from_': john.phone_number,
+    kwargs = {'from_': contact.phone_number,
               'to': number.e164}
 
     identity = render_to_string("sms_notification_whitepages_identity.html",
-                                model_to_dict(john))
+                                model_to_dict(contact))
 
     kwargs['body'] = identity
     send_whisper.apply_async(kwargs=kwargs)
 
     location = render_to_string("sms_notification_whitepages_location.html",
-                                model_to_dict(john))
+                                model_to_dict(contact))
 
     kwargs['body'] = location
     send_whisper.apply_async(kwargs=kwargs)
@@ -215,96 +217,96 @@ def send_notification_whitepages(john_id, twilio_number):
 
 
 @shared_task
-def lookup_john_nextcaller(john_id, twilio_number):
-    john = John.objects.get(pk=john_id)
+def lookup_contact_nextcaller(contact_id, twilio_number):
+    contact = Contact.objects.get(pk=contact_id)
 
-    lookup = lookup_phone_number(john.phone_number,
+    lookup = lookup_phone_number(contact.phone_number,
                                  addons="nextcaller_advanced_caller_id")
 
     if lookup.add_ons['status'] == 'successful':
-        john = apply_lookup_nextcaller_to_john(john, lookup)
+        contact = apply_lookup_nextcaller_to_contact(contact, lookup)
 
-        fields = [field.name for field in John._meta.get_fields()
+        fields = [field.name for field in Contact._meta.get_fields()
                   if field.name.startswith('nextcaller')]
 
-        john.save(update_fields=fields)
+        contact.save(update_fields=fields)
 
     if lookup.add_ons['status'] == 'successful':
-        send_notification_nextcaller.apply_async(args=[john.id,
+        send_notification_nextcaller.apply_async(args=[contact.id,
                                                        twilio_number])
 
 
-def apply_lookup_nextcaller_to_john(john, lookup):
+def apply_lookup_nextcaller_to_contact(contact, lookup):
     result = lookup.add_ons['results'
                             ]['nextcaller_advanced_caller_id']['result']
 
     if result['records']:
         result = result['records'][0]
 
-        john.nextcaller_email = result['email']
+        contact.nextcaller_email = result['email']
 
-        john.nextcaller_first_name = result['first_name']
-        john.nextcaller_middle_name = result['middle_name']
-        john.nextcaller_last_name = result['last_name']
-        john.nextcaller_gender = result['gender']
-        john.nextcaller_age = result['age']
+        contact.nextcaller_first_name = result['first_name']
+        contact.nextcaller_middle_name = result['middle_name']
+        contact.nextcaller_last_name = result['last_name']
+        contact.nextcaller_gender = result['gender']
+        contact.nextcaller_age = result['age']
 
         if not result['first_name'] and not result['last_name']:
-            john.nextcaller_business_name = result['name']
+            contact.nextcaller_business_name = result['name']
 
-        john.nextcaller_marital_status = result['marital_status']
-        john.nextcaller_home_owner_status = result['home_owner_status']
-        john.nextcaller_education = result['education']
-        john.nextcaller_household_income = result['household_income']
-        john.nextcaller_length_of_residence = result['length_of_residence']
-        john.nextcaller_market_value = result['market_value']
-        john.nextcaller_occupation = result['occupation']
+        contact.nextcaller_marital_status = result['marital_status']
+        contact.nextcaller_home_owner_status = result['home_owner_status']
+        contact.nextcaller_education = result['education']
+        contact.nextcaller_household_income = result['household_income']
+        contact.nextcaller_length_of_residence = result['length_of_residence']
+        contact.nextcaller_market_value = result['market_value']
+        contact.nextcaller_occupation = result['occupation']
 
         if result['presence_of_children'] == 'Yes':
-            john.nextcaller_children_presence = True
+            contact.nextcaller_children_presence = True
         else:
-            john.nextcaller_children_presence = False
+            contact.nextcaller_children_presence = False
 
         if result['high_net_worth'] == 'Yes':
-            john.nextcaller_high_net_worth = True
+            contact.nextcaller_high_net_worth = True
         else:
-            john.nextcaller_high_net_worth = False
+            contact.nextcaller_high_net_worth = False
 
         if result['address']:
-            john.nextcaller_address = result['address'][0]['line1']
-            john.nextcaller_address_two = result['address'][0]['line2']
-            john.nextcaller_city = result['address'][0]['city']
-            john.nextcaller_state = result['address'][0]['state']
-            john.nextcaller_country = result['address'][0]['country']
-            john.nextcaller_zip_code = result['address'][0]['zip_code']
+            contact.nextcaller_address = result['address'][0]['line1']
+            contact.nextcaller_address_two = result['address'][0]['line2']
+            contact.nextcaller_city = result['address'][0]['city']
+            contact.nextcaller_state = result['address'][0]['state']
+            contact.nextcaller_country = result['address'][0]['country']
+            contact.nextcaller_zip_code = result['address'][0]['zip_code']
 
         if result['phone']:
-            john.nextcaller_phone_type = result['phone'][0]['line_type']
-            john.nextcaller_carrier = result['phone'][0]['carrier']
+            contact.nextcaller_phone_type = result['phone'][0]['line_type']
+            contact.nextcaller_carrier = result['phone'][0]['carrier']
 
         for link in result['social_links']:
             if link['type'] == 'facebook':
-                john.nextcaller_facebook = link['url']
+                contact.nextcaller_facebook = link['url']
             elif link['type'] == 'twitter':
-                john.nextcaller_twitter = link['url']
+                contact.nextcaller_twitter = link['url']
             elif link['type'] == 'linkedin':
-                john.nextcaller_linkedin = link['url']
+                contact.nextcaller_linkedin = link['url']
 
-        john.identified = True
+        contact.identified = True
 
-    return john
+    return contact
 
 
 @shared_task
-def send_notification_nextcaller(john_id, twilio_number):
+def send_notification_nextcaller(contact_id, twilio_number):
     number = PhoneNumber.objects.get(e164=twilio_number)
-    john = John.objects.get(pk=john_id)
+    contact = Contact.objects.get(pk=contact_id)
 
-    kwargs = {'from_': john.phone_number,
+    kwargs = {'from_': contact.phone_number,
               'to': number.e164}
 
     identity = render_to_string("sms_notification_nextcaller_identity.html",
-                                model_to_dict(john,
+                                model_to_dict(contact,
                                               exclude=['id']))
 
     kwargs['body'] = identity
@@ -312,7 +314,7 @@ def send_notification_nextcaller(john_id, twilio_number):
     send_whisper.apply_async(kwargs=kwargs)
 
     location = render_to_string("sms_notification_nextcaller_location.html",
-                                model_to_dict(john,
+                                model_to_dict(contact,
                                               exclude=['id']))
 
     kwargs['body'] = location
@@ -320,7 +322,7 @@ def send_notification_nextcaller(john_id, twilio_number):
     send_whisper.apply_async(kwargs=kwargs)
 
     demo = render_to_string("sms_notification_nextcaller_demographics.html",
-                            model_to_dict(john,
+                            model_to_dict(contact,
                                           exclude=['id']))
 
     kwargs['body'] = demo
@@ -331,12 +333,12 @@ def send_notification_nextcaller(john_id, twilio_number):
 
 
 @shared_task
-def lookup_john_tellfinder(john_id, twilio_number):
+def lookup_contact_tellfinder(contact_id, twilio_number):
     number = PhoneNumber.objects.get(e164=twilio_number)
-    john = John.objects.get(pk=john_id)
+    contact = Contact.objects.get(pk=contact_id)
 
     uri = "https://api.tellfinder.com/facets" \
-          "?q=phone:{0}&keys[]=posttime".format(john.phone_number)
+          "?q=phone:{0}&keys[]=posttime".format(contact.phone_number)
 
     headers = {"x-api-key": settings.TELLFINDER_API_KEY}
 
@@ -353,16 +355,16 @@ def lookup_john_tellfinder(john_id, twilio_number):
             data['latest_ad'] = result_dict['facets'][0]['metrics']['max']
 
             send_notification_tellfinder.apply_async(args=[data,
-                                                           john_id,
+                                                           contact_id,
                                                            twilio_number])
     elif results.status_code == 403:
-        kwargs = {'from_': john.phone_number,
+        kwargs = {'from_': contact.phone_number,
                   'to': number.e164,
                   'body': "Error authenticating to TellFinder API."}
 
         send_whisper.apply_async(kwargs=kwargs)
     elif results.status_code >= 500:
-        kwargs = {'from_': john.phone_number,
+        kwargs = {'from_': contact.phone_number,
                   'to': number.e164,
                   'body': "TellFinder API failed - service possible "
                           "unavailable"}
@@ -373,14 +375,14 @@ def lookup_john_tellfinder(john_id, twilio_number):
 
 
 @shared_task
-def send_notification_tellfinder(data, john_id, twilio_number):
+def send_notification_tellfinder(data, contact_id, twilio_number):
     number = PhoneNumber.objects.get(e164=twilio_number)
-    john = John.objects.get(pk=john_id)
+    contact = Contact.objects.get(pk=contact_id)
 
     body = render_to_string("sms_notification_tellfinder.html",
                             data)
 
-    kwargs = {'from_': john.phone_number,
+    kwargs = {'from_': contact.phone_number,
               'to': number.e164,
               'body': body}
 
@@ -393,25 +395,25 @@ def send_notification_tellfinder(data, john_id, twilio_number):
 def send_deterrence(message):
     number = PhoneNumber.objects.get(e164=message['To'])
 
-    for john in number.john_set.all():
-        if not john.deterred and not john.do_not_deter:
-            if john.whitepages_first_name:
+    for contact in number.contact_set.all():
+        if not contact.deterred and not contact.do_not_deter:
+            if contact.whitepages_first_name:
                 kwargs = {"from_": number.e164,
-                          "to": john.phone_number,
-                          "body": "{0}, a message from "
-                                  "NYPD.".format(john.whitepages_first_name),
-                          "media_url": "https://john-honey-pot.herok"
-                                       "uapp.com/static/images/john_"
+                          "to": contact.phone_number,
+                          "body": "{0}, a message from NY"
+                                  "PD.".format(contact.whitepages_first_name),
+                          "media_url": "https://contact-honey-pot.herok"
+                                       "uapp.com/static/images/contact_"
                                        "ad.jpg"}
                 send_sms_message.apply_async(kwargs=kwargs)
             else:
                 kwargs = {"from_": number.e164,
-                          "to": john.phone_number,
+                          "to": contact.phone_number,
                           "body": "A message from NYPD.",
-                          "media_url": "https://john-honey-pot.herok"
-                                       "uapp.com/static/images/john_"
+                          "media_url": "https://contact-honey-pot.herok"
+                                       "uapp.com/static/images/contact_"
                                        "ad.jpg"}
                 send_sms_message.apply_async(kwargs=kwargs)
 
-            john.deterred = True
-            john.save()
+            contact.deterred = True
+            contact.save()

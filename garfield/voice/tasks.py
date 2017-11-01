@@ -1,6 +1,6 @@
 from celery import shared_task
 
-from johns.models import John
+from contacts.models import Contact
 from phone_numbers.models import PhoneNumber
 
 from .models import Call
@@ -22,13 +22,13 @@ def save_call(message):
         record.related_phone_number = phone_number
         record.save()
 
-    if John.objects.filter(phone_number=message['To']):
-        john = John.objects.get(phone_number=message['To'])
-        record.related_john = john
+    if Contacts.objects.filter(phone_number=message['To']):
+        contact = contacts.objects.get(phone_number=message['To'])
+        record.related_contact = contact
         record.save()
-    elif John.objects.filter(phone_number=message['From']):
-        john = John.objects.get(phone_number=message['From'])
-        record.related_john = john
+    elif Contact.objects.filter(phone_number=message['From']):
+        contact = Contact.objects.get(phone_number=message['From'])
+        record.related_contact = contact
         record.save()
 
 

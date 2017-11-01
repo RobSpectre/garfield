@@ -13,7 +13,7 @@ from sms.tests.test_sms import GarfieldTwilioTestClient
 
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
-class GarfieldTestSimSmsCaseNewJohn(GarfieldTwilioTestCase):
+class GarfieldTestSimSmsCaseNewContact(GarfieldTwilioTestCase):
     @patch('sms.tasks.save_sms_message.apply_async')
     def test_sim_receive_sms(self, mock_save_sms_message):
         response = self.client.sms("Test.",
@@ -32,7 +32,7 @@ class GarfieldTestSimSmsCaseNewJohn(GarfieldTwilioTestCase):
 
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
-class GarfieldTestCaseWithJohn(GarfieldTwilioTestCase):
+class GarfieldTestCaseWithContact(GarfieldTwilioTestCase):
     def setUp(self):
         self.client = GarfieldTwilioTestClient()
 
@@ -62,7 +62,7 @@ class GarfieldTestCaseWithJohn(GarfieldTwilioTestCase):
 
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
-class GarfieldTestSimSmsCaseExistingJohn(GarfieldTestCaseWithJohn):
+class GarfieldTestSimSmsCaseExistingContact(GarfieldTestCaseWithContact):
     @patch('sms.tasks.save_sms_message.apply_async')
     def test_sim_receive_sms(self, mock_save_sms_message):
         response = self.client.sms("Test.",
@@ -108,7 +108,7 @@ class GarfieldSimVoiceTestCase(GarfieldTwilioTestCase):
 
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
-class GarfieldSimVoiceTestCaseExistingJohn(GarfieldTestCaseWithJohn):
+class GarfieldSimVoiceTestCaseExistingContact(GarfieldTestCaseWithContact):
     @patch('voice.tasks.save_call.apply_async')
     def test_sims_receive_call(self, mock_save_call):
         response = self.client.call("+15558675309",

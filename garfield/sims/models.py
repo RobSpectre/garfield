@@ -12,6 +12,8 @@ class Sim(models.Model):
     status = models.CharField(max_length=255)
     rate_plan = models.CharField(max_length=255)
 
+    receives_whispers = models.BooleanField(default=False)
+
     def __str__(self):
         return "{0}: {1}".format(self.sid,
                                  self.friendly_name)
@@ -27,9 +29,9 @@ class Whisper(models.Model):
     related_phone_number = models.ForeignKey('phone_numbers.PhoneNumber',
                                              null=True,
                                              related_name="whispers")
-    related_john = models.ForeignKey('johns.John',
-                                     null=True,
-                                     related_name="whispers")
+    related_contact = models.ForeignKey('contacts.Contact',
+                                        null=True,
+                                        related_name="whispers")
 
     def __str__(self):
         return "Whisper for {0}: " \
