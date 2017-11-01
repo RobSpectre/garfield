@@ -82,7 +82,7 @@ class RouterTestCase(GarfieldTwilioTestCase):
         self.assert_twiml(response)
 
     def test_call_extra_parameters(self):
-        response = self.client.call("Test.", path="/sms/",
+        response = self.client.call("Test.", path="/sims/voice/receive/",
                                     extra_params={'Stuff': "Things"})
 
         self.assert_twiml(response)

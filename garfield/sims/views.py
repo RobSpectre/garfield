@@ -52,11 +52,6 @@ def sms_receive(request):
 def sms_send(request):
     response = MessagingResponse()
 
-    if request.POST['To'] == settings.TWILIO_PHONE_NUMBER:
-        response.redirect(reverse('sms:index'))
-
-        return response
-
     try:
         result = \
             SmsMessage.objects \

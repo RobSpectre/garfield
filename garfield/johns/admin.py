@@ -17,10 +17,17 @@ class SmsMessageInline(admin.TabularInline):
         else:
             return 1
 
+
 class CallInline(admin.TabularInline):
-    model = Call 
-    readonly_fields = ('from_number', 'to_number', 'recording_url', 'date_created')
-    list_display = ('from_number', 'to_number', 'recording_url', 'date_created')
+    model = Call
+    readonly_fields = ('from_number',
+                       'to_number',
+                       'recording_url',
+                       'date_created')
+    list_display = ('from_number',
+                    'to_number',
+                    'recording_url',
+                    'date_created')
 
     def get_extra(self, request, obj=None, **kwargs):
         if obj:

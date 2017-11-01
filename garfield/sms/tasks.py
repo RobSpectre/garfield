@@ -304,16 +304,16 @@ def send_notification_nextcaller(john_id, twilio_number):
               'to': number.e164}
 
     identity = render_to_string("sms_notification_nextcaller_identity.html",
-                            model_to_dict(john,
-                                          exclude=['id']))
+                                model_to_dict(john,
+                                              exclude=['id']))
 
     kwargs['body'] = identity
 
     send_whisper.apply_async(kwargs=kwargs)
 
     location = render_to_string("sms_notification_nextcaller_location.html",
-                            model_to_dict(john,
-                                          exclude=['id']))
+                                model_to_dict(john,
+                                              exclude=['id']))
 
     kwargs['body'] = location
 

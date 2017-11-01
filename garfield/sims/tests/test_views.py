@@ -12,7 +12,7 @@ from sms.tests.test_sms import GarfieldTwilioTestCase
 from sms.tests.test_sms import GarfieldTwilioTestClient
 
 
-@override_settings(TWILIO_PHONE_NUMBER="+15558675309")
+@override_settings(TWILIO_PHONE_NUMBER="+15556667777")
 class GarfieldTestSimSmsCaseNewJohn(GarfieldTwilioTestCase):
     @patch('sms.tasks.save_sms_message.apply_async')
     def test_sim_receive_sms(self, mock_save_sms_message):
@@ -124,34 +124,3 @@ class GarfieldSimVoiceTestCaseExistingJohn(GarfieldTestCaseWithJohn):
                             'callerId="+15558675309"')
         self.assertContains(response,
                             "+15556667777</Dial>")
-
-
-@override_settings(TWILIO_PHONE_NUMBER="+15558675309")
-class GarfieldTestSimWhisperCase(GarfieldTwilioTestCase):
-    def test_sms_receive_whisper(self):
-        response = self.client.sms("whisper:stuff",
-                                   path="/sims/sms/receive/")
-
-        self.assert_twiml(response)
-        self.assertContains(response,
-                            "<Redirect>")
-        self.assertContains(response,
-                            "whisper")
-
-    def test_sms_send_whisper(self):
-        payload = {'To': 'sim:DExxx',
-                   'From': '+15556667777',
-                   'Body': 'Whisper'}
-
-        payload_json = json.dumps(payload)
-
-        response = self.client.sms("whisper:{0}".format(payload_json),
-                                   path="/sims/whisper/")
-
-        self.assert_twiml(response)
-        self.assertContains(response,
-                            'to="sim:DExxx"')
-        self.assertContains(response,
-                            'from="+15556667777"')
-        self.assertContains(response,
-                            'Whisper')

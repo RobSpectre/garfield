@@ -105,6 +105,24 @@ class TaskSmsMessageTestCase(TestCase):
 
 
 class TaskLookupJohnJohnDoesNotExistTestCase(TestCase):
+    def setUp(self):
+        self.sim = Sim.objects.create(friendly_name="TestSim",
+                                      sid="DExxx",
+                                      iccid="asdf",
+                                      status="active",
+                                      rate_plan="RExxx")
+
+        self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
+                                                       account_sid="ACxxx",
+                                                       service_sid="SExxx",
+                                                       url="http://exmple.com",
+                                                       e164="+15558675309",
+                                                       formatted="(555) "
+                                                                 "867-5309",
+                                                       friendly_name="Stuff.",
+                                                       country_code="1",
+                                                       related_sim=self.sim)
+
     @patch('sms.tasks.lookup_john.apply_async')
     def test_check_john_john_does_not_exist(self, mock_lookup_john):
         sms.tasks.check_john({'MessageSid': 'MMxxxx',
@@ -125,6 +143,23 @@ class TaskLookupJohnJohnDoesNotExistTestCase(TestCase):
 
 class TaskLookupJohnTestCase(TestCase):
     def setUp(self):
+        self.sim = Sim.objects.create(friendly_name="TestSim",
+                                      sid="DExxx",
+                                      iccid="asdf",
+                                      status="active",
+                                      rate_plan="RExxx")
+
+        self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
+                                                       account_sid="ACxxx",
+                                                       service_sid="SExxx",
+                                                       url="http://exmple.com",
+                                                       e164="+15558675309",
+                                                       formatted="(555) "
+                                                                 "867-5309",
+                                                       friendly_name="Stuff.",
+                                                       country_code="1",
+                                                       related_sim=self.sim)
+
         self.john = John.objects.create(phone_number="+15556667777")
 
         self.message = {"From": "+15556667777",
@@ -319,10 +354,10 @@ class TaskLookupJohnWhitepagesTestCase(TestCase):
                                                       "+15558675309")
 
         self.assertTrue(mock_whisper.called)
-        self.assertIn("Whitepages Results", body)
-        self.assertIn("John F. Doe", body)
-        self.assertIn("123 Paper Street", body)
-        self.assertIn("AT&T", body)
+        self.assertIn("Whitepages Identity Results", body['results'][0])
+        self.assertIn("John F. Doe", body['results'][0])
+        self.assertIn("123 Paper Street", body['results'][1])
+        self.assertIn("AT&T", body['results'][0])
 
     def test_apply_lookup_whitepages_to_john_person(self):
         payload = json.loads(self.add_ons_person)
@@ -656,9 +691,9 @@ class TaskLookupJohnNextCallerTestCase(TestCase):
                                                       "+15558675309")
 
         self.assertTrue(mock_whisper.called)
-        self.assertIn("NextCaller Results", body)
-        self.assertIn("John F. Doe", body)
-        self.assertIn("123 Paper Street", body)
+        self.assertIn("NextCaller Identity Results", body['results'][0])
+        self.assertIn("John F. Doe", body['results'][0])
+        self.assertIn("123 Paper Street", body['results'][1])
 
 
 @override_settings(TELLFINDER_API_KEY="xxx")
