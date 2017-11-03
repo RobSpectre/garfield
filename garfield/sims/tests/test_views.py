@@ -117,13 +117,15 @@ class SimSmsWhisperTestCase(GarfieldTwilioTestCase):
 
         self.client = GarfieldTwilioTestClient()
 
-    def test_send_whisper(self):
+    @patch('sms.tasks.save_sms_message.apply_async')
+    def test_send_whisper(self, mock_send_message):
         response = self.client.sms("Test.",
                                    path="/sims/sms/receive/")
 
         self.assertContains(response,
                             "*whisper*")
         self.assertTrue(Whisper.objects.all()[0].sent)
+        self.assertTrue(mock_send_message.called)
 
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
