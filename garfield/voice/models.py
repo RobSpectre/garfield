@@ -14,6 +14,7 @@ class Call(models.Model):
     to_number = models.CharField(max_length=255)
     recording_url = models.URLField(null=True,
                                     blank=True)
+    duration = models.IntegerField(null=True, blank=True)
     related_contact = models.ForeignKey(Contact,
                                         null=True,
                                         related_name="calls")

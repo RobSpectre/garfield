@@ -8,6 +8,6 @@ urlpatterns = [
     url(r'^sms/send/$', views.sms_send, name="sms_send"),
     url(r'^voice/receive/$', views.voice_receive, name="voice_receive"),
     url(r'^voice/send/$', views.voice_send, name="voice_send"),
-    url(r'^whisper/$', views.whisper, name="whisper"),
+    url(r'^send_to_sim/$', views.send_to_sim, name="send_to_sim"),
     url(r'^voice/recording/$', views.voice_recording, name="recording"),
 ]

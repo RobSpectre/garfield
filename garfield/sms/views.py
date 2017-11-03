@@ -11,7 +11,7 @@ def index(request):
     if "!deter" in request.POST['Body']:
         send_deterrence.apply_async(args=[request.POST])
         response.message("Deterrence being sent.",
-                         from_=request['To'],
-                         to=request['From'])
+                         from_=request.POST['To'],
+                         to=request.POST['From'])
 
     return response

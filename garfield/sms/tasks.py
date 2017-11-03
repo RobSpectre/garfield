@@ -405,7 +405,6 @@ def send_deterrence(message):
                           "media_url": "https://contact-honey-pot.herok"
                                        "uapp.com/static/images/contact_"
                                        "ad.jpg"}
-                send_sms_message.apply_async(kwargs=kwargs)
             else:
                 kwargs = {"from_": number.e164,
                           "to": contact.phone_number,
@@ -413,7 +412,8 @@ def send_deterrence(message):
                           "media_url": "https://contact-honey-pot.herok"
                                        "uapp.com/static/images/contact_"
                                        "ad.jpg"}
-                send_sms_message.apply_async(kwargs=kwargs)
+
+            send_sms_message.apply_async(kwargs=kwargs)
 
             contact.deterred = True
             contact.save()

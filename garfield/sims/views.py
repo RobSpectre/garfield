@@ -127,8 +127,8 @@ def voice_recording(request):
 
 
 @twilio_view
-def whisper(request):
-    body = request.POST['Body'].strip("whisper:")
+def send_to_sim(request):
+    body = request.POST['Body'].strip("sendtosim:")
 
     whisper = json.loads(body)
 

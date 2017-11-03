@@ -38,7 +38,7 @@ class TaskSmsMessageTestCase(TestCase):
                                                        country_code="1",
                                                        related_sim=self.sim)
 
-        self.contact = Contact.objects.create(phone_number="+15556667778")
+        self.contact = Contact.objects.create(phone_number="+15556667777")
 
         self.sms_message = SmsMessage \
             .objects.create(sid="MMxxxx",
@@ -87,15 +87,14 @@ class TaskSmsMessageTestCase(TestCase):
 
     @override_settings(TWILIO_ACCOUNT_SID='ACxxxx',
                        TWILIO_AUTH_TOKEN='yyyyyyy',
-                       TWILIO_WHISPER_NUMBER='+15556667777',
                        TWILIO_PHONE_NUMBER='+15558675309')
     @patch('twilio.rest.api.v2010.account.message.MessageList.create')
     def test_send_whisper(self, mock_messages_create):
-        test_json = json.dumps({"From": "+15556667778",
+        test_json = json.dumps({"From": "+15556667777",
                                 "To": "+1555867309",
                                 "Body": "Test."})
 
-        sms.tasks.send_whisper(from_="+15556667778",
+        sms.tasks.send_whisper(from_="+15556667777",
                                to="+15558675309",
                                body="Test.")
 
@@ -858,3 +857,67 @@ class TaskUtilitiesTestCase(TestCase):
         sms.tasks.lookup_phone_number("+15556667777")
 
         self.assertTrue(mock_context.called)
+
+
+class DeterrenceTestCase(TestCase):
+    def setUp(self):
+        self.contact_a = Contact.objects.create(phone_number="+15556667777")
+        self.contact_b = Contact.objects.create(phone_number="+15556667778")
+        self.contact_c = Contact.objects.create(phone_number="+15556667779")
+
+        self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
+                                                       account_sid="ACxxx",
+                                                       service_sid="SExxx",
+                                                       url="http://exmple.com",
+                                                       e164="+15558675309",
+                                                       formatted="(555) "
+                                                                 "867-5309",
+                                                       friendly_name="Stuff.",
+                                                       country_code="1")
+
+        self.contact_a.related_phone_numbers.add(self.phone_number)
+        self.contact_b.related_phone_numbers.add(self.phone_number)
+        self.contact_c.related_phone_numbers.add(self.phone_number)
+
+        self.message = {"From": "+15556667777",
+                        "To": "+15558675309",
+                        "Body": "Test."}
+
+    @patch('sms.tasks.send_sms_message.apply_async')
+    def test_send_deterrence(self, mock_sms_message):
+        sms.tasks.send_deterrence(self.message)
+
+        self.assertEquals(3, mock_sms_message.call_count)
+
+        for contact in self.phone_number.contact_set.all():
+            self.assertTrue(contact.deterred)
+
+    @patch('sms.tasks.send_sms_message.apply_async')
+    def test_send_deterrence_do_not_deter(self, mock_sms_message):
+        self.contact_a.do_not_deter = True
+        self.contact_a.save()
+
+        sms.tasks.send_deterrence(self.message)
+
+        self.assertEquals(2, mock_sms_message.call_count)
+        self.assertFalse(self.phone_number.contact_set.all()[0].deterred)
+
+    @patch('sms.tasks.send_sms_message.apply_async')
+    def test_send_deterrence_deterred(self, mock_sms_message):
+        self.contact_a.deterred = True
+        self.contact_a.save()
+
+        sms.tasks.send_deterrence(self.message)
+
+        self.assertEquals(2, mock_sms_message.call_count)
+
+    @patch('sms.tasks.send_sms_message.apply_async')
+    def test_send_deterrence_first_name(self, mock_sms_message):
+        self.contact_a.whitepages_first_name = "John"
+        self.contact_a.save()
+
+        sms.tasks.send_deterrence(self.message)
+
+        self.assertEquals(3, mock_sms_message.call_count)
+        for contact in self.phone_number.contact_set.all():
+            self.assertTrue(contact.deterred)
