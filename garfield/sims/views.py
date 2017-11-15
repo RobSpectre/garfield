@@ -92,7 +92,7 @@ def voice_receive(request):
     else:
         response.record()
 
-    save_call.apply_async(args=[request])
+    save_call.apply_async(args=[request.POST])
 
     return response
 
@@ -116,7 +116,7 @@ def voice_send(request):
                       record=True,
                       recording_status_callback=reverse('sims:recording'))
 
-    save_call.apply_async(args=[request])
+    save_call.apply_async(args=[request.POST])
 
     return response
 
@@ -125,7 +125,7 @@ def voice_send(request):
 def voice_recording(request):
     response = VoiceResponse()
 
-    save_voice_recording.apply_async(args=[request])
+    save_voice_recording.apply_async(args=[request.POST])
 
     return response
 

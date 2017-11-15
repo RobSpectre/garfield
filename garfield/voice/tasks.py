@@ -8,35 +8,35 @@ from .models import Call
 
 @shared_task
 def save_call(message):
-    record = Call(sid=message.POST['CallSid'],
-                  from_number=message.POST['From'],
-                  to_number=message.POST['To'])
+    record = Call(sid=message['CallSid'],
+                  from_number=message['From'],
+                  to_number=message['To'])
     record.save()
 
-    if PhoneNumber.objects.filter(e164=message.POST['To']):
-        phone_number = PhoneNumber.objects.get(e164=message.POST['To'])
+    if PhoneNumber.objects.filter(e164=message['To']):
+        phone_number = PhoneNumber.objects.get(e164=message['To'])
         record.related_phone_number = phone_number
         record.save()
-    elif PhoneNumber.objects.filter(e164=message.POST['From']):
-        phone_number = PhoneNumber.objects.get(e164=message.POST['From'])
+    elif PhoneNumber.objects.filter(e164=message['From']):
+        phone_number = PhoneNumber.objects.get(e164=message['From'])
         record.related_phone_number = phone_number
         record.save()
 
-    if Contact.objects.filter(phone_number=message.POST['To']):
-        contact = Contact.objects.get(phone_number=message.POST['To'])
+    if Contact.objects.filter(phone_number=message['To']):
+        contact = Contact.objects.get(phone_number=message['To'])
         record.related_contact = contact
         record.save()
-    elif Contact.objects.filter(phone_number=message.POST['From']):
-        contact = Contact.objects.get(phone_number=message.POST['From'])
+    elif Contact.objects.filter(phone_number=message['From']):
+        contact = Contact.objects.get(phone_number=message['From'])
         record.related_contact = contact
         record.save()
 
 
 @shared_task
 def save_voice_recording(message):
-    record = Call.objects.get(sid=message.POST['CallSid'])
+    record = Call.objects.get(sid=message['CallSid'])
 
-    record.recording_url = message.POST['RecordingUrl']
-    record.duration = message.POST['RecordingDuration']
+    record.recording_url = message['RecordingUrl']
+    record.duration = message['RecordingDuration']
 
     record.save()
