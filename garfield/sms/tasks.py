@@ -393,9 +393,7 @@ def send_notification_tellfinder(data, contact_id, twilio_number):
 
 @shared_task
 def send_deterrence(message):
-    number = PhoneNumber.objects.get(e164=message['To'])
-
-    for contact in number.contact_set.all():
+    for contact in Contact.objects.all():
         if not contact.deterred and not contact.do_not_deter:
             if contact.whitepages_first_name:
                 kwargs = {"from_": settings.TWILIO_PHONE_NUMBER, 
