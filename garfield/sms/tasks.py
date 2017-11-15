@@ -398,7 +398,7 @@ def send_deterrence(message):
     for contact in number.contact_set.all():
         if not contact.deterred and not contact.do_not_deter:
             if contact.whitepages_first_name:
-                kwargs = {"from_": number.e164,
+                kwargs = {"from_": settings.TWILIO_PHONE_NUMBER, 
                           "to": contact.phone_number,
                           "body": "{0}, a message from NY"
                                   "PD.".format(contact.whitepages_first_name),
@@ -406,7 +406,7 @@ def send_deterrence(message):
                                        "uapp.com/static/images/john_"
                                        "ad.jpg"}
             else:
-                kwargs = {"from_": number.e164,
+                kwargs = {"from_": settings.TWILIO_PHONE_NUMBER,
                           "to": contact.phone_number,
                           "body": "A message from NYPD.",
                           "media_url": "https://john-honey-pot.herok"
