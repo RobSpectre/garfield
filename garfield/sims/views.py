@@ -52,6 +52,10 @@ def sms_receive(request):
 def sms_send(request):
     response = MessagingResponse()
 
+    if "!deter" in request.POST['Body']:
+        response.redirect(reverse('sms:index'))
+        return response
+
     try:
         result = \
             SmsMessage.objects \

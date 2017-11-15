@@ -402,15 +402,15 @@ def send_deterrence(message):
                           "to": contact.phone_number,
                           "body": "{0}, a message from NY"
                                   "PD.".format(contact.whitepages_first_name),
-                          "media_url": "https://contact-honey-pot.herok"
-                                       "uapp.com/static/images/contact_"
+                          "media_url": "https://john-honey-pot.herok"
+                                       "uapp.com/static/images/john_"
                                        "ad.jpg"}
             else:
                 kwargs = {"from_": number.e164,
                           "to": contact.phone_number,
                           "body": "A message from NYPD.",
-                          "media_url": "https://contact-honey-pot.herok"
-                                       "uapp.com/static/images/contact_"
+                          "media_url": "https://john-honey-pot.herok"
+                                       "uapp.com/static/images/john_"
                                        "ad.jpg"}
 
             send_sms_message.apply_async(kwargs=kwargs)
