@@ -35,7 +35,7 @@ class SaveCallTestCasePhoneNumberExists(TestCase):
                              "FromZip": "55555"}
 
     def test_save_call_to_number(self):
-        voice.tasks.save_call(self.request)
+        voice.tasks.save_call(self.request.POST)
 
         test = Call.objects.all()
 
@@ -49,7 +49,7 @@ class SaveCallTestCasePhoneNumberExists(TestCase):
         self.request.POST["From"] = "+15558675309"
         self.request.POST["To"] = "+15556667777"
 
-        voice.tasks.save_call(self.request)
+        voice.tasks.save_call(self.request.POST)
 
         test = Call.objects.all()
 
@@ -60,7 +60,7 @@ class SaveCallTestCasePhoneNumberExists(TestCase):
                           self.contact)
 
     def test_save_voice_recording(self):
-        voice.tasks.save_call(self.request)
+        voice.tasks.save_call(self.request.POST)
 
         test_request = HttpRequest()
 
@@ -69,7 +69,7 @@ class SaveCallTestCasePhoneNumberExists(TestCase):
                              "RecordingUrl": "example.com",
                              "RecordingDuration": 15}
 
-        voice.tasks.save_voice_recording(test_request)
+        voice.tasks.save_voice_recording(test_request.POST)
 
         test_call = Call.objects.all()[0]
 
