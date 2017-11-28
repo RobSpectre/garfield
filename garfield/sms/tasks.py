@@ -1,6 +1,7 @@
 from celery import shared_task
 
 from django.conf import settings
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 
@@ -392,7 +393,7 @@ def send_notification_tellfinder(data, contact_id, twilio_number):
 
 
 @shared_task
-def send_deterrence(message):
+def send_deterrence(absolute_uri, message):
     for contact in Contact.objects.all():
         if contact.do_not_deter or contact.deterred:
             continue
@@ -402,16 +403,20 @@ def send_deterrence(message):
                       "to": contact.phone_number,
                       "body": "{0}, a message from NY"
                               "PD.".format(contact.whitepages_first_name),
-                      "media_url": "https://john-honey-pot.herok"
-                                   "uapp.com/static/images/john_"
-                                   "ad.jpg"}
+                      "media_url": "{0}{1}"
+                                   "".format(absolute_uri,
+                                             static("images/"
+                                                    "deterrence_preview"
+                                                    ".jpg"))}
         else:
             kwargs = {"from_": settings.TWILIO_PHONE_NUMBER,
                       "to": contact.phone_number,
                       "body": "A message from NYPD.",
-                      "media_url": "https://john-honey-pot.herok"
-                                   "uapp.com/static/images/john_"
-                                   "ad.jpg"}
+                      "media_url": "{0}{1}"
+                                   "".format(absolute_uri,
+                                             static("images/"
+                                                    "deterrence_preview"
+                                                    ".jpg"))}
 
         send_sms_message.apply_async(kwargs=kwargs)
 

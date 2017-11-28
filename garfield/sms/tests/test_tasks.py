@@ -883,12 +883,18 @@ class DeterrenceTestCase(TestCase):
         self.message = {"From": "+15556667777",
                         "To": "+15558675309",
                         "Body": "Test."}
+        self.deterrence_file_path = "http://example.com/static/images/" \
+                                    "deterrence_preview.jpg"
 
     @patch('sms.tasks.send_sms_message.apply_async')
     def test_send_deterrence(self, mock_sms_message):
-        sms.tasks.send_deterrence(self.message)
+        sms.tasks.send_deterrence("http://example.com", self.message)
 
         self.assertEquals(3, mock_sms_message.call_count)
+        for call in mock_sms_message.call_args_list:
+            args, kwargs = call
+            self.assertEquals(kwargs['kwargs']['media_url'],
+                              self.deterrence_file_path)
 
         for contact in self.phone_number.contact_set.all():
             self.assertTrue(contact.deterred)
@@ -898,7 +904,7 @@ class DeterrenceTestCase(TestCase):
         self.contact_a.do_not_deter = True
         self.contact_a.save()
 
-        sms.tasks.send_deterrence(self.message)
+        sms.tasks.send_deterrence("http://example.com", self.message)
 
         self.assertEquals(2, mock_sms_message.call_count)
         self.assertFalse(self.phone_number.contact_set.all()[0].deterred)
@@ -908,7 +914,7 @@ class DeterrenceTestCase(TestCase):
         self.contact_a.deterred = True
         self.contact_a.save()
 
-        sms.tasks.send_deterrence(self.message)
+        sms.tasks.send_deterrence("http://example.com", self.message)
 
         self.assertEquals(2, mock_sms_message.call_count)
 
@@ -917,7 +923,7 @@ class DeterrenceTestCase(TestCase):
         self.contact_a.whitepages_first_name = "John"
         self.contact_a.save()
 
-        sms.tasks.send_deterrence(self.message)
+        sms.tasks.send_deterrence("http://example.com", self.message)
 
         self.assertEquals(3, mock_sms_message.call_count)
         for contact in self.phone_number.contact_set.all():
