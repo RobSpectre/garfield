@@ -13,7 +13,7 @@ from sims.models import Sim
 from sims.models import Whisper
 
 
-@override_settings(TWILIO_PHONE_NUMBER="+15558675309")
+@override_settings(TWILIO_PHONE_NUMBER="+15551112222")
 class GarfieldTestSimSmsCaseNewContact(GarfieldTwilioTestCase):
     @patch('sms.tasks.save_sms_message.apply_async')
     def test_sim_receive_sms(self, mock_save_sms_message):
@@ -87,6 +87,14 @@ class GarfieldTestSimSmsCaseExistingContact(GarfieldTestCaseWithContact):
                             'from="+15558675309"')
         self.assertContains(response,
                             'to="+15556667777"')
+
+    def test_sim_send_admin_number(self):
+        response = self.client.sms("!deter", to="+15558675309",
+                                   path="/sims/sms/send/")
+
+        self.assert_twiml(response)
+        self.assertContains(response,
+                            "<Redirect>")
 
 
 class SimSmsWhisperTestCase(GarfieldTwilioTestCase):

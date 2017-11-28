@@ -859,6 +859,7 @@ class TaskUtilitiesTestCase(TestCase):
         self.assertTrue(mock_context.called)
 
 
+@override_settings(TWILIO_PHONE_NUMBER="+18881112222")
 class DeterrenceTestCase(TestCase):
     def setUp(self):
         self.contact_a = Contact.objects.create(phone_number="+15556667777")

@@ -1,5 +1,3 @@
-import json
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.urls import reverse
@@ -52,7 +50,7 @@ def sms_receive(request):
 def sms_send(request):
     response = MessagingResponse()
 
-    if "!deter" in request.POST['Body']:
+    if request.POST['To'] == settings.TWILIO_PHONE_NUMBER:
         response.redirect(reverse('sms:index'))
         return response
 
@@ -126,20 +124,5 @@ def voice_recording(request):
     response = VoiceResponse()
 
     save_voice_recording.apply_async(args=[request.POST])
-
-    return response
-
-
-@twilio_view
-def send_to_sim(request):
-    body = request.POST['Body'].strip("sendtosim:")
-
-    whisper = json.loads(body)
-
-    response = MessagingResponse()
-
-    response.message(whisper['Body'],
-                     to=whisper['To'],
-                     from_=whisper['From'])
 
     return response

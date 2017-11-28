@@ -2,25 +2,38 @@ from django.test import RequestFactory
 from django.test import TestCase
 
 from contacts.admin import SmsMessageInline
+from contacts.admin import CallInline
 
-from sms.models import SmsMessage
 
-'''
 class SmsMessageInlineTestCase(TestCase):
     def setUp(self):
-        self.inline = SmsMessageInline(parent_model=SmsMessage)
-
         self.factory = RequestFactory()
 
-        self.request = self.factor.get("/stuff")
+        self.request = self.factory.get("/stuff")
 
-    def test_get_extra(self):
-        test = self.inline.get_extra(self.request)
+    def test_sms_message_inline_get_extra(self):
+        test = SmsMessageInline.get_extra(None, self.request)
+
+        self.assertEquals(test, 1)
+
+    def test_sms_message_inline_get_extra_obj_exists(self):
+        test = SmsMessageInline.get_extra(None, self.request, obj=True)
 
         self.assertEquals(test, 0)
 
-    def test_get_extra_obj_exists(self):
-        test = self.inline.get_extra(self.request, obj=True)
+
+class CallInlineTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.request = self.factory.get("/stuff")
+
+    def test_call_inline_get_extra(self):
+        test = CallInline.get_extra(None, self.request)
+
+        self.assertEquals(test, 1)
+
+    def test_call_inline_get_extra_obj_exists(self):
+        test = CallInline.get_extra(None, self.request, obj=True)
 
         self.assertEquals(test, 0)
-'''
