@@ -135,6 +135,24 @@ class SimSmsWhisperTestCase(GarfieldTwilioTestCase):
         self.assertTrue(Whisper.objects.all()[0].sent)
         self.assertTrue(mock_send_message.called)
 
+    @patch('sms.tasks.save_sms_message.apply_async')
+    def test_send_whisper_multiple_contacts(self, mock_send_message):
+        new_contact = Contact.objects.create(phone_number="+15551112222")
+        new_whisper = Whisper(body="*whisper two*",
+                              related_phone_number=self.phone_number,
+                              related_contact=new_contact)
+        new_whisper.save()
+
+        response = self.client.sms("Test.",
+                                   path="/sims/sms/receive/")
+
+        self.assertContains(response,
+                            "*whisper*")
+        self.assertNotContains(response,
+                               "*whisper two*")
+        self.assertTrue(Whisper.objects.all()[0].sent)
+        self.assertTrue(mock_send_message.called)
+
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
 class GarfieldSimVoiceTestCase(GarfieldTwilioTestCase):

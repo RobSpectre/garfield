@@ -5,6 +5,8 @@ from django.urls import reverse
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.twiml.voice_response import VoiceResponse
 
+from contacts.models import Contact
+
 from sms.decorators import twilio_view
 from sms.tasks import save_sms_message
 from sms.models import SmsMessage
@@ -31,15 +33,21 @@ def sms_receive(request):
                          to="sim:{0}".format(result.related_sim.sid),
                          from_=request.POST['From'])
 
-        whispers = Whisper.objects.filter(related_phone_number=result,
-                                          sent=False)
+        try:
+            contact = Contact.objects.get(phone_number=request.POST['From'])
+        except ObjectDoesNotExist:
+            contact = None
 
-        for whisper in whispers:
-            response.message(whisper.body,
-                             to="sim:{0}".format(result.related_sim.sid),
-                             from_=request.POST['From'])
-            whisper.sent = True
-            whisper.save()
+        if contact:
+            whispers = Whisper.objects.filter(related_contact=contact,
+                                              sent=False)
+
+            for whisper in whispers:
+                response.message(whisper.body,
+                                 to="sim:{0}".format(result.related_sim.sid),
+                                 from_=request.POST['From'])
+                whisper.sent = True
+                whisper.save()
 
     save_sms_message.apply_async(args=[request.POST])
 
