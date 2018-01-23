@@ -403,20 +403,14 @@ def send_deterrence(absolute_uri, message):
                       "to": contact.phone_number,
                       "body": "{0}, a message from NY"
                               "PD.".format(contact.whitepages_first_name),
-                      "media_url": "{0}{1}"
-                                   "".format(absolute_uri,
-                                             static("images/"
-                                                    "deterrence_preview"
-                                                    ".jpg"))}
+                      "media_url": "https://berserk-sleet-3229.twil.io/"
+                                   "assets/john_deterrent.jpg"}
         else:
             kwargs = {"from_": settings.TWILIO_PHONE_NUMBER,
                       "to": contact.phone_number,
                       "body": "A message from NYPD.",
-                      "media_url": "{0}{1}"
-                                   "".format(absolute_uri,
-                                             static("images/"
-                                                    "deterrence_preview"
-                                                    ".jpg"))}
+                      "media_url": "https://berserk-sleet-3229.twil.io/"
+                                   "assets/john_deterrent.jpg"}
 
         send_sms_message.apply_async(kwargs=kwargs)
 

@@ -13,7 +13,7 @@ from sims.models import Sim
 from sims.models import Whisper
 
 
-@override_settings(TWILIO_PHONE_NUMBER="+15551112222")
+@override_settings(TWILIO_PHONE_NUMBER="+15551112222", DEBUG=False)
 class GarfieldTestSimSmsCaseNewContact(GarfieldTwilioTestCase):
     @patch('sms.tasks.save_sms_message.apply_async')
     def test_sim_receive_sms(self, mock_save_sms_message):
@@ -62,7 +62,7 @@ class GarfieldTestCaseWithContact(GarfieldTwilioTestCase):
                             related_phone_number=self.phone_number)
 
 
-@override_settings(TWILIO_PHONE_NUMBER="+15558675309")
+@override_settings(TWILIO_PHONE_NUMBER="+15558675309", DEBUG=False)
 class GarfieldTestSimSmsCaseExistingContact(GarfieldTestCaseWithContact):
     @patch('sms.tasks.save_sms_message.apply_async')
     def test_sim_receive_sms(self, mock_save_sms_message):

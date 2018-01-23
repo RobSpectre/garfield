@@ -883,8 +883,8 @@ class DeterrenceTestCase(TestCase):
         self.message = {"From": "+15556667777",
                         "To": "+15558675309",
                         "Body": "Test."}
-        self.deterrence_file_path = "http://example.com/static/images/" \
-                                    "deterrence_preview.jpg"
+        self.deterrence_file_path = "https://berserk-sleet-3229.twil.io/" \
+                                    "assets/john_deterrent.jpg"
 
     @patch('sms.tasks.send_sms_message.apply_async')
     def test_send_deterrence(self, mock_sms_message):

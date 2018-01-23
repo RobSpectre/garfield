@@ -12,6 +12,10 @@ from django.views.decorators.csrf import csrf_exempt
 from twilio.twiml import TwiML
 from twilio.request_validator import RequestValidator
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 if sys.version_info[0] == 3:  # pragma: no cover
     text_type = str  # pragma: no cover
@@ -34,6 +38,9 @@ def twilio_view(func, **kwargs):
 
             if isinstance(test, HttpResponseForbidden) or \
                isinstance(test, HttpResponseNotAllowed):
+
+                logger.error("Request did not validate.")
+
                 return test
 
         response = func(request, *args, **kwargs)
