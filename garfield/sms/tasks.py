@@ -1,7 +1,6 @@
 from celery import shared_task
 
 from django.conf import settings
-from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 
@@ -100,6 +99,10 @@ def check_contact(message):
         contact.save()
 
         contact.related_phone_numbers.add(phone_number)
+        contact.save()
+
+        saved_message = SmsMessage.objects.get(sid=message['MessageSid'])
+        saved_message.related_contact = contact
         contact.save()
 
         lookup_contact.apply_async(args=[message['From'],

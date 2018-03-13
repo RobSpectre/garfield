@@ -121,6 +121,12 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
                                                        friendly_name="Stuff.",
                                                        country_code="1",
                                                        related_sim=self.sim)
+        self.sms_message = SmsMessage \
+            .objects.create(sid="MMxxxx",
+                            from_number="+15556667777",
+                            to_number="+15558675309",
+                            body="Test.",
+                            related_phone_number=self.phone_number)
 
     @patch('sms.tasks.lookup_contact.apply_async')
     def test_check_contact_contact_does_not_exist(self, mock_lookup_contact):

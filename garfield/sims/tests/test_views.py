@@ -26,6 +26,7 @@ class GarfieldTestSimSmsCaseNewContact(GarfieldTwilioTestCase):
     @patch('sms.tasks.save_sms_message.apply_async')
     def test_sim_send_sms(self, mock_save_sms_message):
         response = self.client.sms("Test.",
+                                   from_="sim:DExxxxx",
                                    path="/sims/sms/send/")
 
         self.assert_twiml(response)
@@ -78,7 +79,9 @@ class GarfieldTestSimSmsCaseExistingContact(GarfieldTestCaseWithContact):
 
     @patch('sms.tasks.save_sms_message.apply_async')
     def test_sim_send_sms(self, mock_save_sms_message):
-        response = self.client.sms("Test.", to="+15556667777",
+        response = self.client.sms("Test.",
+                                   from_="sim:DExxxxx",
+                                   to="+15556667777",
                                    path="/sims/sms/send/")
 
         self.assert_twiml(response)
