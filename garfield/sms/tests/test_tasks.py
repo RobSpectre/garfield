@@ -141,6 +141,10 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
                           '+15556667777')
         self.assertTrue(mock_lookup_contact.called)
 
+        message = SmsMessage.objects.get(from_number=result.phone_number)
+        self.assertEquals(message.related_contact,
+                          result)
+
     def test_lookup_contact_contact_does_not_exist(self):
         with self.assertRaises(ObjectDoesNotExist):
             sms.tasks.lookup_contact("+15556667777", "+15558675309")

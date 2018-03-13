@@ -101,9 +101,9 @@ def check_contact(message):
         contact.related_phone_numbers.add(phone_number)
         contact.save()
 
-        saved_message = SmsMessage.objects.get(sid=message['MessageSid'])
-        saved_message.related_contact = contact
-        contact.save()
+        sms_message = SmsMessage.objects.get(sid=message['MessageSid'])
+        sms_message.related_contact = contact
+        sms_message.save()
 
         lookup_contact.apply_async(args=[message['From'],
                                          message['To']])
