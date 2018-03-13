@@ -47,8 +47,10 @@ class Contact(models.Model):
     whitepages_address_type = models.CharField(max_length=255,
                                                blank=True,
                                                null=True)
-    whitepages_latitude = models.FloatField(null=True)
-    whitepages_longitude = models.FloatField(null=True)
+    whitepages_latitude = models.FloatField(null=True,
+                                            blank=True)
+    whitepages_longitude = models.FloatField(null=True,
+                                             blank=True)
     whitepages_accuracy = models.CharField(max_length=255,
                                            blank=True,
                                            null=True)
@@ -163,7 +165,8 @@ class Contact(models.Model):
     do_not_deter = models.BooleanField(default=False)
     deterrents_received = models.IntegerField(default=0)
 
-    related_phone_numbers = models.ManyToManyField(PhoneNumber)
+    related_phone_numbers = models.ManyToManyField(PhoneNumber,
+                                                   blank=True)
 
     def __str__(self):
         return "{0}: {1} {2}".format(self.phone_number,
