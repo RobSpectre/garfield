@@ -31,9 +31,9 @@ class TaskPhoneNumbersTestCase(TestCase):
            '.LocalList.create')
     def test_buy_ad_phone_number(self, mock_buy, mock_search, mock_send):
         mock_return = MagicMock()
-        mock_return.phone_number.return_value = "+15552223333"
+        mock_return.phone_number = "+15552223333"
 
-        mock_search.return_value = mock_return
+        mock_search.return_value = [mock_return]
 
         mock_buy_return = MagicMock()
         mock_buy_return.sid = "PNxxxx"
@@ -51,8 +51,9 @@ class TaskPhoneNumbersTestCase(TestCase):
 
         self.assertEquals(len(results), 1)
         self.assertEquals(results[0].e164, "+15552223333")
+        self.assertEquals(results[0].formatted, "(555) 222-3333")
         mock_send.assert_called_once_with(kwargs={"from_": "+15552223333",
-                                                  "to": "sim:DExxx",
+                                                  "to": "+15556667777",
                                                   "body": "This is your new"
                                                           " ADV phone "
                                                           "number."})
@@ -72,9 +73,9 @@ class TaskPhoneNumbersTestCase(TestCase):
                                                       mock_send):
 
         mock_return = MagicMock()
-        mock_return.phone_number.return_value = "+15552223333"
+        mock_return.phone_number = "+15552223333"
 
-        mock_search.return_value = mock_return
+        mock_search.return_value = [mock_return]
 
         mock_buy.side_effect = \
             MagicMock(side_effect=TwilioRestException(401,

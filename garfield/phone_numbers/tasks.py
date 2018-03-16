@@ -5,6 +5,8 @@ from django.conf import settings
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 
+import phonenumbers
+
 from phone_numbers.models import PhoneNumber
 
 from sims.models import Sim
@@ -20,11 +22,16 @@ def buy_new_phone_number(base_uri, message, number_type):
         available = client.available_phone_numbers("US") \
             .local.list(in_locality="New York")
 
+        parsed = phonenumbers.parse(available[0].phone_number, None)
+        formatted = \
+            phonenumbers.format_number(parsed,
+                                       phonenumbers.PhoneNumberFormat.NATIONAL)
+
         new_number = client.incoming_phone_numbers \
             .local.create(phone_number=available[0].phone_number,
                           friendly_name="Garfield {0} Number - {1}"
                                         "".format(number_type,
-                                                  available[0].phone_number),
+                                                  formatted),
                           voice_application_sid=settings.TWILIO_APP_SID,
                           sms_application_sid=settings.TWILIO_APP_SID)
     except TwilioRestException as e:
@@ -43,14 +50,14 @@ def buy_new_phone_number(base_uri, message, number_type):
                                service_sid="None",
                                url=new_number.uri,
                                e164=new_number.phone_number,
-                               formatted=new_number.phone_number,
+                               formatted=formatted,
                                country_code="1",
                                number_type=number_type,
                                related_sim=sim)
     phone_number.save()
 
     send_sms_message.apply_async(kwargs={"from_": phone_number.e164,
-                                         "to": message['From'],
+                                         "to": settings.TWILIO_PHONE_NUMBER,
                                          "body": "This is your new {0}"
                                                  " phone number."
                                                  "".format(number_type)})
