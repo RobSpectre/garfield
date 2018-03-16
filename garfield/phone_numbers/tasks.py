@@ -50,6 +50,8 @@ def buy_new_phone_number(base_uri, message, number_type):
                                service_sid="None",
                                url=new_number.uri,
                                e164=new_number.phone_number,
+                               friendly_name="{0} - {1}".format(number_type,
+                                                                formatted),
                                formatted=formatted,
                                country_code="1",
                                number_type=number_type,
