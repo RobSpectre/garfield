@@ -15,6 +15,7 @@ from phone_numbers.tasks import buy_new_phone_number
 
 @override_settings(TWILIO_ACCOUNT_SID="ACxxxx",
                    TWILIO_AUTH_TOKEN="yyyyyyy",
+                   TWILIO_APP_SID="APzzzzzzzz"
                    TWILIO_PHONE_NUMBER="+15556667777")
 class TaskPhoneNumbersTestCase(TestCase):
     def setUp(self):
