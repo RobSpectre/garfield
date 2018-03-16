@@ -17,6 +17,24 @@ class PhoneNumber(models.Model):
     friendly_name = models.CharField(max_length=255)
     country_code = models.CharField(max_length=255)
 
+    AD = 'ADV'
+    DETERRENCE = 'DET'
+    DEVELOPMENT = 'DEV'
+    STAGE = 'STG'
+    TEST = 'TST'
+    DEMO = 'DEM'
+    OPERATOR = 'OPR'
+
+    NUMBER_TYPE_CHOICES = ((AD, 'Advertisement'),
+                           (DETERRENCE, 'Deterrence'),
+                           (DEMO, 'Demo'),
+                           (DEVELOPMENT, 'Development'),
+                           (STAGE, 'Stage'),
+                           (TEST, 'Test'),
+                           (OPERATOR, 'Operator'))
+    number_type = models.CharField(choices=NUMBER_TYPE_CHOICES,
+                                   max_length=3)
+
     related_sim = models.ForeignKey(Sim,
                                     null=True,
                                     related_name="phone_numbers")
