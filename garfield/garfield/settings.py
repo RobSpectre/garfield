@@ -42,10 +42,6 @@ INSTALLED_APPS = [
     'phone_numbers',
     'sims',
     'voice',
-    'trackstats',
-    'statistics',
-    'controlcenter',
-    'dashboards',
     'django_celery_results',
     'django_celery_beat'
 ]
