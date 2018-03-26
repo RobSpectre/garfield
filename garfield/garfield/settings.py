@@ -42,6 +42,10 @@ INSTALLED_APPS = [
     'phone_numbers',
     'sims',
     'voice',
+    'trackstats',
+    'statistics',
+    'controlcenter',
+    'dashboards',
     'django_celery_results',
     'django_celery_beat'
 ]
@@ -137,3 +141,9 @@ except:
     pass
 
 CELERY_RESULT_BACKEND = 'django-db'
+
+CONTROLCENTER_DASHBOARDS = (
+    ('weekly', 'dashboards.weekly.WeeklyDashboard'),
+)
+
+CONTROLCENTER_CHARTIST_COLORS = "material"

@@ -39,3 +39,8 @@ class CallInline(admin.TabularInline):
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
     inlines = [SmsMessageInline, CallInline]
+    search_fields = ('phone_number',
+                     'whitepages_first_name',
+                     'whitepages_last_name',
+                     'nextcaller_first_name',
+                     'nextcaller_last_name')

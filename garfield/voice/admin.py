@@ -5,4 +5,4 @@ from .models import Call
 
 @admin.register(Call)
 class CallAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('from_number', 'to_number')

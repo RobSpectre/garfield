@@ -5,4 +5,4 @@ from .models import SmsMessage
 
 @admin.register(SmsMessage)
 class SmsMessageAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('from_number', 'to_number', 'body')
