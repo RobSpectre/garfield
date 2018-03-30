@@ -101,7 +101,8 @@ class GarfieldTestSimSmsCaseExistingContact(GarfieldTestCaseWithContact):
 
 
 class SimSmsWhisperTestCase(GarfieldTwilioTestCase):
-    def setUp(self):
+    @patch('contacts.tasks.lookup_contact.apply_async')
+    def setUp(self, mock_lookup):
         self.sim = Sim.objects.create(friendly_name="TestSim",
                                       sid="DExxx",
                                       iccid="asdf",
@@ -138,8 +139,11 @@ class SimSmsWhisperTestCase(GarfieldTwilioTestCase):
         self.assertTrue(Whisper.objects.all()[0].sent)
         self.assertTrue(mock_send_message.called)
 
+    @patch('contacts.tasks.lookup_contact.apply_async')
     @patch('sms.tasks.save_sms_message.apply_async')
-    def test_send_whisper_multiple_contacts(self, mock_send_message):
+    def test_send_whisper_multiple_contacts(self,
+                                            mock_send_message,
+                                            mock_lookup):
         new_contact = Contact.objects.create(phone_number="+15551112222")
         new_whisper = Whisper(body="*whisper two*",
                               related_phone_number=self.phone_number,
@@ -155,6 +159,7 @@ class SimSmsWhisperTestCase(GarfieldTwilioTestCase):
                                "*whisper two*")
         self.assertTrue(Whisper.objects.all()[0].sent)
         self.assertTrue(mock_send_message.called)
+        self.assertTrue(mock_lookup.called)
 
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")

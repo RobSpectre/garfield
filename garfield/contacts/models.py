@@ -1,6 +1,18 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 from phone_numbers.models import PhoneNumber
+
+import phonenumbers
+
+
+def validate_possible_number(value):
+    parsed = phonenumbers.parse(value, "US")
+
+    if not phonenumbers.is_possible_number(parsed):
+        raise ValidationError("Contact does not appear to have "
+                              "a possible US phone number: {0}"
+                              "".format(value))
 
 
 class Contact(models.Model):
@@ -60,7 +72,8 @@ class Contact(models.Model):
                                              null=True)
     whitepages_commercial = models.NullBooleanField(default=False)
 
-    phone_number = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=255,
+                                    validators=[validate_possible_number])
     carrier = models.CharField(max_length=255,
                                blank=True,
                                null=True)
@@ -172,3 +185,17 @@ class Contact(models.Model):
         return "{0}: {1} {2}".format(self.phone_number,
                                      self.nextcaller_first_name,
                                      self.nextcaller_last_name)
+
+    def save(self, force_insert=False, force_update=False, **kwargs):
+        parsed = phonenumbers.parse(self.phone_number, "US")
+
+        self.phone_number = \
+            phonenumbers.format_number(parsed,
+                                       phonenumbers.PhoneNumberFormat
+                                       .E164)
+        self.phone_number_friendly = \
+            phonenumbers.format_number(parsed,
+                                       phonenumbers.PhoneNumberFormat
+                                       .NATIONAL)
+
+        super(Contact, self).save(force_insert, force_update)

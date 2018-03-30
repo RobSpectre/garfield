@@ -1,6 +1,8 @@
 from django.http import HttpRequest
 from django.test import TestCase
 
+from mock import patch
+
 from phone_numbers.models import PhoneNumber
 from contacts.models import Contact
 
@@ -9,7 +11,8 @@ import voice.tasks
 
 
 class SaveCallTestCasePhoneNumberExists(TestCase):
-    def setUp(self):
+    @patch('contacts.tasks.lookup_contact.apply_async')
+    def setUp(self, mock_lookup):
         self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
                                                        account_sid="ACxxx",
                                                        service_sid="SExxx",
