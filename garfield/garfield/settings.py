@@ -37,11 +37,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'controlcenter',
     'contacts',
     'sms',
     'phone_numbers',
     'sims',
     'voice',
+    'dashboard',
     'django_celery_results',
     'django_celery_beat'
 ]
@@ -139,7 +141,7 @@ except:
 CELERY_RESULT_BACKEND = 'django-db'
 
 CONTROLCENTER_DASHBOARDS = (
-    ('weekly', 'dashboards.weekly.WeeklyDashboard'),
+    ('weekly', 'dashboard.weekly.WeeklyDashboard'),
 )
 
 CONTROLCENTER_CHARTIST_COLORS = "material"
