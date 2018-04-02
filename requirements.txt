@@ -5,3 +5,4 @@ django-celery-beat==1.0.1
 django-celery-results==1.0.1
 djangorestframework==3.7.3
 phonenumbers==8.9.1
+django-controlcenter==0.2.5
