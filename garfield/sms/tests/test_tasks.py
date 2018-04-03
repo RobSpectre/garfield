@@ -221,6 +221,15 @@ class DeterrenceTestCase(TestCase):
         self.assertEquals(2, mock_sms_message.call_count)
 
     @patch('sms.tasks.send_sms_message.apply_async')
+    def test_send_deterrence_arrested(self, mock_sms_message):
+        self.contact_a.arrested = True
+        self.contact_a.save()
+
+        sms.tasks.send_deterrence("http://example.com", self.message)
+
+        self.assertEquals(2, mock_sms_message.call_count)
+
+    @patch('sms.tasks.send_sms_message.apply_async')
     def test_send_deterrence_first_name(self, mock_sms_message):
         self.contact_a.whitepages_first_name = "John"
         self.contact_a.save()

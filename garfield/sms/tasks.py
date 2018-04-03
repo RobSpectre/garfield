@@ -70,10 +70,8 @@ def check_contact(message):
 
     if not result:
         contact = Contact(phone_number=message['From'])
-        contact.save()
-
+        contact.save(update_fields=['phone_number'])
         contact.related_phone_numbers.add(phone_number)
-        contact.save()
 
         sms_message = SmsMessage.objects.get(sid=message['MessageSid'])
         sms_message.related_contact = contact
@@ -83,7 +81,7 @@ def check_contact(message):
 @shared_task
 def send_deterrence(absolute_uri, message):
     for contact in Contact.objects.all():
-        if contact.do_not_deter or contact.deterred:
+        if contact.do_not_deter or contact.deterred or contact.arrested:
             continue
 
         if contact.whitepages_first_name:
@@ -103,4 +101,4 @@ def send_deterrence(absolute_uri, message):
         send_sms_message.apply_async(kwargs=kwargs)
 
         contact.deterred = True
-        contact.save()
+        contact.save(update_fields=['deterred'])

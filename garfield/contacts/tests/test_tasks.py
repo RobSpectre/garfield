@@ -45,7 +45,7 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
 
     def test_lookup_contact_contact_does_not_exist(self):
         with self.assertRaises(ObjectDoesNotExist):
-            contacts.tasks.lookup_contact("+15556667777", "+15558675309")
+            contacts.tasks.lookup_contact("+15556667777")
 
 
 class TaskLookupContactTestCase(TestCase):
@@ -74,6 +74,7 @@ class TaskLookupContactTestCase(TestCase):
                         "To": "+15558675309",
                         "Body": "Test."}
 
+    @override_settings(CELERY_ALWAYS_EAGER=True)
     @patch('contacts.tasks.lookup_contact_tellfinder.apply_async')
     @patch('contacts.tasks.lookup_contact_nextcaller.apply_async')
     @patch('contacts.tasks.lookup_contact_whitepages.apply_async')
@@ -81,15 +82,14 @@ class TaskLookupContactTestCase(TestCase):
                             mock_lookup_contact_whitepages,
                             mock_lookup_contact_nextcaller,
                             mock_lookup_contact_tellfinder):
-        contacts.tasks.lookup_contact(self.message["From"],
-                                      self.message["To"])
 
-        mock_lookup_contact_whitepages \
-            .assert_called_with(args=[self.contact.id])
-        mock_lookup_contact_nextcaller \
-            .assert_called_with(args=[self.contact.id])
-        mock_lookup_contact_tellfinder \
-            .assert_called_with(args=[self.contact.id])
+        mock_lookup_contact_whitepages.return_value = True
+
+        contacts.tasks.lookup_contact(self.message["From"])
+
+        self.assertTrue(mock_lookup_contact_whitepages.called)
+        self.assertTrue((self.contact.id,),
+                        mock_lookup_contact_whitepages.call_args[0])
 
 
 class TaskLookupContactWhitepagesTestCase(TestCase):

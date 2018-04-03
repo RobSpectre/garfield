@@ -1,3 +1,4 @@
+from celery import chain
 from celery import shared_task
 
 from django.conf import settings
@@ -25,12 +26,12 @@ def lookup_phone_number(phone_number, type=None, addons=None):
 
 
 @shared_task
-def lookup_contact(contact_number, twilio_number):
+def lookup_contact(contact_number):
     contact = Contact.objects.get(phone_number=contact_number)
 
-    lookup_contact_whitepages.apply_async(args=[contact.id])
-    lookup_contact_nextcaller.apply_async(args=[contact.id])
-    lookup_contact_tellfinder.apply_async(args=[contact.id])
+    return chain(lookup_contact_whitepages.si(contact.id),
+                 lookup_contact_nextcaller.si(contact.id),
+                 lookup_contact_tellfinder.si(contact.id)).apply_async()
 
 
 @shared_task
@@ -158,8 +159,8 @@ def lookup_contact_nextcaller(contact_id):
 
 
 def apply_lookup_nextcaller_to_contact(contact, lookup):
-    result = lookup.add_ons['results'
-                            ]['nextcaller_advanced_caller_id']['result']
+    result = \
+        lookup.add_ons['results']['nextcaller_advanced_caller_id']['result']
 
     if result['records']:
         result = result['records'][0]
