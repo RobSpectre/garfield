@@ -10,6 +10,41 @@ from voice.models import Call
 import voice.tasks
 
 
+class CallTestCaseContactDoesNotExist(TestCase):
+    def setUp(self):
+        self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
+                                                       account_sid="ACxxx",
+                                                       service_sid="SExxx",
+                                                       url="http://exmple.com",
+                                                       e164="+15558675309",
+                                                       formatted="(555) "
+                                                                 "867-5309",
+                                                       friendly_name="Stuff.",
+                                                       country_code="1")
+
+        self.request = HttpRequest()
+
+        self.request.POST = {"CallSid": "CAtesting",
+                             "AccountSid": "ACxxxxx",
+                             "To": "+15558675309",
+                             "From": "+15556667777",
+                             "Direction": "inbound",
+                             "FromCity": "BROOKLYN",
+                             "FromState": "NY",
+                             "FromCountry": "US",
+                             "FromZip": "55555"}
+
+    @patch('sms.tasks.check_contact.apply_async')
+    def test_save_call_contact_does_not_exist(self,
+                                              mock_contact):
+        voice.tasks.save_call(self.request.POST)
+
+        calls = Call.objects.all()
+
+        self.assertEquals(len(calls), 1)
+        self.assertTrue(mock_contact.called)
+
+
 class SaveCallTestCasePhoneNumberExists(TestCase):
     @patch('contacts.tasks.lookup_contact.apply_async')
     def setUp(self, mock_lookup):
@@ -37,7 +72,8 @@ class SaveCallTestCasePhoneNumberExists(TestCase):
                              "FromCountry": "US",
                              "FromZip": "55555"}
 
-    def test_save_call_to_number(self):
+    @patch('sms.tasks.check_contact.apply_async')
+    def test_save_call_to_number(self, mock_check_contact):
         voice.tasks.save_call(self.request.POST)
 
         test = Call.objects.all()
@@ -47,22 +83,30 @@ class SaveCallTestCasePhoneNumberExists(TestCase):
         self.assertEquals(test[0].to_number, "+15558675309")
         self.assertEquals(test[0].related_contact,
                           self.contact)
+        self.assertTrue(mock_check_contact.called)
 
-    def test_save_call_from_number(self):
-        self.request.POST["From"] = "+15558675309"
+    @patch('sms.tasks.check_contact.apply_async')
+    def test_save_call_from_number(self, mock_check_contact):
+        self.request.POST["From"] = "sim:DExxxx"
         self.request.POST["To"] = "+15556667777"
+
+        Call.objects.create(from_number="+15556667777",
+                            to_number="+15558675309",
+                            sid="CAxxxx")
 
         voice.tasks.save_call(self.request.POST)
 
         test = Call.objects.all()
 
         self.assertTrue(test)
-        self.assertEquals(test[0].sid, "CAtesting")
-        self.assertEquals(test[0].to_number, "+15556667777")
-        self.assertEquals(test[0].related_contact,
+        self.assertEquals(test[1].sid, "CAtesting")
+        self.assertEquals(test[1].to_number, "+15556667777")
+        self.assertEquals(test[1].related_contact,
                           self.contact)
+        self.assertFalse(mock_check_contact.called)
 
-    def test_save_voice_recording(self):
+    @patch('sms.tasks.check_contact.apply_async')
+    def test_save_voice_recording(self, mock_lookup):
         voice.tasks.save_call(self.request.POST)
 
         test_request = HttpRequest()

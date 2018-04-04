@@ -6,6 +6,7 @@ from twilio.rest import Client
 
 from phone_numbers.models import PhoneNumber
 from contacts.models import Contact
+from voice.models import Call
 
 from .models import SmsMessage
 
@@ -73,9 +74,15 @@ def check_contact(message):
         contact.save(update_fields=['phone_number'])
         contact.related_phone_numbers.add(phone_number)
 
-        sms_message = SmsMessage.objects.get(sid=message['MessageSid'])
-        sms_message.related_contact = contact
-        sms_message.save()
+        if message.get("MessageSid", None):
+            sms_message = SmsMessage.objects.get(sid=message['MessageSid'])
+            sms_message.related_contact = contact
+            sms_message.save()
+
+        if message.get("CallSid", None):
+            call = Call.objects.get(sid=message['CallSid'])
+            call.related_contact = contact
+            call.save()
 
 
 @shared_task

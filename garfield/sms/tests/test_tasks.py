@@ -6,6 +6,7 @@ from mock import patch
 from contacts.models import Contact
 from phone_numbers.models import PhoneNumber
 from sims.models import Sim
+from voice.models import Call
 
 from sms.models import SmsMessage
 
@@ -105,6 +106,11 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
                             body="Test.",
                             related_phone_number=self.phone_number)
 
+        self.call = Call.objects.create(sid="CAxxxx",
+                                        from_number="+15556667777",
+                                        to_number="+15558675309",
+                                        related_phone_number=self.phone_number)
+
     @patch('contacts.tasks.lookup_contact.apply_async')
     def test_check_contact_contact_does_not_exist(self, mock_lookup_contact):
         sms.tasks.check_contact({'MessageSid': 'MMxxxx',
@@ -120,6 +126,23 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
 
         message = SmsMessage.objects.get(from_number=result.phone_number)
         self.assertEquals(message.related_contact,
+                          result)
+
+    @patch('contacts.tasks.lookup_contact.apply_async')
+    def test_check_contact_contact_does_not_exist_via_call(self,
+                                                           mock_contact):
+        sms.tasks.check_contact({'CallSid': 'CAxxxx',
+                                 'To': '+15558675309',
+                                 'From': '+15556667777'})
+
+        result = Contact.objects.all().latest('date_created')
+
+        self.assertEquals(result.phone_number,
+                          '+15556667777')
+        self.assertTrue(mock_contact.called)
+
+        call = Call.objects.get(from_number=result.phone_number)
+        self.assertEquals(call.related_contact,
                           result)
 
 

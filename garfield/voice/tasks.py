@@ -2,6 +2,7 @@ from celery import shared_task
 
 from contacts.models import Contact
 from phone_numbers.models import PhoneNumber
+from sms.tasks import check_contact
 
 from .models import Call
 
@@ -13,20 +14,29 @@ def save_call(message):
                   to_number=message['To'])
     record.save()
 
-    if PhoneNumber.objects.filter(e164=message['To']):
-        phone_number = PhoneNumber.objects.get(e164=message['To'])
-        record.related_phone_number = phone_number
-        record.save()
-    elif PhoneNumber.objects.filter(e164=message['From']):
-        phone_number = PhoneNumber.objects.get(e164=message['From'])
-        record.related_phone_number = phone_number
-        record.save()
+    if "sim" in message['From']:
+        result = \
+            Call.objects.filter(from_number=message['To']) \
+            .latest('date_created')
+        if result:
+            record.related_phone_number = result.related_phone_number
+            record.save()
+    else:
+        phone_number = \
+            PhoneNumber.objects.filter(e164=message['To']) \
+            .latest('date_created')
+        if phone_number:
+            record.related_phone_number = phone_number
+            record.save()
+
+        check_contact.apply_async(args=[message])
 
     if Contact.objects.filter(phone_number=message['To']):
         contact = Contact.objects.get(phone_number=message['To'])
         record.related_contact = contact
         record.save()
-    elif Contact.objects.filter(phone_number=message['From']):
+
+    if Contact.objects.filter(phone_number=message['From']):
         contact = Contact.objects.get(phone_number=message['From'])
         record.related_contact = contact
         record.save()
