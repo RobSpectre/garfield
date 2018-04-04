@@ -71,7 +71,7 @@ def check_contact(message):
 
     if not result:
         contact = Contact(phone_number=message['From'])
-        contact.save(update_fields=['phone_number'])
+        contact.save()
         contact.related_phone_numbers.add(phone_number)
 
         if message.get("MessageSid", None):
