@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.test import override_settings
 
 from mock import patch
@@ -25,12 +26,24 @@ class GarfieldTestSimSmsCaseNewContact(GarfieldTwilioTestCase):
 
     @patch('sms.tasks.save_sms_message.apply_async')
     def test_sim_send_sms(self, mock_save_sms_message):
+        PhoneNumber.objects.create(sid="PNxxx",
+                                   account_sid="ACxxx",
+                                   service_sid="SExxx",
+                                   url="http://exmple.com",
+                                   e164="+15554445555",
+                                   formatted="(555) "
+                                             "867-5309",
+                                   friendly_name="Stuff.",
+                                   country_code="1",
+                                   number_type="ADV")
         response = self.client.sms("Test.",
                                    from_="sim:DExxxxx",
                                    path="/sims/sms/send/")
 
         self.assert_twiml(response)
         self.assertTrue(mock_save_sms_message.called)
+        self.assertNotContains(response,
+                               settings.TWILIO_PHONE_NUMBER)
 
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
@@ -174,11 +187,23 @@ class GarfieldSimVoiceTestCase(GarfieldTwilioTestCase):
 
     @patch('voice.tasks.save_call.apply_async')
     def test_sims_send_call(self, mock_save_call):
+        PhoneNumber.objects.create(sid="PNxxx",
+                                   account_sid="ACxxx",
+                                   service_sid="SExxx",
+                                   url="http://exmple.com",
+                                   e164="+15551112222",
+                                   formatted="(555) "
+                                             "867-5309",
+                                   friendly_name="Stuff.",
+                                   country_code="1",
+                                   number_type="ADV")
         response = self.client.call("Test.",
                                     path="/sims/voice/send/")
 
         self.assert_twiml(response)
         self.assertTrue(mock_save_call.called)
+        self.assertNotContains(response,
+                               settings.TWILIO_PHONE_NUMBER)
 
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")

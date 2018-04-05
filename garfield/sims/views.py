@@ -73,7 +73,11 @@ def sms_send(request):
                          to=request.POST['To'])
     except ObjectDoesNotExist:
         response.message(request.POST['Body'],
-                         from_=settings.TWILIO_PHONE_NUMBER,
+                         from_=PhoneNumber
+                         .objects
+                         .filter(number_type="ADV")
+                         .latest('date_created')
+                         .e164,
                          to=request.POST['To'])
 
     save_sms_message.apply_async(args=[request.POST])
@@ -118,7 +122,11 @@ def voice_send(request):
                       recording_status_callback=reverse('sims:recording'))
     except ObjectDoesNotExist:
         response.dial(request.POST['To'],
-                      caller_id=settings.TWILIO_PHONE_NUMBER,
+                      caller_id=PhoneNumber
+                      .objects
+                      .filter(number_type="ADV")
+                      .latest('date_created')
+                      .e164,
                       record=True,
                       recording_status_callback=reverse('sims:recording'))
 
