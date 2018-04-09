@@ -4,7 +4,7 @@ from contacts.models import Contact
 from phone_numbers.models import PhoneNumber
 from voice.models import Call
 
-from sms.tasks import lookup_contact
+from contacts.tasks import lookup_contact
 
 
 class Command(BaseCommand):
