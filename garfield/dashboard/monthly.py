@@ -62,6 +62,7 @@ class MonthlyDeterrenceChart(MonthlyChart):
     queryset = (SmsMessage.objects
                 .filter(related_phone_number__number_type='DET')
                 .annotate(month_created=TruncMonth('date_created'))
+                .order_by('month_created')
                 .values('month_created')
                 .annotate(count=Count('id')))
 
