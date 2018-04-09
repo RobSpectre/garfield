@@ -10,10 +10,10 @@ from voice.models import Call
 
 
 class MonthlyChart(widgets.SingleBarChart):
-    width = widgets.LARGE
-
     class Chartist:
-        options = {"onlyInteger": True}
+        options = {'axisX': {'onlyInteger': True}}
+
+    width = widgets.SMALL
 
 
 class MonthlyContactChart(MonthlyChart):
@@ -23,6 +23,7 @@ class MonthlyContactChart(MonthlyChart):
 
     queryset = (Contact.objects
                 .annotate(month_created=TruncMonth('date_created'))
+                .order_by('month_created')
                 .values('month_created')
                 .annotate(count=Count('id')))
 
@@ -35,6 +36,7 @@ class MonthlyMessageChart(MonthlyChart):
     queryset = (SmsMessage.objects
                 .filter(related_phone_number__number_type='ADV')
                 .annotate(month_created=TruncMonth('date_created'))
+                .order_by('month_created')
                 .values('month_created')
                 .annotate(count=Count('id')))
 
@@ -47,26 +49,48 @@ class MonthlyCallChart(MonthlyChart):
     queryset = (Call.objects
                 .filter(related_phone_number__number_type='ADV')
                 .annotate(month_created=TruncMonth('date_created'))
+                .order_by('month_created')
+                .values('month_created')
+                .annotate(count=Count('id')))
+
+
+class MonthlyDeterrenceChart(MonthlyChart):
+    title = "Monthly Deterrence Responses"
+
+    values_list = ('month_created', 'count')
+
+    queryset = (SmsMessage.objects
+                .filter(related_phone_number__number_type='DET')
+                .annotate(month_created=TruncMonth('date_created'))
                 .values('month_created')
                 .annotate(count=Count('id')))
 
 
 class TopContacts(MonthlyChart):
+    class Chartist:
+        options = {'horizontalBars': True,
+                   'reverseData': True,
+                   'axisX': {'onlyInteger': True},
+                   'axisY': {'offset': 85}}
+
     title = "Contacts With Most Messages"
 
-    width = widgets.FULL
+    width = widgets.LARGER
 
     values_list = ('related_contact__phone_number',
                    'count')
 
+    limit_to = 14
+
     queryset = (SmsMessage.objects
                 .values('related_contact__phone_number')
                 .annotate(count=Count('sid'))
-                .order_by('count')[:20])
+                .order_by('-count'))
 
 
 class MonthlyDashboard(Dashboard):
     widgets = [MonthlyContactChart,
                MonthlyMessageChart,
                MonthlyCallChart,
+               MonthlyDeterrenceChart,
                TopContacts]

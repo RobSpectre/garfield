@@ -23,7 +23,8 @@ class ContactList(widgets.ItemList):
         Contact.objects.filter(date_created__week=datetime
                                .datetime
                                .today()
-                               .isocalendar()[1])
+                               .isocalendar()[1]) \
+                       .order_by('-date_created')
     list_display = ('date_created',
                     'phone_number',
                     'whitepages_first_name',
@@ -33,6 +34,7 @@ class ContactList(widgets.ItemList):
 
     list_display_links = ('phone_number')
     sortable = True
+    limit_to = None
 
     empty_message = "No contacts so far this week."
 
@@ -47,7 +49,9 @@ class LatestMessagesList(widgets.ItemList):
     queryset = (SmsMessage.objects
                 .filter(date_created__gt=datetime.date.today())
                 .filter(related_phone_number__number_type='ADV')
-                .order_by('-date_created')[:20])
+                .order_by('-date_created'))
+
+    limit_to = 20
 
     list_display = ('date_created',
                     'related_contact',
@@ -83,10 +87,10 @@ class LatestCallsList(widgets.ItemList):
 
 
 class DailyChart(widgets.SingleBarChart):
-    width = widgets.SMALL
-
     class Chartist:
-        options = {"onlyInteger": True}
+        options = {"axisX": {"onlyInteger": True}}
+
+    width = widgets.SMALL
 
     iso_today = datetime.datetime.today().isocalendar()
 
@@ -180,10 +184,39 @@ class CallChart(DailyChart):
         return series
 
 
+class DeterrenceChart(DailyChart):
+    title = "Daily Deterrence Responses"
+
+    def series(self):
+        queryset = (SmsMessage.objects
+                    .filter(date_created__week=self.iso_today[1])
+                    .filter(related_phone_number__number_type='DET')
+                    .annotate(day_created=TruncDay('date_created'))
+                    .values('day_created')
+                    .annotate(count=Count('id')))
+
+        values = {}
+
+        for row in queryset:
+            values[row['day_created']] = row['count']
+
+        dates = daterange_by_week(self.iso_today[0],
+                                  self.iso_today[1])
+
+        series = []
+
+        for date in dates:
+            item = values.get(date, 0)
+            series.append(item)
+
+        return series
+
+
 class WeeklyDashboard(Dashboard):
     widgets = (ContactChart,
                SmsMessageChart,
                CallChart,
+               DeterrenceChart,
                LatestMessagesList,
                LatestCallsList,
                ContactList)
