@@ -53,6 +53,8 @@ class LatestMessagesList(widgets.ItemList):
 
     limit_to = 20
 
+    sortable = True
+
     list_display = ('date_created',
                     'related_contact',
                     'related_phone_number',
@@ -76,6 +78,10 @@ class LatestCallsList(widgets.ItemList):
                 .filter(date_created__gt=datetime.date.today())
                 .filter(related_phone_number__number_type='ADV')
                 .order_by('-date_created')[:20])
+
+    limit_to = 20
+
+    sortable = True
 
     list_display = ('date_created',
                     'to_number',
