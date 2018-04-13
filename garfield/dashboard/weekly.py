@@ -58,8 +58,8 @@ class LatestMessagesList(widgets.ItemList):
     list_display = ('date_created',
                     'related_contact',
                     'related_phone_number',
-                    'to_number',
                     'from_number',
+                    'to_number',
                     'body')
 
     list_display_links = ('date_created',
@@ -84,8 +84,8 @@ class LatestCallsList(widgets.ItemList):
     sortable = True
 
     list_display = ('date_created',
-                    'to_number',
-                    'from_number')
+                    'from_number',
+                    'to_number')
 
     list_display_links = ('date_created',
                           'related_contact',

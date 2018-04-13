@@ -15,6 +15,14 @@ class MonthlyChart(widgets.SingleBarChart):
 
     width = widgets.SMALL
 
+    def labels(self):
+        labels = []
+
+        for item in self.queryset:
+            labels.append(item['month_created'])
+
+        return [label.strftime("%b") for label in labels]
+
 
 class MonthlyContactChart(MonthlyChart):
     title = "Monthly Contact Volume"
@@ -67,7 +75,7 @@ class MonthlyDeterrenceChart(MonthlyChart):
                 .annotate(count=Count('id')))
 
 
-class TopContacts(MonthlyChart):
+class TopContacts(widgets.SingleBarChart):
     class Chartist:
         options = {'horizontalBars': True,
                    'reverseData': True,
