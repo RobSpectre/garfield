@@ -21,12 +21,14 @@ class Contact(models.Model):
     deleted = models.BooleanField(default=False)
 
     whitepages_first_name = models.CharField(max_length=255,
+                                             db_index=True,
                                              blank=True,
                                              null=True)
     whitepages_middle_name = models.CharField(max_length=255,
                                               blank=True,
                                               null=True)
     whitepages_last_name = models.CharField(max_length=255,
+                                            db_index=True,
                                             blank=True,
                                             null=True)
     whitepages_gender = models.CharField(max_length=255,
@@ -73,6 +75,7 @@ class Contact(models.Model):
     whitepages_commercial = models.NullBooleanField(default=False)
 
     phone_number = models.CharField(max_length=255,
+                                    db_index=True,
                                     validators=[validate_possible_number])
     carrier = models.CharField(max_length=255,
                                blank=True,
@@ -81,16 +84,19 @@ class Contact(models.Model):
                                          blank=True,
                                          null=True)
     phone_number_friendly = models.CharField(max_length=255,
+                                             db_index=True,
                                              blank=True,
                                              null=True)
 
     nextcaller_first_name = models.CharField(max_length=255,
+                                             db_index=True,
                                              blank=True,
                                              null=True)
     nextcaller_middle_name = models.CharField(max_length=255,
                                               blank=True,
                                               null=True)
     nextcaller_last_name = models.CharField(max_length=255,
+                                            db_index=True,
                                             blank=True,
                                             null=True)
     nextcaller_gender = models.CharField(max_length=255,

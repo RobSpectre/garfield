@@ -5,13 +5,13 @@ from phone_numbers.models import PhoneNumber
 
 
 class Call(models.Model):
-    date_created = models.DateTimeField(auto_now_add=True)
+    date_created = models.DateTimeField(auto_now_add=True, db_index=True)
     date_modified = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)
 
-    sid = models.CharField(max_length=255)
-    from_number = models.CharField(max_length=255)
-    to_number = models.CharField(max_length=255)
+    sid = models.CharField(max_length=255, db_index=True)
+    from_number = models.CharField(max_length=255, db_index=True)
+    to_number = models.CharField(max_length=255, db_index=True)
     recording_url = models.URLField(null=True,
                                     blank=True)
     duration = models.IntegerField(null=True, blank=True)
