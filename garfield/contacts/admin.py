@@ -6,6 +6,11 @@ from voice.models import Call
 from .models import Contact
 
 
+admin.site.site_header = "Demand Deterrence Platform"
+admin.site.site_title = admin.site.site_header
+admin.site.index_title = "Dashboard"
+
+
 class SmsMessageInline(admin.TabularInline):
     model = SmsMessage
     readonly_fields = ('from_number', 'to_number', 'body', 'date_created')

@@ -17,8 +17,7 @@ class SmsMessageInline(admin.TabularInline):
                        'date_created')
 
     list_display = readonly_fields
-    list_display_links = ('related_contact', 'date_created')
-    exclude = ['sid']
+    exclude = ['sid', 'deleted']
 
     def get_queryset(self, request):
         qs = super(SmsMessageInline, self).get_queryset(request)
