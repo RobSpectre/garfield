@@ -10,8 +10,15 @@ from .models import PhoneNumber
 
 class SmsMessageInline(admin.TabularInline):
     model = SmsMessage
-    readonly_fields = ('from_number', 'to_number', 'body', 'date_created')
-    list_display = ('from_number', 'to_number', 'body', 'date_created')
+    readonly_fields = ('related_contact',
+                       'from_number',
+                       'to_number',
+                       'body',
+                       'date_created')
+
+    list_display = readonly_fields
+    list_display_links = ('related_contact', 'date_created')
+    exclude = ['sid']
 
     def get_queryset(self, request):
         qs = super(SmsMessageInline, self).get_queryset(request)
@@ -29,14 +36,15 @@ class SmsMessageInline(admin.TabularInline):
 
 class CallInline(admin.TabularInline):
     model = Call
-    readonly_fields = ('from_number',
+    readonly_fields = ('related_contact',
+                       'from_number',
                        'to_number',
                        'recording_url',
-                       'date_created')
-    list_display = ('from_number',
-                    'to_number',
-                    'recording_url',
-                    'date_created')
+                       'date_created',
+                       'duration')
+    list_display = readonly_fields
+    list_display_links = ('related_contact', 'date_created')
+    exclude = ['sid']
 
     def get_queryset(self, request):
         qs = super(CallInline, self).get_queryset(request)
