@@ -84,7 +84,7 @@ class TopContacts(widgets.SingleBarChart):
 
     title = "Contacts With Most Messages"
 
-    width = widgets.LARGER
+    width = widgets.LARGE
 
     values_list = ('related_contact__phone_number',
                    'count')
@@ -96,10 +96,34 @@ class TopContacts(widgets.SingleBarChart):
                 .annotate(count=Count('sid'))
                 .order_by('-count'))
 
+    
+class TopContactsRespondingToDeterrence(widgets.SingleBarChart):
+    class Chartist:
+        options = {'horizontalBars': True,
+                   'reverseData': True,
+                   'axisX': {'onlyInteger': True},
+                   'axisY': {'offset': 85}}
+
+    title = "Contacts With Most Responses To Deterrence"
+
+    width = widgets.LARGE
+
+    values_list = ('related_contact__phone_number',
+                   'count')
+
+    limit_to = 14
+
+    queryset = (SmsMessage.objects
+                .filter(related_phone_number__number_type='DET')
+                .values('related_contact__phone_number')
+                .annotate(count=Count('sid'))
+                .order_by('-count'))
+
 
 class MonthlyDashboard(Dashboard):
     widgets = [MonthlyContactChart,
                MonthlyMessageChart,
                MonthlyCallChart,
                MonthlyDeterrenceChart,
-               TopContacts]
+               TopContacts,
+               TopContactsRespondingToDeterrence]

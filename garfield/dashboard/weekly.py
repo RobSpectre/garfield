@@ -44,7 +44,7 @@ class LatestMessagesList(widgets.ItemList):
 
     model = SmsMessage
 
-    width = widgets.LARGER
+    width = widgets.LARGE
 
     queryset = (SmsMessage.objects
                 .filter(date_created__gt=datetime.date.today())
@@ -90,6 +90,26 @@ class LatestCallsList(widgets.ItemList):
     list_display_links = ('date_created',
                           'related_contact',
                           'related_phone_number')
+
+
+class LatestDeterrenceResponseList(widgets.ItemList):
+    title = "Latest Deterrence Responses"
+    width = widgets.SMALL
+
+    queryset = (SmsMessage.objects
+                .filter(related_phone_number__number_type='DET')
+                .order_by('-date_created'))
+
+    limit_to = 20
+
+    sortable = True
+
+    list_display = ('date_created',
+                    'related_contact',
+                    'body')
+
+    list_display_links = ('date_created',
+                          'related_contact')
 
 
 class DailyChart(widgets.SingleBarChart):
@@ -195,7 +215,6 @@ class DeterrenceChart(DailyChart):
 
     def series(self):
         queryset = (SmsMessage.objects
-                    .filter(date_created__week=self.iso_today[1])
                     .filter(related_phone_number__number_type='DET')
                     .annotate(day_created=TruncDay('date_created'))
                     .values('day_created')
@@ -225,4 +244,5 @@ class WeeklyDashboard(Dashboard):
                DeterrenceChart,
                LatestMessagesList,
                LatestCallsList,
+               LatestDeterrenceResponseList,
                ContactList)
