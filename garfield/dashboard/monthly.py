@@ -96,7 +96,7 @@ class TopContacts(widgets.SingleBarChart):
                 .annotate(count=Count('sid'))
                 .order_by('-count'))
 
-    
+
 class TopContactsRespondingToDeterrence(widgets.SingleBarChart):
     class Chartist:
         options = {'horizontalBars': True,
