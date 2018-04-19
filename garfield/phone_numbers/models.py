@@ -37,7 +37,8 @@ class PhoneNumber(models.Model):
 
     related_sim = models.ForeignKey(Sim,
                                     null=True,
-                                    related_name="phone_numbers")
+                                    related_name="phone_numbers",
+                                    on_delete=models.CASCADE)
 
     def __str__(self):
         return "{0}: {1}".format(self.e164,

@@ -15,10 +15,12 @@ class SmsMessage(models.Model):
     body = models.TextField(db_index=True)
     related_contact = models.ForeignKey(Contact,
                                         null=True,
-                                        related_name="sms_messages")
+                                        related_name="sms_messages",
+                                        on_delete=models.CASCADE)
     related_phone_number = models.ForeignKey(PhoneNumber,
                                              null=True,
-                                             related_name="sms_messages")
+                                             related_name="sms_messages",
+                                             on_delete=models.CASCADE)
 
     def __str__(self):
         return "{0}: from {1} to {2}".format(self.date_created,

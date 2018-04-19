@@ -17,10 +17,12 @@ class Call(models.Model):
     duration = models.IntegerField(null=True, blank=True)
     related_contact = models.ForeignKey(Contact,
                                         null=True,
-                                        related_name="calls")
+                                        related_name="calls",
+                                        on_delete=models.CASCADE)
     related_phone_number = models.ForeignKey(PhoneNumber,
                                              null=True,
-                                             related_name="calls")
+                                             related_name="calls",
+                                             on_delete=models.CASCADE)
 
     def __str__(self):
         return "{0}: from {1} to {2}".format(self.date_created,

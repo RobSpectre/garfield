@@ -28,10 +28,12 @@ class Whisper(models.Model):
     sent = models.BooleanField(default=False)
     related_phone_number = models.ForeignKey('phone_numbers.PhoneNumber',
                                              null=True,
-                                             related_name="whispers")
+                                             related_name="whispers",
+                                             on_delete=models.CASCADE)
     related_contact = models.ForeignKey('contacts.Contact',
                                         null=True,
-                                        related_name="whispers")
+                                        related_name="whispers",
+                                        on_delete=models.CASCADE)
 
     def __str__(self):
         return "Whisper for {0}: " \
