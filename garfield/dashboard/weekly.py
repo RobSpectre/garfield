@@ -30,7 +30,10 @@ class ContactList(widgets.ItemList):
                     'whitepages_first_name',
                     'whitepages_last_name',
                     'nextcaller_first_name',
-                    'nextcaller_last_name')
+                    'nextcaller_last_name',
+                    'sms_message_count',
+                    'call_count',
+                    'contact_count')
 
     list_display_links = ('phone_number')
     sortable = True
