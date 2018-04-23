@@ -6,6 +6,7 @@ from twilio.rest import Client
 
 from phone_numbers.models import PhoneNumber
 from contacts.models import Contact
+from contacts.tasks import send_whisper
 from voice.models import Call
 
 from .models import SmsMessage
@@ -66,10 +67,10 @@ def send_sms_message(from_=None, to=None, body=None, media_url=None):
 def check_contact(message):
     phone_number = PhoneNumber.objects.get(e164=message['To'])
 
-    result = \
-        Contact.objects.filter(phone_number=message['From'])
-
-    if not result:
+    try:
+        contact = \
+            Contact.objects.get(phone_number=message['From'])
+    except Contact.DoesNotExist:
         contact = Contact(phone_number=message['From'])
         contact.save()
         contact.related_phone_numbers.add(phone_number)
@@ -83,6 +84,41 @@ def check_contact(message):
             call = Call.objects.get(sid=message['CallSid'])
             call.related_contact = contact
             call.save()
+
+    check_for_first_contact_to_ad.apply_async(args=[contact.id,
+                                                    phone_number.id])
+
+
+@shared_task
+def check_for_first_contact_to_ad(contact_id, phone_number_id):
+    contact = Contact.objects.get(pk=contact_id)
+    phone_number = PhoneNumber.objects.get(pk=phone_number_id)
+
+    sms_messages = (SmsMessage.objects
+                    .filter(related_contact=contact))
+
+    calls = (Call.objects
+             .filter(related_contact=contact))
+
+    contact_to_number = (len(sms_messages
+                             .filter(related_phone_number=phone_number_id)) +
+                         len(calls
+                             .filter(related_phone_number=phone_number_id)))
+
+    if contact_to_number < 2:
+        kwargs = {'from_': contact.phone_number,
+                  'to': phone_number.e164,
+                  'body': "[First contact to {0}]"
+                          "".format(phone_number.friendly_name)}
+
+        send_whisper.apply_async(kwargs=kwargs)
+
+    contact.sms_message_count = len(sms_messages)
+    contact.call_count = len(calls)
+    contact.contact_count = len(sms_messages) + len(calls)
+    contact.save(update_fields=['sms_message_count',
+                                'call_count',
+                                'contact_count'])
 
 
 @shared_task

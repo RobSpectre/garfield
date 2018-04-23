@@ -184,6 +184,10 @@ class Contact(models.Model):
     do_not_deter = models.BooleanField(default=False)
     deterrents_received = models.IntegerField(default=0)
 
+    sms_message_count = models.IntegerField(default=0)
+    call_count = models.IntegerField(default=0)
+    contact_count = models.IntegerField(default=0)
+
     related_phone_numbers = models.ManyToManyField(PhoneNumber,
                                                    blank=True)
 

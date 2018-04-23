@@ -99,6 +99,7 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
                                                        friendly_name="Stuff.",
                                                        country_code="1",
                                                        related_sim=self.sim)
+
         self.sms_message = SmsMessage \
             .objects.create(sid="MMxxxx",
                             from_number="+15556667777",
@@ -111,8 +112,11 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
                                         to_number="+15558675309",
                                         related_phone_number=self.phone_number)
 
+    @patch('sms.tasks.check_for_first_contact_to_ad.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def test_check_contact_contact_does_not_exist(self, mock_lookup_contact):
+    def test_check_contact_contact_does_not_exist(self,
+                                                  mock_lookup_contact,
+                                                  mock_first_contact):
         sms.tasks.check_contact({'MessageSid': 'MMxxxx',
                                  'To': '+15558675309',
                                  'From': '+15556667777',
@@ -128,9 +132,11 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
         self.assertEquals(message.related_contact,
                           result)
 
+    @patch('sms.tasks.check_for_first_contact_to_ad.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
     def test_check_contact_contact_does_not_exist_via_call(self,
-                                                           mock_contact):
+                                                           mock_contact,
+                                                           mock_first_contact):
         sms.tasks.check_contact({'CallSid': 'CAxxxx',
                                  'To': '+15558675309',
                                  'From': '+15556667777'})
@@ -176,11 +182,113 @@ class TaskLookupContactTestCase(TestCase):
                         "MessageSid": "MMxxx",
                         "Body": "Test."}
 
+    @patch('sms.tasks.check_for_first_contact_to_ad.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def test_check_contact(self, mock_lookup_contact):
+    def test_check_contact(self, mock_lookup_contact, mock_first_contact):
         sms.tasks.check_contact(self.message)
 
         mock_lookup_contact.assert_called_with(args=[self.message['From']])
+
+
+class CheckForFirstContactToAdTestCase(TestCase):
+    @patch('contacts.tasks.lookup_contact.apply_async')
+    def setUp(self, mock_lookup):
+        self.sim = Sim.objects.create(friendly_name="TestSim",
+                                      sid="DExxx",
+                                      iccid="asdf",
+                                      status="active",
+                                      rate_plan="RExxx")
+
+        self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
+                                                       account_sid="ACxxx",
+                                                       service_sid="SExxx",
+                                                       url="http://exmple.com",
+                                                       e164="+15558675309",
+                                                       formatted="(555) "
+                                                                 "867-5309",
+                                                       friendly_name="Stuff.",
+                                                       country_code="1",
+                                                       related_sim=self.sim)
+
+        self.phone_number_2 = PhoneNumber.objects.create(sid="PNyyy",
+                                                         account_sid="ACyyy",
+                                                         service_sid="SEyyy",
+                                                         url="http://exmle.com",
+                                                         e164="+15558675310",
+                                                         formatted="(555) "
+                                                                   "867-5310",
+                                                         friendly_name="Stuff.",
+                                                         country_code="1",
+                                                         related_sim=self.sim)
+
+        self.contact = Contact.objects.create(phone_number="+15556667777")
+
+    @patch('contacts.tasks.send_whisper.apply_async')
+    def test_first_contact_to_ad(self, mock_whisper):
+        sms.tasks.check_for_first_contact_to_ad(self.contact.id,
+                                                self.phone_number.id)
+        kwargs = {'from_': self.contact.phone_number,
+                  'to': self.phone_number.e164,
+                  'body': "[First contact to {0}]"
+                          "".format(self.phone_number.friendly_name)}
+        mock_whisper.assert_called_once_with(kwargs=kwargs)
+        contact = Contact.objects.get(pk=self.contact.id)
+        self.assertEquals(contact.sms_message_count, 0)
+        self.assertEquals(contact.contact_count, 0)
+
+    @patch('contacts.tasks.send_whisper.apply_async')
+    def test_second_contact_to_ad(self, mock_whisper):
+        SmsMessage.objects.create(sid="MMxxxx",
+                                  from_number="+15556667777",
+                                  to_number="+15558675309",
+                                  body="Test.",
+                                  related_phone_number=self.phone_number,
+                                  related_contact=self.contact)
+
+        SmsMessage.objects.create(sid="MMxxxx",
+                                  from_number="+15556667777",
+                                  to_number="+15558675309",
+                                  body="Second test.",
+                                  related_phone_number=self.phone_number,
+                                  related_contact=self.contact)
+
+        sms.tasks.check_for_first_contact_to_ad(self.contact.id,
+                                                self.phone_number.id)
+        self.assertFalse(mock_whisper.called)
+        contact = Contact.objects.get(pk=self.contact.id)
+        self.assertEquals(contact.sms_message_count, 2)
+        self.assertEquals(contact.call_count, 0)
+        self.assertEquals(contact.contact_count, 2)
+
+    @patch('contacts.tasks.send_whisper.apply_async')
+    def test_multiple_ads(self, mock_whisper):
+        SmsMessage.objects.create(sid="MMxxxx",
+                                  from_number="+15556667777",
+                                  to_number="+15558675309",
+                                  body="Test.",
+                                  related_phone_number=self.phone_number,
+                                  related_contact=self.contact)
+
+        SmsMessage.objects.create(sid="MMxxxy",
+                                  from_number="+15556667777",
+                                  to_number="+15558675310",
+                                  body="Second test.",
+                                  related_phone_number=self.phone_number_2,
+                                  related_contact=self.contact)
+
+        sms.tasks.check_for_first_contact_to_ad(self.contact.id,
+                                                self.phone_number.id)
+        self.assertTrue(mock_whisper.called)
+
+        sms.tasks.check_for_first_contact_to_ad(self.contact.id,
+                                                self.phone_number_2.id)
+
+        self.assertEquals(mock_whisper.call_count, 2)
+
+        contact = Contact.objects.get(pk=self.contact.id)
+        self.assertEquals(contact.sms_message_count, 2)
+        self.assertEquals(contact.call_count, 0)
+        self.assertEquals(contact.contact_count, 2)
 
 
 @override_settings(TWILIO_PHONE_NUMBER="+18881112222")
