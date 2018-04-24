@@ -179,6 +179,7 @@ class Contact(models.Model):
 
     identified = models.BooleanField(default=False)
     registed_offender = models.BooleanField(default=False)
+    recruiter = models.BooleanField(default=False)
     arrested = models.BooleanField(default=False)
     deterred = models.BooleanField(default=False)
     do_not_deter = models.BooleanField(default=False)

@@ -124,7 +124,8 @@ def check_for_first_contact_to_ad(contact_id, phone_number_id):
 @shared_task
 def send_deterrence(absolute_uri, message):
     for contact in Contact.objects.all():
-        if contact.do_not_deter or contact.deterred or contact.arrested:
+        if contact.do_not_deter or contact.deterred or contact.arrested \
+                or contact.recruiter:
             continue
 
         if contact.whitepages_first_name:
