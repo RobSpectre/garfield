@@ -5,6 +5,7 @@ from sms.decorators import twilio_view
 from .test_sms import GarfieldTwilioTestCase
 
 
+@override_settings(DEBUG=False)
 class GarfieldSmsDecoratorsTestCase(GarfieldTwilioTestCase):
     def test_not_get_or_post(self):
         response = self.client.delete("/sms/",
@@ -31,6 +32,12 @@ class GarfieldSmsDecoratorsTestCase(GarfieldTwilioTestCase):
 
     def test_correct_twilio_signature(self):
         response = self.client.sms("Test.")
+        self.assertEquals(response.status_code, 200)
+        self.assert_twiml(response)
+
+    def test_sim_in_from_field(self):
+        response = self.client.sms("Test.", from_="sim:DExxx")
+
         self.assertEquals(response.status_code, 200)
         self.assert_twiml(response)
 

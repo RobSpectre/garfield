@@ -1,4 +1,3 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.urls import reverse
 
@@ -10,6 +9,7 @@ from contacts.models import Contact
 from sms.decorators import twilio_view
 from sms.tasks import save_sms_message
 from sms.models import SmsMessage
+from voice.models import Call
 
 from phone_numbers.models import PhoneNumber
 
@@ -25,7 +25,7 @@ def sms_receive(request):
 
     try:
         result = PhoneNumber.objects.get(e164=request.POST['To'])
-    except ObjectDoesNotExist:
+    except PhoneNumber.DoesNotExist:
         result = None
 
     if result and result.related_sim.sid:
@@ -35,7 +35,7 @@ def sms_receive(request):
 
         try:
             contact = Contact.objects.get(phone_number=request.POST['From'])
-        except ObjectDoesNotExist:
+        except Contact.DoesNotExist:
             contact = None
 
         if contact:
@@ -66,12 +66,13 @@ def sms_send(request):
         result = \
             SmsMessage.objects \
             .filter(from_number=request.POST['To']) \
+            .filter(related_phone_number__number_type="ADV") \
             .latest('date_created')
 
         response.message(request.POST['Body'],
                          from_=result.related_phone_number.e164,
                          to=request.POST['To'])
-    except ObjectDoesNotExist:
+    except SmsMessage.DoesNotExist:
         response.message(request.POST['Body'],
                          from_=PhoneNumber
                          .objects
@@ -90,7 +91,7 @@ def voice_receive(request):
     response = VoiceResponse()
     try:
         result = PhoneNumber.objects.get(e164=request.POST['To'])
-    except ObjectDoesNotExist:
+    except PhoneNumber.DoesNotExist:
         result = None
 
     if result and result.related_sim.sid:
@@ -112,15 +113,16 @@ def voice_send(request):
     response = VoiceResponse()
     try:
         result = \
-            SmsMessage.objects \
+            Call.objects \
             .filter(from_number=request.POST['To']) \
+            .filter(related_phone_number__number_type="ADV") \
             .latest('date_created')
 
         response.dial(request.POST['To'],
                       caller_id=result.related_phone_number.e164,
                       record=True,
                       recording_status_callback=reverse('sims:recording'))
-    except ObjectDoesNotExist:
+    except Call.DoesNotExist:
         response.dial(request.POST['To'],
                       caller_id=PhoneNumber
                       .objects

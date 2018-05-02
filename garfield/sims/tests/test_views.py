@@ -66,6 +66,7 @@ class GarfieldTestCaseWithContact(GarfieldTwilioTestCase):
                                                                  "867-5309",
                                                        friendly_name="Stuff.",
                                                        country_code="1",
+                                                       number_type="ADV",
                                                        related_sim=self.sim)
 
         self.sms_message = SmsMessage \
@@ -131,6 +132,7 @@ class SimSmsWhisperTestCase(GarfieldTwilioTestCase):
                                                                  "867-5309",
                                                        friendly_name="Stuff.",
                                                        country_code="1",
+                                                       number_type="ADV",
                                                        related_sim=self.sim)
 
         self.contact = Contact.objects.create(phone_number="+15556667777")
@@ -239,3 +241,144 @@ class GarfieldSimVoiceTestCaseExistingContact(GarfieldTestCaseWithContact):
 
         self.assert_twiml(response)
         self.assertTrue(mock_save_voice_recording.called)
+
+
+@override_settings(TWILIO_PHONE_NUMBER="+15558675309")
+class GarfieldTestCaseNoUseOfDeterrenceNumber(GarfieldTwilioTestCase):
+    @patch('contacts.tasks.lookup_contact.apply_async')
+    def setUp(self, mock_lookup):
+        self.client = GarfieldTwilioTestClient()
+
+        self.sim = Sim.objects.create(friendly_name="TestSim",
+                                      sid="DExxx",
+                                      iccid="asdf",
+                                      status="active",
+                                      rate_plan="RExxx")
+        self.contact = Contact.objects.create(phone_number="+15556667777")
+
+        self.det_phone_number = \
+            PhoneNumber.objects.create(sid="PNxxx",
+                                       account_sid="ACxxx",
+                                       service_sid="SExxx",
+                                       url="http://ee.com",
+                                       e164="+15558675309",
+                                       formatted="(555) "
+                                                 "867-"
+                                                 "5309",
+                                       friendly_name="Sf.",
+                                       number_type="DET",
+                                       country_code="1",
+                                       related_sim=self.sim)
+        self.adv_phone_number = \
+            PhoneNumber.objects.create(sid="PNxxx",
+                                       account_sid="ACxxx",
+                                       service_sid="SExxx",
+                                       url="http://ee.com",
+                                       e164="+15558675310",
+                                       formatted="(555) "
+                                                 "867-"
+                                                 "5309",
+                                       friendly_name="Sf.",
+                                       number_type="ADV",
+                                       country_code="1",
+                                       related_sim=self.sim)
+
+        self.contact.related_phone_numbers.add(self.adv_phone_number)
+        self.contact.save()
+
+        SmsMessage \
+            .objects.create(sid="MMxxxx",
+                            from_number="+15556667777",
+                            to_number="+15558675310",
+                            body="Ad response.",
+                            related_phone_number=self.adv_phone_number)
+
+        SmsMessage \
+            .objects.create(sid="MMxxxx",
+                            from_number="+15556667777",
+                            to_number="+15558675309",
+                            body="Deterrence Response.",
+                            related_phone_number=self.det_phone_number)
+
+    @patch('sms.tasks.save_sms_message.apply_async')
+    def test_send_sms_to_deterrence_respondent(self, mock_save):
+        response = self.client.sms("Test.",
+                                   from_="sim:DExxxxx",
+                                   to="+15556667777",
+                                   path="/sims/sms/send/")
+
+        self.assertNotContains(response,
+                               "+15558675309")
+        self.assertTrue(mock_save.called)
+
+    @patch('voice.tasks.save_call.apply_async')
+    def test_send_call_to_deterrence_respondent(self, mock_save):
+        response = self.client.call(from_="sim:DExxxxx",
+                                    to="+15556667777",
+                                    path="/sims/voice/send/")
+
+        self.assertNotContains(response,
+                               "+15558675309")
+        self.assertTrue(mock_save.called)
+
+
+@override_settings(TWILIO_PHONE_NUMBER="+15558675309")
+class GarfieldTestCaseNoUseOfDeterrenceNumberNoMsgs(GarfieldTwilioTestCase):
+    @patch('contacts.tasks.lookup_contact.apply_async')
+    def setUp(self, mock_lookup):
+        self.client = GarfieldTwilioTestClient()
+
+        self.sim = Sim.objects.create(friendly_name="TestSim",
+                                      sid="DExxx",
+                                      iccid="asdf",
+                                      status="active",
+                                      rate_plan="RExxx")
+        self.contact = Contact.objects.create(phone_number="+15556667777")
+
+        self.det_phone_number = \
+            PhoneNumber.objects.create(sid="PNxxx",
+                                       account_sid="ACxxx",
+                                       service_sid="SExxx",
+                                       url="http://ee.com",
+                                       e164="+15558675309",
+                                       formatted="(555) "
+                                                 "867-"
+                                                 "5309",
+                                       friendly_name="Sf.",
+                                       number_type="DET",
+                                       country_code="1",
+                                       related_sim=self.sim)
+        self.adv_phone_number = \
+            PhoneNumber.objects.create(sid="PNxxx",
+                                       account_sid="ACxxx",
+                                       service_sid="SExxx",
+                                       url="http://ee.com",
+                                       e164="+15558675310",
+                                       formatted="(555) "
+                                                 "867-"
+                                                 "5309",
+                                       friendly_name="Sf.",
+                                       number_type="ADV",
+                                       country_code="1",
+                                       related_sim=self.sim)
+
+    @patch('sms.tasks.save_sms_message.apply_async')
+    def test_send_sms_to_deterrence_respondent(self, mock_save):
+        response = self.client.sms("Test.",
+                                   from_="sim:DExxxxx",
+                                   to="+15556667777",
+                                   path="/sims/sms/send/")
+
+        self.assertNotContains(response,
+                               "+15558675309")
+        self.assertTrue(mock_save.called)
+
+    @patch('voice.tasks.save_call.apply_async')
+    def test_send_call_to_deterrence_respondent(self, mock_save):
+        response = self.client.call(from_="sim:DExxxxx",
+                                    to="+15556667777",
+                                    path="/sims/voice/send/")
+
+        self.assertNotContains(response,
+                               "+15558675309")
+        self.assertTrue(mock_save.called)
