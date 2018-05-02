@@ -123,20 +123,24 @@ def check_for_first_contact_to_ad(contact_id, phone_number_id):
 
 @shared_task
 def send_deterrence(absolute_uri, message):
+    deterrence_number = \
+        PhoneNumber.objects.filter(number_type="DET") \
+        .latest("date_created")
+
     for contact in Contact.objects.all():
         if contact.do_not_deter or contact.deterred or contact.arrested \
                 or contact.recruiter:
             continue
 
         if contact.whitepages_first_name:
-            kwargs = {"from_": settings.TWILIO_PHONE_NUMBER,
+            kwargs = {"from_": deterrence_number.e164,
                       "to": contact.phone_number,
                       "body": "{0}, a message from NY"
                               "PD.".format(contact.whitepages_first_name),
                       "media_url": "https://berserk-sleet-3229.twil.io/"
                                    "assets/john_deterrent.jpg"}
         else:
-            kwargs = {"from_": settings.TWILIO_PHONE_NUMBER,
+            kwargs = {"from_": deterrence_number.e164,
                       "to": contact.phone_number,
                       "body": "A message from NYPD.",
                       "media_url": "https://berserk-sleet-3229.twil.io/"
