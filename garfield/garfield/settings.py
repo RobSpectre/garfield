@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'phone_numbers',
     'sims',
     'voice',
+    'deterrence',
     'dashboard',
     'django_celery_results',
     'django_celery_beat'

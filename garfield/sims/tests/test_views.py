@@ -6,6 +6,7 @@ from mock import patch
 from contacts.models import Contact
 from phone_numbers.models import PhoneNumber
 from sms.models import SmsMessage
+from voice.models import Call
 
 from sms.tests.test_sms import GarfieldTwilioTestCase
 from sms.tests.test_sms import GarfieldTwilioTestClient
@@ -74,6 +75,12 @@ class GarfieldTestCaseWithContact(GarfieldTwilioTestCase):
                             from_number="+15556667777",
                             to_number="+15558675309",
                             body="Test.",
+                            related_phone_number=self.phone_number)
+
+        self.call = Call \
+            .objects.create(sid="CAxxxx",
+                            from_number="+15556667777",
+                            to_number="+15558675309",
                             related_phone_number=self.phone_number)
 
 
@@ -199,13 +206,15 @@ class GarfieldSimVoiceTestCase(GarfieldTwilioTestCase):
                                    friendly_name="Stuff.",
                                    country_code="1",
                                    number_type="ADV")
-        response = self.client.call("Test.",
+        response = self.client.call("+15556667777",
                                     path="/sims/voice/send/")
 
         self.assert_twiml(response)
         self.assertTrue(mock_save_call.called)
         self.assertNotContains(response,
                                settings.TWILIO_PHONE_NUMBER)
+        self.assertContains(response,
+                            "callerId=\"+15551112222\"")
 
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
