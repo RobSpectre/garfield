@@ -13,8 +13,9 @@ from voice.models import Call
 
 
 class CalculateNumberOfContactsTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.sim = Sim.objects.create(friendly_name="TestSim",
                                       sid="DExxx",
                                       iccid="asdf",

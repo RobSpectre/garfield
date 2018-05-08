@@ -49,7 +49,8 @@ class GarfieldTestSimSmsCaseNewContact(GarfieldTwilioTestCase):
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
 class GarfieldTestCaseWithContact(GarfieldTwilioTestCase):
-    def setUp(self):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
+    def setUp(self, mock_check_campaign):
         self.client = GarfieldTwilioTestClient()
 
         self.sim = Sim.objects.create(friendly_name="TestSim",
@@ -254,8 +255,9 @@ class GarfieldSimVoiceTestCaseExistingContact(GarfieldTestCaseWithContact):
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
 class GarfieldTestCaseNoUseOfDeterrenceNumber(GarfieldTwilioTestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.client = GarfieldTwilioTestClient()
 
         self.sim = Sim.objects.create(friendly_name="TestSim",

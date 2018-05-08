@@ -1,10 +1,13 @@
 from django.test import TestCase
 
+from mock import patch
+
 from sms.models import SmsMessage
 
 
 class SmsMessageModelTestCase(TestCase):
-    def setUp(self):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
+    def setUp(self, mock_check_campaign):
         self.sms_message = SmsMessage.objects.create(sid="MMxxxx",
                                                      from_number="from",
                                                      to_number="to",

@@ -14,8 +14,9 @@ import sms.tasks
 
 
 class TaskSmsMessageTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.sim = Sim.objects.create(friendly_name="TestSim",
                                       sid="DExxx",
                                       iccid="asdf",
@@ -42,8 +43,14 @@ class TaskSmsMessageTestCase(TestCase):
                             body="Test.",
                             related_phone_number=self.phone_number)
 
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('sms.tasks.check_contact.apply_async')
-    def test_save_sms_message_received(self, mock_check_contact):
+    def test_save_sms_message_received(self,
+                                       mock_check_contact,
+                                       mock_check_campaign):
+        # mock_check_contact.side_effect = \
+        #     lambda *args, **kwargs: \
+        #     sms.tasks.check_contact(**kwargs['args'][0])
         sms.tasks.save_sms_message({'MessageSid': 'MMxxxx',
                                     'From': '+15556667777',
                                     'To': '+15558675309',
@@ -57,8 +64,11 @@ class TaskSmsMessageTestCase(TestCase):
                           self.phone_number)
 
         self.assertTrue(mock_check_contact.called)
+        mock_check_campaign \
+            .assert_called_once_with(args=[result.related_contact.id])
 
-    def test_save_sms_message_sent(self):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
+    def test_save_sms_message_sent(self, mock_check_campaign):
         sms.tasks.save_sms_message({'MessageSid': 'MMxxxx',
                                     'From': 'sim:DExxx',
                                     'To': '+15556667777',
@@ -70,6 +80,8 @@ class TaskSmsMessageTestCase(TestCase):
                           "Test.")
         self.assertEquals(result.related_phone_number,
                           self.phone_number)
+        mock_check_campaign \
+            .assert_called_once_with(args=[result.related_contact.id])
 
     @override_settings(TWILIO_ACCOUNT_SID='ACxxxx',
                        TWILIO_AUTH_TOKEN='yyyyyyy')
@@ -82,7 +94,8 @@ class TaskSmsMessageTestCase(TestCase):
 
 
 class TaskLookupContactContactDoesNotExistTestCase(TestCase):
-    def setUp(self):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
+    def setUp(self, mock_check_campaign):
         self.sim = Sim.objects.create(friendly_name="TestSim",
                                       sid="DExxx",
                                       iccid="asdf",
@@ -112,11 +125,13 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
                                         to_number="+15558675309",
                                         related_phone_number=self.phone_number)
 
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('sms.tasks.check_for_first_contact_to_ad.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
     def test_check_contact_contact_does_not_exist(self,
                                                   mock_lookup_contact,
-                                                  mock_first_contact):
+                                                  mock_first_contact,
+                                                  mock_check_campaign):
         sms.tasks.check_contact({'MessageSid': 'MMxxxx',
                                  'To': '+15558675309',
                                  'From': '+15556667777',
@@ -153,8 +168,9 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
 
 
 class TaskLookupContactTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.sim = Sim.objects.create(friendly_name="TestSim",
                                       sid="DExxx",
                                       iccid="asdf",
@@ -182,12 +198,19 @@ class TaskLookupContactTestCase(TestCase):
                         "MessageSid": "MMxxx",
                         "Body": "Test."}
 
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('sms.tasks.check_for_first_contact_to_ad.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def test_check_contact(self, mock_lookup_contact, mock_first_contact):
+    def test_check_contact(self,
+                           mock_lookup_contact,
+                           mock_first_contact,
+                           mock_check_campaign):
         sms.tasks.check_contact(self.message)
 
+        contact = Contact.objects.all()[0]
+
         mock_lookup_contact.assert_called_with(args=[self.message['From']])
+        mock_check_campaign.assert_called_with(args=[contact.id])
 
 
 class CheckForFirstContactToAdTestCase(TestCase):
@@ -213,11 +236,11 @@ class CheckForFirstContactToAdTestCase(TestCase):
         self.phone_number_2 = PhoneNumber.objects.create(sid="PNyyy",
                                                          account_sid="ACyyy",
                                                          service_sid="SEyyy",
-                                                         url="http://exmle.com",
+                                                         url="http://ele.com",
                                                          e164="+15558675310",
                                                          formatted="(555) "
                                                                    "867-5310",
-                                                         friendly_name="Stuff.",
+                                                         friendly_name="Stf.",
                                                          country_code="1",
                                                          related_sim=self.sim)
 
@@ -236,8 +259,9 @@ class CheckForFirstContactToAdTestCase(TestCase):
         self.assertEquals(contact.sms_message_count, 0)
         self.assertEquals(contact.contact_count, 0)
 
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.send_whisper.apply_async')
-    def test_second_contact_to_ad(self, mock_whisper):
+    def test_second_contact_to_ad(self, mock_whisper, mock_check_campaign):
         SmsMessage.objects.create(sid="MMxxxx",
                                   from_number="+15556667777",
                                   to_number="+15558675309",
@@ -260,8 +284,9 @@ class CheckForFirstContactToAdTestCase(TestCase):
         self.assertEquals(contact.call_count, 0)
         self.assertEquals(contact.contact_count, 2)
 
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.send_whisper.apply_async')
-    def test_multiple_ads(self, mock_whisper):
+    def test_multiple_ads(self, mock_whisper, mock_check_campaign):
         SmsMessage.objects.create(sid="MMxxxx",
                                   from_number="+15556667777",
                                   to_number="+15558675309",

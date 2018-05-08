@@ -19,7 +19,8 @@ import contacts.tasks
 
 
 class TaskLookupContactContactDoesNotExistTestCase(TestCase):
-    def setUp(self):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
+    def setUp(self, mock_check_campaign):
         self.sim = Sim.objects.create(friendly_name="TestSim",
                                       sid="DExxx",
                                       iccid="asdf",
@@ -36,12 +37,10 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
                                                        friendly_name="Stuff.",
                                                        country_code="1",
                                                        related_sim=self.sim)
-        self.sms_message = SmsMessage \
-            .objects.create(sid="MMxxxx",
-                            from_number="+15556667777",
-                            to_number="+15558675309",
-                            body="Test.",
-                            related_phone_number=self.phone_number)
+
+        self.message = {"From": "+15556667777",
+                        "To": "+15558675309",
+                        "Body": "Test."}
 
     def test_lookup_contact_contact_does_not_exist(self):
         with self.assertRaises(ObjectDoesNotExist):
@@ -49,8 +48,9 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
 
 
 class TaskLookupContactTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.sim = Sim.objects.create(friendly_name="TestSim",
                                       sid="DExxx",
                                       iccid="asdf",
@@ -711,8 +711,9 @@ class TaskLookupContactTellfinderTestCase(TestCase):
 
 
 class TaskContactsWhisperTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.sim = Sim.objects.create(friendly_name="TestSim",
                                       sid="DExxx",
                                       iccid="asdf",
