@@ -7,8 +7,9 @@ from contacts.models import Contact
 
 
 class ContactModelTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.contact = Contact.objects.create(phone_number="+15558675309")
 
     def test_string_representation(self):

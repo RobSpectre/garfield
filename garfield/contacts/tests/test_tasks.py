@@ -93,8 +93,9 @@ class TaskLookupContactTestCase(TestCase):
 
 
 class TaskLookupContactWhitepagesTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.contact = Contact.objects.create(phone_number="+15556667777")
 
         self.message = {"From": "+15556667777",
@@ -375,8 +376,9 @@ class TaskLookupContactWhitepagesTestCase(TestCase):
 
 
 class TaskLookupContactNextCallerTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.contact = Contact.objects.create(phone_number="+15556667777")
 
         self.message = {"From": "+15556667777",
@@ -595,8 +597,9 @@ class TaskLookupContactNextCallerTestCase(TestCase):
 
 @override_settings(TELLFINDER_API_KEY="xxx")
 class TaskLookupContactTellfinderTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.contact = Contact.objects.create(phone_number="+15556667777")
 
         self.message = {"From": "+15556667777",

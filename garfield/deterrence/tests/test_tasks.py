@@ -15,8 +15,9 @@ import deterrence.tasks
 
 @override_settings(TWILIO_PHONE_NUMBER="+18881112222")
 class DeterrenceTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.contact_a = Contact.objects.create(phone_number="+15556667777")
         self.contact_b = Contact.objects.create(phone_number="+15556667778")
         self.contact_c = Contact.objects.create(phone_number="+15556667779")
@@ -127,8 +128,9 @@ class DeterrenceTestCase(TestCase):
 
 
 class DeterrenceTestCaseMultipleNumbers(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.contact_a = Contact.objects.create(phone_number="+15556667777")
         self.contact_b = Contact.objects.create(phone_number="+15556667778")
         self.contact_c = Contact.objects.create(phone_number="+15556667779")
@@ -212,8 +214,9 @@ class DeterrenceTestCaseMultipleNumbers(TestCase):
 
 
 class DeterrenceCampaignTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.contact_a = Contact.objects.create(phone_number="+15556667777")
         self.contact_b = Contact.objects.create(phone_number="+15556667778")
         self.contact_c = Contact.objects.create(phone_number="+15556667779")

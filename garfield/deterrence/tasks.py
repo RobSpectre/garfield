@@ -7,6 +7,7 @@ from celery import shared_task
 from contacts.models import Contact
 from phone_numbers.models import PhoneNumber
 from sms.models import SmsMessage
+from voice.models import Call
 
 from sms.tasks import send_sms_message
 
@@ -77,9 +78,27 @@ def check_campaign_for_contact(contact_id):
 
 
 @receiver(post_save, sender=SmsMessage)
-def campaign_check(sender, **kwargs):
+def check_campaign_for_sms_message_contact(sender, **kwargs):
     instance = kwargs.get('instance')
 
     if instance.related_contact:
         check_campaign_for_contact \
             .apply_async(args=[instance.related_contact.id])
+
+
+@receiver(post_save, sender=Call)
+def check_campaign_for_call_contact(sender, **kwargs):
+    instance = kwargs.get('instance')
+
+    if instance.related_contact:
+        check_campaign_for_contact \
+            .apply_async(args=[instance.related_contact.id])
+
+
+@receiver(post_save, sender=Contact)
+def check_campaign_for_new_contact(sender, **kwargs):
+    instance = kwargs.get('instance')
+
+    if kwargs.get('created', False):
+        check_campaign_for_contact \
+            .apply_async(args=[instance.id])

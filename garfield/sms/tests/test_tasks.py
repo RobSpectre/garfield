@@ -147,11 +147,13 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
         self.assertEquals(message.related_contact,
                           result)
 
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('sms.tasks.check_for_first_contact_to_ad.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
     def test_check_contact_contact_does_not_exist_via_call(self,
                                                            mock_contact,
-                                                           mock_first_contact):
+                                                           mock_first_contact,
+                                                           mock_campaign):
         sms.tasks.check_contact({'CallSid': 'CAxxxx',
                                  'To': '+15558675309',
                                  'From': '+15556667777'})
@@ -214,8 +216,9 @@ class TaskLookupContactTestCase(TestCase):
 
 
 class CheckForFirstContactToAdTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.sim = Sim.objects.create(friendly_name="TestSim",
                                       sid="DExxx",
                                       iccid="asdf",

@@ -34,9 +34,11 @@ class CallTestCaseContactDoesNotExist(TestCase):
                              "FromCountry": "US",
                              "FromZip": "55555"}
 
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('sms.tasks.check_contact.apply_async')
     def test_save_call_contact_does_not_exist(self,
-                                              mock_contact):
+                                              mock_contact,
+                                              mock_check_campaign):
         voice.tasks.save_call(self.request.POST)
 
         calls = Call.objects.all()
@@ -46,8 +48,9 @@ class CallTestCaseContactDoesNotExist(TestCase):
 
 
 class SaveCallTestCasePhoneNumberExists(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
                                                        account_sid="ACxxx",
                                                        service_sid="SExxx",
@@ -72,8 +75,11 @@ class SaveCallTestCasePhoneNumberExists(TestCase):
                              "FromCountry": "US",
                              "FromZip": "55555"}
 
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('sms.tasks.check_contact.apply_async')
-    def test_save_call_to_number(self, mock_check_contact):
+    def test_save_call_to_number(self,
+                                 mock_check_contact,
+                                 mock_check_campaign):
         voice.tasks.save_call(self.request.POST)
 
         test = Call.objects.all()
@@ -85,8 +91,11 @@ class SaveCallTestCasePhoneNumberExists(TestCase):
                           self.contact)
         self.assertTrue(mock_check_contact.called)
 
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('sms.tasks.check_contact.apply_async')
-    def test_save_call_from_number(self, mock_check_contact):
+    def test_save_call_from_number(self,
+                                   mock_check_contact,
+                                   mock_check_campaign):
         self.request.POST["From"] = "sim:DExxxx"
         self.request.POST["To"] = "+15556667777"
 
@@ -105,8 +114,11 @@ class SaveCallTestCasePhoneNumberExists(TestCase):
                           self.contact)
         self.assertFalse(mock_check_contact.called)
 
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('sms.tasks.check_contact.apply_async')
-    def test_save_voice_recording(self, mock_lookup):
+    def test_save_voice_recording(self,
+                                  mock_lookup,
+                                  mock_check_campaign):
         voice.tasks.save_call(self.request.POST)
 
         test_request = HttpRequest()

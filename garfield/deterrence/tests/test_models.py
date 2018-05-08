@@ -29,8 +29,9 @@ class DeterrentTestCase(TestCase):
 
 
 class DeterrenceCampaignTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
                                                        account_sid="ACxxx",
                                                        service_sid="SExxx",
@@ -73,8 +74,9 @@ class DeterrenceCampaignTestCase(TestCase):
 
 
 class DeterrenceMessageTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
                                                        account_sid="ACxxx",
                                                        service_sid="SExxx",

@@ -123,8 +123,9 @@ class GarfieldTestSimSmsCaseExistingContact(GarfieldTestCaseWithContact):
 
 
 class SimSmsWhisperTestCase(GarfieldTwilioTestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.sim = Sim.objects.create(friendly_name="TestSim",
                                       sid="DExxx",
                                       iccid="asdf",
@@ -162,11 +163,13 @@ class SimSmsWhisperTestCase(GarfieldTwilioTestCase):
         self.assertTrue(Whisper.objects.all()[0].sent)
         self.assertTrue(mock_send_message.called)
 
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
     @patch('sms.tasks.save_sms_message.apply_async')
     def test_send_whisper_multiple_contacts(self,
                                             mock_send_message,
-                                            mock_lookup):
+                                            mock_lookup,
+                                            mock_check_campaign):
         new_contact = Contact.objects.create(phone_number="+15551112222")
         new_whisper = Whisper(body="*whisper two*",
                               related_phone_number=self.phone_number,
@@ -183,6 +186,7 @@ class SimSmsWhisperTestCase(GarfieldTwilioTestCase):
         self.assertTrue(Whisper.objects.all()[0].sent)
         self.assertTrue(mock_send_message.called)
         self.assertTrue(mock_lookup.called)
+        self.assertTrue(mock_check_campaign.called)
 
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
@@ -322,8 +326,11 @@ class GarfieldTestCaseNoUseOfDeterrenceNumber(GarfieldTwilioTestCase):
                                "+15558675309")
         self.assertTrue(mock_save.called)
 
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('voice.tasks.save_call.apply_async')
-    def test_send_call_to_deterrence_respondent(self, mock_save):
+    def test_send_call_to_deterrence_respondent(self,
+                                                mock_save,
+                                                mock_check_campaign):
         response = self.client.call(from_="sim:DExxxxx",
                                     to="+15556667777",
                                     path="/sims/voice/send/")
@@ -335,8 +342,9 @@ class GarfieldTestCaseNoUseOfDeterrenceNumber(GarfieldTwilioTestCase):
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
 class GarfieldTestCaseNoUseOfDeterrenceNumberNoMsgs(GarfieldTwilioTestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check_campaign):
         self.client = GarfieldTwilioTestClient()
 
         self.sim = Sim.objects.create(friendly_name="TestSim",
@@ -385,7 +393,8 @@ class GarfieldTestCaseNoUseOfDeterrenceNumberNoMsgs(GarfieldTwilioTestCase):
         self.assertTrue(mock_save.called)
 
     @patch('voice.tasks.save_call.apply_async')
-    def test_send_call_to_deterrence_respondent(self, mock_save):
+    def test_send_call_to_deterrence_respondent(self,
+                                                mock_save):
         response = self.client.call(from_="sim:DExxxxx",
                                     to="+15556667777",
                                     path="/sims/voice/send/")
