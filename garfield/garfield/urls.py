@@ -9,4 +9,5 @@ urlpatterns = [
     url(r'^admin/dashboard/', controlcenter.urls),
     url(r'^sms/', include('sms.urls')),
     url(r'^sims/', include('sims.urls')),
+    url(r'^deterrence/', include('deterrence.urls')),
 ]

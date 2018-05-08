@@ -19,8 +19,9 @@ class Deterrent(models.Model):
     order = models.IntegerField(default=0)
 
     def __str__(self):
-        return "Deterrent: {0} - {1}".format(self.date_created,
-                                             self.body)
+        return "Deterrent {2}: {0} - {1}".format(self.date_created,
+                                                 self.body,
+                                                 self.friendly_name)
 
 
 class DeterrenceCampaign(models.Model):
