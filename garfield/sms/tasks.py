@@ -23,6 +23,7 @@ def save_sms_message(message):
     if "sim" in message['From']:
         result = \
             SmsMessage.objects.filter(from_number=message['To']) \
+            .filter(related_phone_number__number_type="ADV") \
             .latest('date_created')
         if result:
             record.related_phone_number = result.related_phone_number
