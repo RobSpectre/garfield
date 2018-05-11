@@ -1,9 +1,10 @@
+from random import uniform
+
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
-
 
 from celery import shared_task
 
@@ -31,9 +32,16 @@ def send_deterrence_campaign(absolute_uri, message):
         if contact.do_not_deter or contact.arrested or contact.recruiter:
             continue
 
-        send_deterrence.apply_async(args=[absolute_uri,
-                                          campaign.id,
-                                          contact.id])
+        countdown = 0
+        for i in range(0, settings.GARFIELD_NUMBER_OF_DETERRENTS):
+
+            send_deterrence.apply_async(args=[absolute_uri,
+                                              campaign.id,
+                                              contact.id],
+                                        countdown=countdown)
+            countdown += \
+                (settings.GARFIELD_DETERRENT_INTERVAL +
+                 settings.GARFIELD_DETERRENT_INTERVAL * uniform(0, 0.3))
 
     campaign.date_sent = timezone.now()
     campaign.save()
@@ -68,8 +76,10 @@ def send_deterrence(absolute_uri,
                                       reverse('deterrence:deterrence'
                                               '_message_status_callback'))
 
+    number = get_unused_deterrence_phone_number(contact)
+
     message = \
-        send_sms_message(from_=campaign.related_phone_number.e164,
+        send_sms_message(from_=number.e164,
                          to=contact.phone_number,
                          body=body,
                          media_url=media_url,
@@ -79,8 +89,6 @@ def send_deterrence(absolute_uri,
     contact.deterrents_received += 1
     contact.save(update_fields=['deterred',
                                 'deterrents_received'])
-
-    number = campaign.related_phone_number
 
     deterrence_message = \
         DeterrenceMessage(sid=message['Sid'],
@@ -105,13 +113,8 @@ def check_campaign_for_contact(contact_id):
             .latest('date_created')
     except DeterrenceCampaign.DoesNotExist:
         deterrent = Deterrent.objects.latest('date_created')
-        phone_number = \
-            PhoneNumber.objects \
-            .filter(number_type='DET') \
-            .latest('date_created')
 
-        campaign = DeterrenceCampaign(related_deterrent=deterrent,
-                                      related_phone_number=phone_number)
+        campaign = DeterrenceCampaign(related_deterrent=deterrent)
         campaign.save()
 
     if contact in campaign.related_contacts.all():
@@ -120,6 +123,26 @@ def check_campaign_for_contact(contact_id):
         campaign.related_contacts.add(contact)
         campaign.save()
     return False
+
+
+def get_unused_deterrence_phone_number(contact):
+    messages = DeterrenceMessage.objects.filter(related_contact=contact)
+
+    used_numbers = [msg.related_phone_number.e164 for msg in messages]
+
+    try:
+        number = PhoneNumber.objects \
+            .filter(number_type="DET") \
+            .filter(burned=False) \
+            .exclude(e164__in=used_numbers) \
+            .latest('date_created')
+    except PhoneNumber.DoesNotExist:
+        number = PhoneNumber.objects \
+            .filter(number_type="DET") \
+            .filter(burned=False) \
+            .latest('date_created')
+
+    return number
 
 
 @shared_task

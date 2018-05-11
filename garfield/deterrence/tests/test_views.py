@@ -107,8 +107,7 @@ class DeterrenceDeterCampaignTestCase(TestCase):
                                                   personalize=True)
         self.deterrence_campaign = \
             DeterrenceCampaign.objects \
-            .create(related_deterrent=self.deterrent,
-                    related_phone_number=self.det_number)
+            .create(related_deterrent=self.deterrent)
 
         self.deterrence_campaign.related_contacts.add(self.contact_a)
         self.deterrence_campaign.related_contacts.add(self.contact_b)

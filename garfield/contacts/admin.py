@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from sms.models import SmsMessage
 from voice.models import Call
+from deterrence.admin import DeterrenceMessageInline
 
 from .models import Contact
 
@@ -43,7 +44,7 @@ class CallInline(admin.TabularInline):
 
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
-    inlines = [SmsMessageInline, CallInline]
+    inlines = [SmsMessageInline, CallInline, DeterrenceMessageInline]
     search_fields = ('phone_number',
                      'whitepages_first_name',
                      'whitepages_last_name',

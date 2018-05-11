@@ -10,7 +10,7 @@ import phonenumbers
 from phone_numbers.models import PhoneNumber
 
 from sims.models import Sim
-from sms.tasks import send_sms_message
+from contacts.tasks import send_whisper
 
 
 @shared_task
@@ -39,7 +39,7 @@ def buy_new_phone_number(base_uri, message, number_type):
                   "to": settings.TWILIO_PHONE_NUMBER,
                   "body": "There was an error purchasing "
                           "your phone number: {0}".format(e.msg)}
-        send_sms_message.apply_async(kwargs=kwargs)
+        send_whisper.apply_async(kwargs=kwargs)
 
         return False
 
@@ -58,10 +58,10 @@ def buy_new_phone_number(base_uri, message, number_type):
                                related_sim=sim)
     phone_number.save()
 
-    send_sms_message.apply_async(kwargs={"from_": phone_number.e164,
-                                         "to": settings.TWILIO_PHONE_NUMBER,
-                                         "body": "This is your new {0}"
-                                                 " phone number."
-                                                 "".format(number_type)})
+    send_whisper.apply_async(kwargs={"from_": phone_number.e164,
+                                     "to": settings.TWILIO_PHONE_NUMBER,
+                                     "body": "This is your new {0}"
+                                             " phone number."
+                                             "".format(number_type)})
 
     return True

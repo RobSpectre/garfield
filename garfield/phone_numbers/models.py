@@ -16,6 +16,7 @@ class PhoneNumber(models.Model):
     formatted = models.CharField(max_length=255)
     friendly_name = models.CharField(max_length=255)
     country_code = models.CharField(max_length=255)
+    burned = models.BooleanField(default=False)
 
     AD = 'ADV'
     DETERRENCE = 'DET'

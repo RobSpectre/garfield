@@ -17,7 +17,9 @@ import deterrence.tasks
 
 @override_settings(TWILIO_PHONE_NUMBER="+18881112222",
                    TWILIO_ACCOUNT_SID='ACxxxx',
-                   TWILIO_AUTH_TOKEN='yyyyyyy')
+                   TWILIO_AUTH_TOKEN='yyyyyyy',
+                   GARFIELD_NUMBER_OF_DETERRENTS=1,
+                   GARFIELD_DETERRENT_INTERVAL=300)
 class DeterrenceCampaignTestCase(TestCase):
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
@@ -66,8 +68,7 @@ class DeterrenceCampaignTestCase(TestCase):
                                                   personalize=True)
         self.deterrence_campaign = \
             DeterrenceCampaign.objects \
-            .create(related_deterrent=self.deterrent,
-                    related_phone_number=self.det_number)
+            .create(related_deterrent=self.deterrent)
 
         self.deterrence_campaign.related_contacts.add(self.contact_a)
         self.deterrence_campaign.related_contacts.add(self.contact_b)
@@ -177,8 +178,7 @@ class DeterrenceTestCase(TestCase):
                                                   personalize=True)
         self.deterrence_campaign = \
             DeterrenceCampaign.objects \
-            .create(related_deterrent=self.deterrent,
-                    related_phone_number=self.det_number)
+            .create(related_deterrent=self.deterrent)
 
         self.deterrence_campaign.related_contacts.add(self.contact_a)
         self.deterrence_campaign.related_contacts.add(self.contact_b)
@@ -272,6 +272,8 @@ class DeterrenceTestCase(TestCase):
         self.assertTrue(contact.deterred)
 
 
+@override_settings(GARFIELD_NUMBER_OF_DETERRENTS=1,
+                   GARFIELD_DETERRENT_INTERVAL=300)
 class DeterrenceTestCaseMultipleNumbers(TestCase):
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
@@ -313,6 +315,18 @@ class DeterrenceTestCaseMultipleNumbers(TestCase):
                                                        number_type="DET",
                                                        country_code="1")
 
+        self.det_number_3 = PhoneNumber.objects.create(sid="PNzzz",
+                                                       account_sid="ACxxx",
+                                                       service_sid="SExxx",
+                                                       url="http://exmple.com",
+                                                       e164="+15558675311",
+                                                       formatted="(555) "
+                                                                 "867-5311",
+                                                       friendly_name="BURNED.",
+                                                       number_type="DET",
+                                                       burned=True,
+                                                       country_code="1")
+
         self.contact_a.related_phone_numbers.add(self.phone_number)
         self.contact_b.related_phone_numbers.add(self.phone_number)
 
@@ -327,8 +341,7 @@ class DeterrenceTestCaseMultipleNumbers(TestCase):
                                                        "Garfield.")
         self.deterrence_campaign = \
             DeterrenceCampaign.objects \
-            .create(related_deterrent=self.deterrent,
-                    related_phone_number=self.det_number_2)
+            .create(related_deterrent=self.deterrent)
 
         self.deterrence_campaign.related_contacts.add(self.contact_a)
         self.deterrence_campaign.related_contacts.add(self.contact_b)
@@ -350,6 +363,70 @@ class DeterrenceTestCaseMultipleNumbers(TestCase):
             args, kwargs = call
             self.assertEquals(kwargs['args'][1],
                               self.deterrence_campaign.id)
+
+    @override_settings(GARFIELD_NUMBER_OF_DETERRENTS=3)
+    @patch('deterrence.tasks.send_deterrence.apply_async')
+    def test_send_deterrence_campaign_multiple_deterrents(self, mock_send):
+        deterrence.tasks.send_deterrence_campaign("http://example.com",
+                                                  self.message)
+
+        self.assertEquals(9, mock_send.call_count)
+
+    def test_unused_deterrence_phone_number(self):
+        test_1 = \
+            deterrence.tasks \
+            .get_unused_deterrence_phone_number(self.contact_a)
+
+        DeterrenceMessage.objects \
+            .create(sid="MMxxx",
+                    body="A message to you, Rudy.",
+                    status="delivered",
+                    related_deterrent=self.deterrent,
+                    related_phone_number=self.det_number_2,
+                    related_campaign=self.deterrence_campaign,
+                    related_contact=self.contact_a)
+
+        test_2 = \
+            deterrence.tasks \
+            .get_unused_deterrence_phone_number(self.contact_a)
+
+        self.assertEquals(test_1, self.det_number_2)
+        self.assertEquals(test_2, self.det_number_1)
+
+    def test_unused_deterrence_phone_number_overload(self):
+        test_1 = \
+            deterrence.tasks \
+            .get_unused_deterrence_phone_number(self.contact_a)
+
+        DeterrenceMessage.objects \
+            .create(sid="MMxxx",
+                    body="A message to you, Rudy.",
+                    status="delivered",
+                    related_deterrent=self.deterrent,
+                    related_phone_number=self.det_number_2,
+                    related_campaign=self.deterrence_campaign,
+                    related_contact=self.contact_a)
+
+        test_2 = \
+            deterrence.tasks \
+            .get_unused_deterrence_phone_number(self.contact_a)
+
+        DeterrenceMessage.objects \
+            .create(sid="MMxxx",
+                    body="A message to you, Rudy.",
+                    status="delivered",
+                    related_deterrent=self.deterrent,
+                    related_phone_number=self.det_number_1,
+                    related_campaign=self.deterrence_campaign,
+                    related_contact=self.contact_a)
+
+        test_3 = \
+            deterrence.tasks \
+            .get_unused_deterrence_phone_number(self.contact_a)
+
+        self.assertEquals(test_1, self.det_number_2)
+        self.assertEquals(test_2, self.det_number_1)
+        self.assertEquals(test_3, self.det_number_2)
 
 
 class DeterrenceCheckCampaignTestCase(TestCase):
@@ -397,8 +474,7 @@ class DeterrenceCheckCampaignTestCase(TestCase):
                                                        "Garfield.")
         self.deterrence_campaign = \
             DeterrenceCampaign.objects \
-            .create(related_deterrent=self.deterrent,
-                    related_phone_number=self.det_number)
+            .create(related_deterrent=self.deterrent)
 
         self.message = {"From": "+15556667777",
                         "To": "+15558675309",
@@ -492,8 +568,8 @@ class DeterrenceMessageStatusCallbackTestCase(TestCase):
                                                        "Garfield.")
         self.deterrence_campaign = \
             DeterrenceCampaign.objects \
-            .create(related_deterrent=self.deterrent,
-                    related_phone_number=self.det_number)
+            .create(related_deterrent=self.deterrent)
+
         self.deterrence_message = \
             DeterrenceMessage.objects \
             .create(sid="MMxxxx",

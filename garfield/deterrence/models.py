@@ -33,11 +33,6 @@ class DeterrenceCampaign(models.Model):
                                           related_name="campaigns",
                                           on_delete=models.SET_NULL)
 
-    related_phone_number = models.ForeignKey(PhoneNumber,
-                                             null=True,
-                                             related_name="campaigns",
-                                             on_delete=models.SET_NULL)
-
     related_contacts = models.ManyToManyField(Contact,
                                               blank=True)
 

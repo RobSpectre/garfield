@@ -25,7 +25,7 @@ class TaskPhoneNumbersTestCase(TestCase):
                                       status="active",
                                       rate_plan="RExxx")
 
-    @patch('sms.tasks.send_sms_message.apply_async')
+    @patch('contacts.tasks.send_whisper.apply_async')
     @patch('twilio.rest.api.v2010.account.available_phone_number'
            '.LocalList.list')
     @patch('twilio.rest.api.v2010.account.incoming_phone_number'
@@ -63,7 +63,7 @@ class TaskPhoneNumbersTestCase(TestCase):
         self.assertEquals(results[0].related_sim, self.sim)
         self.assertTrue(test)
 
-    @patch('sms.tasks.send_sms_message.apply_async')
+    @patch('contacts.tasks.send_whisper.apply_async')
     @patch('twilio.rest.api.v2010.account.available_phone_number'
            '.LocalList.list')
     @patch('twilio.rest.api.v2010.account.incoming_phone_number'

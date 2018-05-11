@@ -14,9 +14,14 @@ class DeterrenceMessageInline(admin.TabularInline):
                        'related_phone_number',
                        'related_contact',
                        'body',
+                       'related_campaign',
                        'related_deterrent')
 
     list_display = readonly_fields
+    list_display_links = ('related_contact',
+                          'related_campaign',
+                          'related_phone_number',
+                          'related_deterrent')
     exclude = ['sid', 'deleted']
 
     def get_extra(self, request, obj=None, **kwargs):

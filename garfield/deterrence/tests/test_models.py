@@ -61,8 +61,7 @@ class DeterrenceCampaignTestCase(TestCase):
 
         self.deterrence_campaign = \
             DeterrenceCampaign.objects \
-            .create(related_deterrent=self.deterrent,
-                    related_phone_number=self.phone_number)
+            .create(related_deterrent=self.deterrent)
 
         self.deterrence_campaign.related_contacts.add(self.contact_1)
         self.deterrence_campaign.related_contacts.add(self.contact_2)
@@ -73,7 +72,7 @@ class DeterrenceCampaignTestCase(TestCase):
         self.assertTrue("sent to 2 contacts",
                         "Campaign" in str(self.deterrence_campaign))
 
-    def test_date_sent_string_representatoin(self):
+    def test_date_sent_string_representation(self):
         self.deterrence_campaign.date_sent = timezone.now()
         self.assertEquals("Deterrence Campaign: Sent {0} to 2 contacts"
                           "".format(self.deterrence_campaign.date_sent),
@@ -112,8 +111,7 @@ class DeterrenceMessageTestCase(TestCase):
 
         self.deterrence_campaign = \
             DeterrenceCampaign.objects \
-            .create(related_deterrent=self.deterrent,
-                    related_phone_number=self.phone_number)
+            .create(related_deterrent=self.deterrent)
 
         self.deterrence_campaign.related_contacts.add(self.contact_1)
         self.deterrence_campaign.related_contacts.add(self.contact_2)
