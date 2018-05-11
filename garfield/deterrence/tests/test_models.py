@@ -1,5 +1,6 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
+from django.utils import timezone
 
 from mock import patch
 
@@ -72,6 +73,12 @@ class DeterrenceCampaignTestCase(TestCase):
         self.assertTrue("sent to 2 contacts",
                         "Campaign" in str(self.deterrence_campaign))
 
+    def test_date_sent_string_representatoin(self):
+        self.deterrence_campaign.date_sent = timezone.now()
+        self.assertEquals("Deterrence Campaign: Sent {0} to 2 contacts"
+                          "".format(self.deterrence_campaign.date_sent),
+                          str(self.deterrence_campaign))
+
 
 class DeterrenceMessageTestCase(TestCase):
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
@@ -113,12 +120,14 @@ class DeterrenceMessageTestCase(TestCase):
 
         self.deterrence_message = \
             DeterrenceMessage.objects \
-            .create(related_deterrent=self.deterrent,
+            .create(status="queued",
+                    related_deterrent=self.deterrent,
                     related_phone_number=self.phone_number,
                     related_campaign=self.deterrence_campaign,
                     related_contact=self.contact_1)
 
     def test_string_representation(self):
         self.assertEquals(str(self.deterrence_message),
-                          "Deterrence message sent {0} to (555) 666-7777"
+                          "Deterrence message queued {0} to +15556667777:"
+                          " None None"
                           "".format(self.deterrence_message.date_created))

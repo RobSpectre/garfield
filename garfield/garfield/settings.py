@@ -132,7 +132,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = './static/'
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 try:
     from .local import *
@@ -147,3 +147,6 @@ CONTROLCENTER_DASHBOARDS = (
 )
 
 CONTROLCENTER_CHARTIST_COLORS = "material"
+
+GARFIELD_NUMBER_OF_DETERRENTS = 3
+GARFIELD_DETERRENT_INTERVAL = 300

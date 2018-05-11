@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.test import override_settings
+from django.urls import reverse
 
 from mock import patch
 
@@ -113,13 +114,17 @@ class GarfieldTestSimSmsCaseExistingContact(GarfieldTestCaseWithContact):
         self.assertContains(response,
                             'to="+15556667777"')
 
-    def test_sim_send_admin_number(self):
-        response = self.client.sms("!deter", to="+15558675309",
+    @patch('sms.tasks.save_sms_message.apply_async')
+    def test_sim_send_admin_number(self, mock_save):
+        response = self.client.sms("!deter",
+                                   to="+15558675309",
                                    path="/sims/sms/send/")
 
         self.assert_twiml(response)
         self.assertContains(response,
-                            "<Redirect>")
+                            "<Redirect>{0}</Redirect>"
+                            "".format(reverse('sms:index')))
+        self.assertFalse(mock_save.called)
 
 
 class SimSmsWhisperTestCase(GarfieldTwilioTestCase):

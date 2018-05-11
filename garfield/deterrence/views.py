@@ -6,7 +6,11 @@ from phone_numbers.models import PhoneNumber
 from phone_numbers.tasks import buy_new_phone_number
 
 from sms.decorators import twilio_view
-from .tasks import send_deterrence
+
+from .tasks import send_deterrence_campaign
+from .tasks import handle_deterrence_message_status_callback
+
+from .models import DeterrenceCampaign
 
 
 @twilio_view
@@ -29,10 +33,22 @@ def index(request):
 def deter(request):
     response = MessagingResponse()
 
-    response.message("Sending deterrence...")
+    try:
+        campaign = DeterrenceCampaign.objects \
+            .exclude(date_sent__isnull=False) \
+            .latest('date_created')
 
-    send_deterrence.apply_async(args=[request.POST])
+        base_uri = "{0}://{1}".format(request.scheme,
+                                      request.get_host())
 
+        response.message("Sending deterrence to {0} contacts."
+                         "".format(campaign.related_contacts.all().count()))
+
+        send_deterrence_campaign.apply_async(args=[base_uri,
+                                             request.POST])
+    except DeterrenceCampaign.DoesNotExist:
+        response.message("No contacts are currently queued for "
+                         "deterrence.")
     return response
 
 
@@ -50,5 +66,16 @@ def new_deterrence(request):
     response.message("Buying new deterrence phone number...",
                      from_=request.POST['To'],
                      to=request.POST['From'])
+
+    return response
+
+
+@twilio_view
+def deterrence_message_status_callback(request):
+    response = MessagingResponse()
+
+    handle_deterrence_message_status_callback \
+        .apply_async(args=[request.POST['MessageSid'],
+                           request.POST['MessageStatus']])
 
     return response

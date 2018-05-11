@@ -49,18 +49,33 @@ def save_sms_message(message):
 
 
 @shared_task
-def send_sms_message(from_=None, to=None, body=None, media_url=None):
+def send_sms_message(from_=None,
+                     to=None,
+                     body=None,
+                     media_url=None,
+                     status_callback=None):
     client = Client(settings.TWILIO_ACCOUNT_SID,
                     settings.TWILIO_AUTH_TOKEN)
 
-    client.messages.create(to,
-                           from_=from_,
-                           body=body,
-                           media_url=media_url)
+    message = client.messages.create(to,
+                                     from_=from_,
+                                     body=body,
+                                     media_url=media_url,
+                                     status_callback=status_callback)
 
-    return "SMS Message from {0} to {1}: {2}".format(from_,
-                                                     to,
-                                                     body)
+    return {'Sid': message.sid,
+            'To': message.to,
+            'From': message.from_,
+            'Body': message.body,
+            'DateSent': message.date_sent,
+            'Status': message.status,
+            'ApiVersion': message.api_version,
+            'Price': message.price,
+            'PriceUnit': message.price_unit,
+            'Uri': message.uri,
+            'ErrorCode': message.error_code,
+            'ErrorMessage': message.error_message,
+            'Direction': message.direction}
 
 
 @shared_task

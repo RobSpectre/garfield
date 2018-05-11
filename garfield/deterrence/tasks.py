@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.urls import reverse
+from django.utils import timezone
+
 
 from celery import shared_task
 
@@ -13,40 +16,82 @@ from sms.tasks import send_sms_message
 
 from .models import Deterrent
 from .models import DeterrenceCampaign
+from .models import DeterrenceMessage
+
+from .util import lowercase_sentence
 
 
 @shared_task
-def send_deterrence(absolute_uri, message):
+def send_deterrence_campaign(absolute_uri, message):
     campaign = \
-        DeterrenceCampaign.objects.filter(date_sent=None).latest('date_created')
+        DeterrenceCampaign.objects \
+        .filter(date_sent=None).latest('date_created')
 
     for contact in campaign.related_contacts.all():
         if contact.do_not_deter or contact.arrested or contact.recruiter:
             continue
 
-        media_url = "{0}/{1}{2}" \
-                    "".format(absolute_uri,
-                              settings.MEDIA_ROOT,
-                              campaign.related_deterrent.image.url)
+        send_deterrence.apply_async(args=[absolute_uri,
+                                          campaign.id,
+                                          contact.id])
 
+    campaign.date_sent = timezone.now()
+    campaign.save()
+
+
+@shared_task
+def send_deterrence(absolute_uri,
+                    campaign_id,
+                    contact_id):
+    campaign = DeterrenceCampaign.objects.get(pk=campaign_id)
+    contact = Contact.objects.get(pk=contact_id)
+
+    media_url = "{0}/{1}{2}" \
+                "".format(absolute_uri,
+                          settings.MEDIA_ROOT,
+                          campaign.related_deterrent.image.url)
+
+    if campaign.related_deterrent.personalize:
         if contact.whitepages_first_name:
-            kwargs = {"from_": campaign.related_phone_number.e164,
-                      "to": contact.phone_number,
-                      "body": "{0}, a message from NY"
-                              "PD.".format(contact.whitepages_first_name),
-                      "media_url": media_url}
+            body = lowercase_sentence(campaign.related_deterrent.body)
+            body = \
+                "{0}, {1}" \
+                "".format(contact.whitepages_first_name,
+                          body)
         else:
-            kwargs = {"from_": campaign.related_phone_number.e164,
-                      "to": contact.phone_number,
-                      "body": "A message from NYPD.",
-                      "media_url": media_url}
+            body = campaign.related_deterrent.body
 
-        send_sms_message.apply_async(kwargs=kwargs)
+    else:
+        body = campaign.related_deterrent.body
 
-        contact.deterred = True
-        contact.deterrents_received += 1
-        contact.save(update_fields=['deterred',
-                                    'deterrents_received'])
+    status_callback = "{0}{1}".format(absolute_uri,
+                                      reverse('deterrence:deterrence'
+                                              '_message_status_callback'))
+
+    message = \
+        send_sms_message(from_=campaign.related_phone_number.e164,
+                         to=contact.phone_number,
+                         body=body,
+                         media_url=media_url,
+                         status_callback=status_callback)
+
+    contact.deterred = True
+    contact.deterrents_received += 1
+    contact.save(update_fields=['deterred',
+                                'deterrents_received'])
+
+    number = campaign.related_phone_number
+
+    deterrence_message = \
+        DeterrenceMessage(sid=message['Sid'],
+                          body=message['Body'],
+                          status=message['Status'],
+                          related_deterrent=campaign.related_deterrent,
+                          related_contact=contact,
+                          related_phone_number=number,
+                          related_campaign=campaign)
+
+    deterrence_message.save()
 
 
 @shared_task
@@ -74,7 +119,16 @@ def check_campaign_for_contact(contact_id):
     else:
         campaign.related_contacts.add(contact)
         campaign.save()
-        return False
+    return False
+
+
+@shared_task
+def handle_deterrence_message_status_callback(sid, status):
+    message = DeterrenceMessage.objects.get(sid=sid)
+    message.status = status
+    message.save(update_fields=['status'])
+
+    return True
 
 
 @receiver(post_save, sender=SmsMessage)
