@@ -1,6 +1,7 @@
 import datetime
 
 from django.db.models import Count
+from django.db.models import Q
 from django.db.models.functions import TruncDay
 
 from controlcenter import Dashboard
@@ -242,28 +243,66 @@ class DeterrenceResponseChart(DailyChart):
         return series
 
 
-class DeterrenceMessageChart(DailyChart):
+class DeterrenceMessageChart(widgets.BarChart):
+    class Chartist:
+        options = {"axisX": {"onlyInteger": True},
+                   "stackBars": True}
+
     title = "Daily Deterrence Messages"
+
+    width = widgets.SMALL
+
+    iso_today = datetime.datetime.today().isocalendar()
+
+    def labels(self):
+        labels = daterange_by_week(self.iso_today[0],
+                                   self.iso_today[1])
+
+        return [label.strftime("%d %b") for label in labels]
+
+    failed = Count('id', filter=Q(status='failed'))
+    delivered = Count('id', filter=Q(status='delivered'))
+    sent = Count('id', filter=Q(status='sent'))
+    undelivered = Count('id', filter=Q(status='undelivered'))
+
+    def legend(self):
+        return ['failed',
+                'sent',
+                'delivered',
+                'undelivered']
 
     def series(self):
         queryset = (DeterrenceMessage.objects
+                    .filter(date_created__week=self.iso_today[1])
                     .annotate(day_created=TruncDay('date_created'))
                     .values('day_created')
-                    .annotate(count=Count('id')))
+                    .annotate(delivered=self.delivered)
+                    .annotate(sent=self.sent)
+                    .annotate(undelivered=self.undelivered)
+                    .annotate(failed=self.failed))
 
         values = {}
 
         for row in queryset:
-            values[row['day_created']] = row['count']
+            values[row['day_created']] = {'delivered': row['delivered'],
+                                          'sent': row['sent'],
+                                          'undelivered': row['undelivered'],
+                                          'failed': row['failed']}
 
         dates = daterange_by_week(self.iso_today[0],
                                   self.iso_today[1])
 
         series = []
 
-        for date in dates:
-            item = values.get(date, 0)
-            series.append(item)
+        for key in self.legend:
+            row = []
+            for date in dates:
+                item = values.get(date, {'delivered': 0,
+                                         'sent': 0,
+                                         'undelivered': 0,
+                                         'failed': 0})
+                row.append(item[key])
+            series.append(row)
 
         return series
 
