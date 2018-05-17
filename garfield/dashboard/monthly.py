@@ -110,6 +110,28 @@ class TopContacts(widgets.SingleBarChart):
                 .order_by('-count'))
 
 
+class TopDeterredContacts(widgets.SingleBarChart):
+    class Chartist:
+        options = {'horizontalBars': True,
+                   'reverseData': True,
+                   'axisX': {'onlyInteger': True},
+                   'axisY': {'offset': 85}}
+
+    title = "Contacts Receiving Most Deterrents"
+
+    width = widgets.LARGER
+
+    values_list = ('related_contact__phone_number',
+                   'count')
+
+    limit_to = 14
+
+    queryset = (DeterrenceMessage.objects
+                .values('related_contact__phone_number')
+                .annotate(count=Count('sid'))
+                .order_by('-count'))
+
+
 class TopContactsRespondingToDeterrence(widgets.SingleBarChart):
     class Chartist:
         options = {'horizontalBars': True,
@@ -138,6 +160,7 @@ class MonthlyDashboard(Dashboard):
                MonthlyMessageChart,
                MonthlyCallChart,
                MonthlyDeterrenceMessageChart,
+               TopDeterredContacts,
                MonthlyDeterrenceResponseChart,
                TopContacts,
                TopContactsRespondingToDeterrence]
