@@ -5,6 +5,7 @@ from controlcenter import Dashboard
 from controlcenter import widgets
 
 from contacts.models import Contact
+from deterrence.models import DeterrenceMessage
 from sms.models import SmsMessage
 from voice.models import Call
 
@@ -62,7 +63,19 @@ class MonthlyCallChart(MonthlyChart):
                 .annotate(count=Count('id')))
 
 
-class MonthlyDeterrenceChart(MonthlyChart):
+class MonthlyDeterrenceMessageChart(MonthlyChart):
+    title = "Monthly Deterrence MessageVolume"
+
+    values_list = ('month_created', 'count')
+
+    queryset = (DeterrenceMessage.objects
+                .annotate(month_created=TruncMonth('date_created'))
+                .order_by('month_created')
+                .values('month_created')
+                .annotate(count=Count('id')))
+
+
+class MonthlyDeterrenceResponseChart(MonthlyChart):
     title = "Monthly Deterrence Responses"
 
     values_list = ('month_created', 'count')
@@ -124,6 +137,7 @@ class MonthlyDashboard(Dashboard):
     widgets = [MonthlyContactChart,
                MonthlyMessageChart,
                MonthlyCallChart,
-               MonthlyDeterrenceChart,
+               MonthlyDeterrenceMessageChart,
+               MonthlyDeterrenceResponseChart,
                TopContacts,
                TopContactsRespondingToDeterrence]

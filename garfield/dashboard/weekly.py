@@ -7,6 +7,7 @@ from controlcenter import Dashboard
 from controlcenter import widgets
 
 from contacts.models import Contact
+from deterrence.models import DeterrenceMessage
 from sms.models import SmsMessage
 from voice.models import Call
 
@@ -47,7 +48,7 @@ class LatestMessagesList(widgets.ItemList):
 
     model = SmsMessage
 
-    width = widgets.LARGE
+    width = widgets.LARGER
 
     queryset = (SmsMessage.objects
                 .filter(date_created__gt=datetime.date.today())
@@ -75,7 +76,7 @@ class LatestCallsList(widgets.ItemList):
 
     model = Call
 
-    width = widgets.SMALL
+    width = widgets.LARGE
 
     queryset = (Call.objects
                 .filter(date_created__gt=datetime.date.today())
@@ -87,6 +88,7 @@ class LatestCallsList(widgets.ItemList):
     sortable = True
 
     list_display = ('date_created',
+                    'related_phone_number',
                     'from_number',
                     'to_number')
 
@@ -97,7 +99,7 @@ class LatestCallsList(widgets.ItemList):
 
 class LatestDeterrenceResponseList(widgets.ItemList):
     title = "Latest Deterrence Responses"
-    width = widgets.SMALL
+    width = widgets.LARGE
 
     queryset = (SmsMessage.objects
                 .filter(related_phone_number__number_type='DET')
@@ -213,7 +215,7 @@ class CallChart(DailyChart):
         return series
 
 
-class DeterrenceChart(DailyChart):
+class DeterrenceResponseChart(DailyChart):
     title = "Daily Deterrence Responses"
 
     def series(self):
@@ -240,12 +242,39 @@ class DeterrenceChart(DailyChart):
         return series
 
 
+class DeterrenceMessageChart(DailyChart):
+    title = "Daily Deterrence Messages"
+
+    def series(self):
+        queryset = (DeterrenceMessage.objects
+                    .annotate(day_created=TruncDay('date_created'))
+                    .values('day_created')
+                    .annotate(count=Count('id')))
+
+        values = {}
+
+        for row in queryset:
+            values[row['day_created']] = row['count']
+
+        dates = daterange_by_week(self.iso_today[0],
+                                  self.iso_today[1])
+
+        series = []
+
+        for date in dates:
+            item = values.get(date, 0)
+            series.append(item)
+
+        return series
+
+
 class WeeklyDashboard(Dashboard):
     widgets = (ContactChart,
                SmsMessageChart,
                CallChart,
-               DeterrenceChart,
+               DeterrenceMessageChart,
                LatestMessagesList,
+               DeterrenceResponseChart,
                LatestCallsList,
                LatestDeterrenceResponseList,
                ContactList)
