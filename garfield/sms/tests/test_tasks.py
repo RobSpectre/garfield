@@ -49,9 +49,6 @@ class TaskSmsMessageTestCase(TestCase):
     def test_save_sms_message_received(self,
                                        mock_check_contact,
                                        mock_check_campaign):
-        # mock_check_contact.side_effect = \
-        #     lambda *args, **kwargs: \
-        #     sms.tasks.check_contact(**kwargs['args'][0])
         sms.tasks.save_sms_message({'MessageSid': 'MMxxxx',
                                     'From': '+15556667777',
                                     'To': '+15558675309',
@@ -95,8 +92,9 @@ class TaskSmsMessageTestCase(TestCase):
 
 
 class SendSMSMessageCorrectAttributionTestCase(TestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')
-    def setUp(self, mock_lookup):
+    def setUp(self, mock_lookup, mock_check):
         self.sim = Sim.objects.create(friendly_name="TestSim",
                                       sid="DExxx",
                                       iccid="asdf",
@@ -143,7 +141,9 @@ class SendSMSMessageCorrectAttributionTestCase(TestCase):
                             body="Deterrence Response.",
                             related_phone_number=self.det_number)
 
-    def test_save_sms_message_correct_attribution(self):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
+    def test_save_sms_message_correct_attribution(self,
+                                                  mock_check):
         sms.tasks.save_sms_message({'MessageSid': 'MMxxxx',
                                     'From': 'sim:DExxx',
                                     'To': '+15556667777',
@@ -155,6 +155,7 @@ class SendSMSMessageCorrectAttributionTestCase(TestCase):
                           "Test.")
         self.assertEquals(result.related_phone_number,
                           self.phone_number)
+        self.assertTrue(mock_check.called)
 
 
 class TaskLookupContactContactDoesNotExistTestCase(TestCase):
