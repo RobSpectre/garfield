@@ -73,6 +73,24 @@ class Command(BaseCommand):
                 campaign.related_contacts.add(contact)
                 campaign.save()
 
+        self.stdout.write("Adding undeterred contacts...")
+
+        campaign = DeterrenceCampaign(related_deterrent=deterrent)
+        campaign.save()
+
+        queryset = (Contact.objects.filter(deterred=False,
+                                           do_not_deter=False,
+                                           arrested=False,
+                                           recruiter=False))
+
+        for contact in queryset:
+            self.stdout.write("Adding contact: {0}".format(contact))
+            campaign.related_contacts.add(contact)
+
+        campaign.save()
+
+        self.stdout.write("Added {0} contacts. Done.".format(len(queryset)))
+
     def get_deterrence_messages(self):
         messages = []
 
@@ -99,11 +117,11 @@ class Command(BaseCommand):
         return messages
 
     def create_deterrence_message(self,
-                                message,
-                                campaign,
-                                deterrent,
-                                contact,
-                                phone_number):
+                                  message,
+                                  campaign,
+                                  deterrent,
+                                  contact,
+                                  phone_number):
         deterrence_message = \
             DeterrenceMessage(sid=message.sid,
                               body=message.body,
