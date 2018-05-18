@@ -32,6 +32,7 @@ class TaskSmsMessageTestCase(TestCase):
                                                                  "867-5309",
                                                        friendly_name="Stuff.",
                                                        country_code="1",
+                                                       number_type="ADV",
                                                        related_sim=self.sim)
 
         self.contact = Contact.objects.create(phone_number="+15556667777")
@@ -91,6 +92,69 @@ class TaskSmsMessageTestCase(TestCase):
                                    to="+15558675309",
                                    body="Test.")
         self.assertTrue(mock_messages_create.called)
+
+
+class SendSMSMessageCorrectAttributionTestCase(TestCase):
+    @patch('contacts.tasks.lookup_contact.apply_async')
+    def setUp(self, mock_lookup):
+        self.sim = Sim.objects.create(friendly_name="TestSim",
+                                      sid="DExxx",
+                                      iccid="asdf",
+                                      status="active",
+                                      rate_plan="RExxx")
+
+        self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
+                                                       account_sid="ACxxx",
+                                                       service_sid="SExxx",
+                                                       url="http://exmple.com",
+                                                       e164="+15558675309",
+                                                       formatted="(555) "
+                                                                 "867-5309",
+                                                       friendly_name="Stuff.",
+                                                       country_code="1",
+                                                       number_type="ADV",
+                                                       related_sim=self.sim)
+
+        self.det_number = PhoneNumber.objects.create(sid="PNxxx",
+                                                     account_sid="ACxxx",
+                                                     service_sid="SExxx",
+                                                     url="http://exmple.com",
+                                                     e164="+15558675310",
+                                                     formatted="(555) "
+                                                     "867-5310",
+                                                     friendly_name="Deter.",
+                                                     country_code="1",
+                                                     number_type="DET",
+                                                     related_sim=self.sim)
+
+        self.contact = Contact.objects.create(phone_number="+15556667777")
+
+        self.sms_message = SmsMessage \
+            .objects.create(sid="MMxxxx",
+                            from_number="+15556667777",
+                            to_number="+15558675309",
+                            body="Test.",
+                            related_phone_number=self.phone_number)
+
+        self.sms_message = SmsMessage \
+            .objects.create(sid="MMxxxx",
+                            from_number="+15556667777",
+                            to_number="+15558675310",
+                            body="Deterrence Response.",
+                            related_phone_number=self.det_number)
+
+    def test_save_sms_message_correct_attribution(self):
+        sms.tasks.save_sms_message({'MessageSid': 'MMxxxx',
+                                    'From': 'sim:DExxx',
+                                    'To': '+15556667777',
+                                    'Body': 'Test.'})
+
+        result = SmsMessage.objects.all().latest('date_created')
+
+        self.assertEquals(result.body,
+                          "Test.")
+        self.assertEquals(result.related_phone_number,
+                          self.phone_number)
 
 
 class TaskLookupContactContactDoesNotExistTestCase(TestCase):
