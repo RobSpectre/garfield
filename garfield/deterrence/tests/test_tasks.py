@@ -562,6 +562,16 @@ class DeterrenceCheckCampaignTestCase(TestCase):
 
         self.assertFalse(mock_check.called)
 
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
+    def test_add_to_campaign_if_call_advertising_number(self,
+                                                        mock_check):
+        Call.objects.create(to_number="+15558675309",
+                            from_number="+15556667777",
+                            related_contact=self.contact_a,
+                            related_phone_number=self.phone_number)
+
+        self.assertTrue(mock_check.called)
+
 
 class DeterrenceMessageStatusCallbackTestCase(TestCase):
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
