@@ -7,6 +7,8 @@ from mock import patch
 
 from contacts.models import Contact
 from phone_numbers.models import PhoneNumber
+from sms.models import SmsMessage
+from voice.models import Call
 
 from deterrence.models import Deterrent
 from deterrence.models import DeterrenceCampaign
@@ -538,6 +540,27 @@ class DeterrenceCheckCampaignTestCase(TestCase):
                           len(campaigns[0].related_contacts.all()))
         self.assertEquals(campaigns[0].related_contacts.all()[0],
                           self.contact_a)
+
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
+    def test_only_add_to_campaign_if_sms_advertising_number(self,
+                                                            mock_check):
+        SmsMessage.objects.create(to_number="+15558675310",
+                                  from_number="+15556667777",
+                                  body="Test.",
+                                  related_contact=self.contact_a,
+                                  related_phone_number=self.det_number)
+
+        self.assertFalse(mock_check.called)
+
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
+    def test_only_add_to_campaign_if_call_advertising_number(self,
+                                                             mock_check):
+        Call.objects.create(to_number="+15558675310",
+                            from_number="+15556667777",
+                            related_contact=self.contact_a,
+                            related_phone_number=self.det_number)
+
+        self.assertFalse(mock_check.called)
 
 
 class DeterrenceMessageStatusCallbackTestCase(TestCase):

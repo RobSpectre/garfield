@@ -158,18 +158,20 @@ def handle_deterrence_message_status_callback(sid, status):
 def check_campaign_for_sms_message_contact(sender, **kwargs):
     instance = kwargs.get('instance')
 
-    if instance.related_contact:
-        check_campaign_for_contact \
-            .apply_async(args=[instance.related_contact.id])
+    if instance.related_contact and instance.related_phone_number:
+        if instance.related_phone_number.number_type == "ADV":
+            check_campaign_for_contact \
+                .apply_async(args=[instance.related_contact.id])
 
 
 @receiver(post_save, sender=Call)
 def check_campaign_for_call_contact(sender, **kwargs):
     instance = kwargs.get('instance')
 
-    if instance.related_contact:
-        check_campaign_for_contact \
-            .apply_async(args=[instance.related_contact.id])
+    if instance.related_contact and instance.related_phone_number:
+        if instance.related_phone_number.number_type == "ADV":
+            check_campaign_for_contact \
+                .apply_async(args=[instance.related_contact.id])
 
 
 @receiver(post_save, sender=Contact)
