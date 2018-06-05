@@ -127,11 +127,24 @@ class MonthlyDeterrenceMessageChart(widgets.BarChart):
 
 
 class MonthlyDeterrenceResponseChart(MonthlyChart):
-    title = "Monthly Deterrence Responses"
+    title = "Monthly Deterrence Responses via SMS"
 
     values_list = ('month_created', 'count')
 
     queryset = (SmsMessage.objects
+                .filter(related_phone_number__number_type='DET')
+                .annotate(month_created=TruncMonth('date_created'))
+                .order_by('month_created')
+                .values('month_created')
+                .annotate(count=Count('id')))
+
+
+class MonthlyDeterrenceCallChart(MonthlyChart):
+    title = "Monthly Deterrence Responses via Phone Call"
+
+    values_list = ('month_created', 'count')
+
+    queryset = (Call.objects
                 .filter(related_phone_number__number_type='DET')
                 .annotate(month_created=TruncMonth('date_created'))
                 .order_by('month_created')
@@ -213,5 +226,6 @@ class MonthlyDashboard(Dashboard):
                MonthlyDeterrenceMessageChart,
                TopDeterredContacts,
                MonthlyDeterrenceResponseChart,
+               MonthlyDeterrenceCallChart,
                TopContacts,
                TopContactsRespondingToDeterrence]

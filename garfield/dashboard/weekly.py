@@ -217,7 +217,7 @@ class CallChart(DailyChart):
 
 
 class DeterrenceResponseChart(DailyChart):
-    title = "Daily Deterrence Responses"
+    title = "Daily Deterrence Responses via SMS"
 
     def series(self):
         queryset = (SmsMessage.objects
@@ -241,6 +241,33 @@ class DeterrenceResponseChart(DailyChart):
             series.append(item)
 
         return series
+
+class DeterrenceCallChart(DailyChart):
+    title = "Daily Deterrence Responses via Phone Call"
+
+    def series(self):
+        queryset = (Call.objects
+                    .filter(related_phone_number__number_type='DET')
+                    .annotate(day_created=TruncDay('date_created'))
+                    .values('day_created')
+                    .annotate(count=Count('id')))
+
+        values = {}
+
+        for row in queryset:
+            values[row['day_created']] = row['count']
+
+        dates = daterange_by_week(self.iso_today[0],
+                                  self.iso_today[1])
+
+        series = []
+
+        for date in dates:
+            item = values.get(date, 0)
+            series.append(item)
+
+        return series
+
 
 
 class DeterrenceMessageChart(widgets.BarChart):
@@ -314,6 +341,7 @@ class WeeklyDashboard(Dashboard):
                DeterrenceMessageChart,
                LatestMessagesList,
                DeterrenceResponseChart,
+               DeterrenceCallChart,
                LatestCallsList,
                LatestDeterrenceResponseList,
                ContactList)
