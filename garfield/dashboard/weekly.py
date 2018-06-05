@@ -242,6 +242,7 @@ class DeterrenceResponseChart(DailyChart):
 
         return series
 
+
 class DeterrenceCallChart(DailyChart):
     title = "Daily Deterrence Responses via Phone Call"
 
@@ -267,7 +268,6 @@ class DeterrenceCallChart(DailyChart):
             series.append(item)
 
         return series
-
 
 
 class DeterrenceMessageChart(widgets.BarChart):
