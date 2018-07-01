@@ -25,7 +25,7 @@ SECRET_KEY = 'CHANGE ME'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['tunnel.brooklynhacker.com']
+ALLOWED_HOSTS = ['30a7dfe9.ngrok.io','tunnel.brooklynhacker.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
