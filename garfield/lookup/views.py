@@ -19,17 +19,21 @@ from contacts.models import Contact
 from .decorators import twilio_view
 
 # Create your views here.
-#@twilio_view
+@twilio_view
 def index(request):
-  x = lookup_contact("+17327591778")
-  return "Hello World"
-  #return lookup_contact('+17327591778')
+  response = MessagingResponse()
+  response.message(lookup_contact("+17327591778"))
+  return response
+    #return lookup_contact('+17327591778')
     #response = MessagingResponse()
     #response.message("Hello World!")
     #return response
 
 def lookup_contact(contact_number):
     contact = Contact.objects.all()#(phone_number = contact_number)
-    return 'Hello World'
+    if contact != None:
+        return (contact[0].nextcaller_first_name)
+    else:
+        return ("No contact")
 
 
