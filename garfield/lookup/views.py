@@ -30,13 +30,14 @@ def index(request):
     if(parsed_data == {}):
          message += "Contact is not in the System"
     else:
-         message += "Number of Texts: %d", parsed_data['num_texts']
+         message += "Number of Texts: %d" % (parsed_data['num_texts'])
 
-         message += "Number of Calls: %d", parsed_data['num_calls']
+         message += "Number of Calls: %d"% (parsed_data['num_calls'])
          
-         message += "Contact Count: %d", parsed_data['suspect_contact_count']
+         message += "Contact Count: %d"% (parsed_data['suspect_contact_count'])
          if parsed_data['suspect_carrier'] != None:
              message += "Carrier:  " + parsed_data['suspect_carrier']
+    response.message(message)
     return response
 
 def lookup_contact(request):
@@ -45,25 +46,29 @@ def lookup_contact(request):
         in our db and return meta data
         :param request A query dict from twilio 
     """
-    suspect_number = request.GET.get('From')
+    print(request.GET)
+    suspect_number = request.GET.get('Body')
     #init an empty dict for suspect info
     suspect_information = {}
-    contact = Contact.objects.get(phone_number = suspect_number)
+    try:
+        contact = Contact.objects.get(phone_number = suspect_number)
 
-    if contact != None:
+        if contact != None:
         
-        num_texts = contact.sms_message_count 
-        num_calls = contact.call_count
-        suspect_contact_count = contact.contact_count
-        #carrier information
-        suspect_carrier = contact.carrier
-        suspect_information['phone_number'] = suspect_number
-        suspect_information['num_texts'] = num_texts
-        suspect_information['num_calls'] = num_calls
-        suspect_information['suspect_contact_count'] = suspect_contact_count
-        suspect_information['suspect_carrier'] = suspect_carrier
-        return (suspect_information)
-    else:
+            num_texts = contact.sms_message_count 
+            num_calls = contact.call_count
+            suspect_contact_count = contact.contact_count
+            #carrier information
+            suspect_carrier = contact.carrier
+            suspect_information['phone_number'] = suspect_number
+            suspect_information['num_texts'] = num_texts
+            suspect_information['num_calls'] = num_calls
+            suspect_information['suspect_contact_count'] = suspect_contact_count
+            suspect_information['suspect_carrier'] = suspect_carrier
+            return (suspect_information)
+        else:
+            return ({})
+    except:
         return ({})
 
 
