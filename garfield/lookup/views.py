@@ -23,19 +23,14 @@ from .decorators import twilio_view
 def index(request):
   print(request)
   response = MessagingResponse()
-  response.message(lookup_contact("+17327591778"))
+  response.message(lookup_contact(request))
   return response
-    #return lookup_contact('+17327591778')
-    #response = MessagingResponse()
-    #response.message("Hello World!")
-    #return response
 
-def lookup_contact(contact_number:str):
-    suspect_information = {}
-    contact = Contact.objects.get(phone_number = contact_number)
-    print(contact)
+def lookup_contact(request):
+    suspect_number = request.GET.get('From')
+    contact = Contact.objects.get(phone_number = suspect_number)
     if contact != None:
-        return (contact[0].nextcaller_first_name)
+        return (contact.nextcaller_first_name)
     else:
         return ("No contact")
 
