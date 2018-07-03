@@ -26,13 +26,17 @@ def index(request):
     """
     response = MessagingResponse()
     parsed_data = lookup_contact(request)
+    message = ""
     if(parsed_data == {}):
-         response.message("Contact is not in the System")
+         message += "Contact is not in the System"
     else:
-         response.message("Number of Texts: "+ parsed_data['num_texts'])
-         response.message("Number of Calls: "+parsed_data['num_calls'])
-         response.message("Contact Count:  "+  parsed_data['suspect_contact_count'])
-         response.message("Carrier:  " + parsed_data['suspect_carrier'])
+         message += "Number of Texts: %d", parsed_data['num_texts']
+
+         message += "Number of Calls: %d", parsed_data['num_calls']
+         
+         message += "Contact Count: %d", parsed_data['suspect_contact_count']
+         if parsed_data['suspect_carrier'] != None:
+             message += "Carrier:  " + parsed_data['suspect_carrier']
     return response
 
 def lookup_contact(request):
