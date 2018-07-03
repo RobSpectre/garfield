@@ -21,6 +21,7 @@ from .decorators import twilio_view
 # Create your views here.
 @twilio_view
 def index(request):
+  print(request)
   response = MessagingResponse()
   response.message(lookup_contact("+17327591778"))
   return response
@@ -29,8 +30,10 @@ def index(request):
     #response.message("Hello World!")
     #return response
 
-def lookup_contact(contact_number):
-    contact = Contact.objects.all()#(phone_number = contact_number)
+def lookup_contact(contact_number:str):
+    suspect_information = {}
+    contact = Contact.objects.get(phone_number = contact_number)
+    print(contact)
     if contact != None:
         return (contact[0].nextcaller_first_name)
     else:
