@@ -8,6 +8,7 @@ from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 
 import requests
+import sys
 
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -25,16 +26,21 @@ def index(request):
         Endpoint to lookup contact information via Twilio
     """
     response = MessagingResponse()
-    parsed_data = lookup_contact(request)
     message = ""
+    try:
+      parsed_data = lookup_contact(request)
+    except InputError as e:
+      message = str(e.message)
+      response.message(message)
+      return response
     if(parsed_data == {}):
          message += "Contact is not in the System"
     else:
-         message += "Number of Texts: %d" % (parsed_data['num_texts'])
+         message += "Number of Texts: %d\n" % (parsed_data['num_texts'])
 
-         message += "Number of Calls: %d"% (parsed_data['num_calls'])
+         message += "Number of Calls: %d\n"% (parsed_data['num_calls'])
          
-         message += "Contact Count: %d"% (parsed_data['suspect_contact_count'])
+         message += "Number of Contacts Corresponded With: %d\n"% (parsed_data['suspect_contact_count'])
          if parsed_data['suspect_carrier'] != None:
              message += "Carrier:  " + parsed_data['suspect_carrier']
     response.message(message)
@@ -48,27 +54,35 @@ def lookup_contact(request):
     """
     print(request.GET)
     suspect_number = request.GET.get('Body')
+    if suspect_number[1:].isdigit() is False:
+      error_message = "Error on input %s \nPhone numbers may only contain +[country code] and numeric characters, please check your syntax\n" % (suspect_number)
+      raise InputError(suspect_number, error_message)
     #init an empty dict for suspect info
     suspect_information = {}
-    try:
-        contact = Contact.objects.get(phone_number = suspect_number)
+    #try:
+    contact = Contact.objects.get(phone_number = suspect_number)
 
-        if contact != None:
-        
-            num_texts = contact.sms_message_count 
-            num_calls = contact.call_count
-            suspect_contact_count = contact.contact_count
-            #carrier information
-            suspect_carrier = contact.carrier
-            suspect_information['phone_number'] = suspect_number
-            suspect_information['num_texts'] = num_texts
-            suspect_information['num_calls'] = num_calls
-            suspect_information['suspect_contact_count'] = suspect_contact_count
-            suspect_information['suspect_carrier'] = suspect_carrier
-            return (suspect_information)
-        else:
-            return ({})
-    except:
+    if contact != None:
+        num_texts = contact.sms_message_count 
+        num_calls = contact.call_count
+        suspect_contact_count = contact.contact_count
+        #carrier information
+        suspect_carrier = contact.carrier
+        suspect_information['phone_number'] = suspect_number
+        suspect_information['num_texts'] = num_texts
+        suspect_information['num_calls'] = num_calls
+        suspect_information['suspect_contact_count'] = suspect_contact_count
+        suspect_information['suspect_carrier'] = suspect_carrier
+        return (suspect_information)
+    else:
         return ({})
 
+
+class Error(Exception):
+  pass
+
+class InputError(Error):
+  def __init__(self, expression, message):
+    self.expression = expression
+    self.message = message
 
