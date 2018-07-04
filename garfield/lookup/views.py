@@ -1,16 +1,16 @@
-from celery import chain
-from celery import shared_task
+#from celery import chain
+#from celery import shared_task
 
-from django.conf import settings
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.forms.models import model_to_dict
-from django.template.loader import render_to_string
+#from django.conf import settings
+#from django.db.models.signals import post_save
+#from django.dispatch import receiver
+#from django.forms.models import model_to_dict
+#from django.template.loader import render_to_string
 
 import requests
-import sys
+#import sys
 
-from django.shortcuts import render
+#from django.shortcuts import render
 from django.http import HttpResponse
 
 from twilio.rest import Client
@@ -55,27 +55,27 @@ def lookup_contact(request):
     print(request.GET)
     suspect_number = request.GET.get('Body')
     if suspect_number[1:].isdigit() is False:
+      print (suspect_number[1:])
       error_message = "Error on input %s \nPhone numbers may only contain +[country code] and numeric characters, please check your syntax\n" % (suspect_number)
       raise InputError(suspect_number, error_message)
     #init an empty dict for suspect info
     suspect_information = {}
-    #try:
-    contact = Contact.objects.get(phone_number = suspect_number)
-
-    if contact != None:
-        num_texts = contact.sms_message_count 
-        num_calls = contact.call_count
-        suspect_contact_count = contact.contact_count
-        #carrier information
-        suspect_carrier = contact.carrier
-        suspect_information['phone_number'] = suspect_number
-        suspect_information['num_texts'] = num_texts
-        suspect_information['num_calls'] = num_calls
-        suspect_information['suspect_contact_count'] = suspect_contact_count
-        suspect_information['suspect_carrier'] = suspect_carrier
-        return (suspect_information)
-    else:
-        return ({})
+    try:
+      contact = Contact.objects.get(phone_number = suspect_number)
+     # if contact != None:
+      num_texts = contact.sms_message_count 
+      num_calls = contact.call_count
+      suspect_contact_count = contact.contact_count
+      #carrier information
+      suspect_carrier = contact.carrier
+      suspect_information['phone_number'] = suspect_number
+      suspect_information['num_texts'] = num_texts
+      suspect_information['num_calls'] = num_calls
+      suspect_information['suspect_contact_count'] = suspect_contact_count
+      suspect_information['suspect_carrier'] = suspect_carrier
+    except:
+      Contact.DoesNotExist
+    return (suspect_information)
 
 
 class Error(Exception):
