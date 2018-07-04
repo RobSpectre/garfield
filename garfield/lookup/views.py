@@ -52,21 +52,16 @@ def lookup_contact(request):
         in our db and return meta data
         :param request A query dict from twilio 
     """
-    print(request.GET)
     suspect_number = request.GET.get('Body')
     if suspect_number[1:].isdigit() is False:
-      print (suspect_number[1:])
       error_message = "Error on input %s \nPhone numbers may only contain +[country code] and numeric characters, please check your syntax\n" % (suspect_number)
       raise InputError(suspect_number, error_message)
-    #init an empty dict for suspect info
     suspect_information = {}
     try:
       contact = Contact.objects.get(phone_number = suspect_number)
-     # if contact != None:
       num_texts = contact.sms_message_count 
       num_calls = contact.call_count
       suspect_contact_count = contact.contact_count
-      #carrier information
       suspect_carrier = contact.carrier
       suspect_information['phone_number'] = suspect_number
       suspect_information['num_texts'] = num_texts
@@ -76,7 +71,6 @@ def lookup_contact(request):
     except:
       Contact.DoesNotExist
     return (suspect_information)
-
 
 class Error(Exception):
   pass
