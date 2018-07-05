@@ -82,8 +82,7 @@ class InputError(Error):
     self.expression = expression
     self.message = message
 
-def is_valid_number(number):
-
+def is_valid_number(number:str):
     client = Client(local.TWILIO_ACCOUNT_SID,local.TWILIO_AUTH_TOKEN)
     try:
         response = client.lookups.phone_numbers(number).fetch(type="carrier")
