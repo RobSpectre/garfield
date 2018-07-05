@@ -54,7 +54,6 @@ def lookup_contact(request):
         :param request A query dict from twilio 
     """
     suspect_number = request.GET.get('Body')
-    client = Client(local.TWILIO_ACCOUNT_SID,local.TWILIO_AUTH_TOKEN)
 
     if is_valid_number(suspect_number) is False:
       error_message = "Error on input %s \nPhone numbers may only contain +[country code] and numeric characters, please check your syntax\n" % (suspect_number)
@@ -84,6 +83,8 @@ class InputError(Error):
     self.message = message
 
 def is_valid_number(number):
+
+    client = Client(local.TWILIO_ACCOUNT_SID,local.TWILIO_AUTH_TOKEN)
     try:
         response = client.lookups.phone_numbers(number).fetch(type="carrier")
         return True
