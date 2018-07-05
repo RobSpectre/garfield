@@ -19,7 +19,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 from contacts.models import Contact
 from .decorators import twilio_view
 from garfield import local as local
-from twilio.base.exceptions import TwilioRestException
+import phonenumbers
 # Create your views here.
 @twilio_view
 def index(request):
@@ -83,3 +83,5 @@ class InputError(Error):
     self.message = message
 
 def is_valid_number(number:str):
+    phnumber = phonenumbers.parse(number)
+    return phonenumbers.is_possible_number(phnumber)
