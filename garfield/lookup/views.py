@@ -83,12 +83,3 @@ class InputError(Error):
     self.message = message
 
 def is_valid_number(number:str):
-    client = Client(local.TWILIO_ACCOUNT_SID,local.TWILIO_AUTH_TOKEN)
-    try:
-        response = client.lookups.phone_numbers(number).fetch(type="carrier")
-        return True
-    except TwilioRestException as e:
-        if e.code == 20404:
-            return False
-        else:
-            raise e
