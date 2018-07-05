@@ -54,10 +54,13 @@ def lookup_contact(request):
         :param request A query dict from twilio 
     """
     suspect_number = request.GET.get('Body')
-
-    if is_valid_number(suspect_number) is False:
+    try:
+      valid = is_valid_number(suspect_number)
+    except 
       error_message = "Error on input %s \nPhone numbers may only contain +[country code] and numeric characters, please check your syntax\n" % (suspect_number)
-      raise InputError(suspect_number, error_message)
+        raise InputError(suspect_number, error_message)
+    except phonenumbers.phonenumberutil.NumberParseException as e:
+      return False
     suspect_information = {}
     try:
       contact = Contact.objects.get(phone_number = suspect_number)
@@ -84,4 +87,10 @@ class InputError(Error):
 
 def is_valid_number(number:str):
     phnumber = phonenumbers.parse(number)
-    return phonenumbers.is_possible_number(phnumber)
+    try:
+      return phonenumbers.is_possible_number(phnumber)
+    except Exception as e:  
+      return e
+
+
+
