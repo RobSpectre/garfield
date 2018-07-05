@@ -18,7 +18,8 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 from contacts.models import Contact
 from .decorators import twilio_view
-
+from garfield import local as local
+from twilio.base.exceptions import TwilioRestException
 # Create your views here.
 @twilio_view
 def index(request):
@@ -53,7 +54,9 @@ def lookup_contact(request):
         :param request A query dict from twilio 
     """
     suspect_number = request.GET.get('Body')
-    if suspect_number[1:].isdigit() is False:
+    client = Client(local.TWILIO_ACCOUNT_SID,local.TWILIO_AUTH_TOKEN)
+
+    if is_valid_number(suspect_number) is False:
       error_message = "Error on input %s \nPhone numbers may only contain +[country code] and numeric characters, please check your syntax\n" % (suspect_number)
       raise InputError(suspect_number, error_message)
     suspect_information = {}
@@ -80,3 +83,12 @@ class InputError(Error):
     self.expression = expression
     self.message = message
 
+def is_valid_number(number):
+    try:
+        response = client.lookups.phone_numbers(number).fetch(type="carrier")
+        return True
+    except TwilioRestException as e:
+        if e.code == 20404:
+            return False
+        else:
+            raise e
