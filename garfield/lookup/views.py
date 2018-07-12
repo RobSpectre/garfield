@@ -41,9 +41,9 @@ def index(request):
 
     message += "Number of Calls: %d\n"% (parsed_data['num_calls'])
          
-     message += "Number of Contacts Corresponded With: %d\n"% (parsed_data['suspect_contact_count'])
-     if parsed_data['suspect_carrier'] != None:
-         message += "Carrier:  " + parsed_data['suspect_carrier']
+    message += "Number of Contacts Corresponded With: %d\n"% (parsed_data['suspect_contact_count'])
+    if parsed_data['suspect_carrier'] != None:
+      message += "Carrier:  " + parsed_data['suspect_carrier']
     response.message(message)
     return response
 
@@ -56,11 +56,9 @@ def lookup_contact(request):
     suspect_number = request.GET.get('Body')
     try:
       valid = is_valid_number(suspect_number)
-    except 
+    except: 
       error_message = "Error on input %s \nPhone numbers may only contain +[country code] and numeric characters, please check your syntax\n" % (suspect_number)
-        raise InputError(suspect_number, error_message)
-    except phonenumbers.phonenumberutil.NumberParseException as e:
-      return False
+      raise InputError(suspect_number, error_message)
     suspect_information = {}
     try:
       contact = Contact.objects.get(phone_number = suspect_number)
