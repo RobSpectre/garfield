@@ -34,16 +34,16 @@ def index(request):
       message = str(e.message)
       response.message(message)
       return response
-    if(parsed_data == {}):
-         message += "Contact is not in the System"
-    else:
-         message += "Number of Texts: %d\n" % (parsed_data['num_texts'])
+    except Contact.DoesNotExist as contacexp:
+        response.message("Contact was not found")
+        return response
+    message += "Number of Texts: %d\n" % (parsed_data['num_texts'])
 
-         message += "Number of Calls: %d\n"% (parsed_data['num_calls'])
+    message += "Number of Calls: %d\n"% (parsed_data['num_calls'])
          
-         message += "Number of Contacts Corresponded With: %d\n"% (parsed_data['suspect_contact_count'])
-         if parsed_data['suspect_carrier'] != None:
-             message += "Carrier:  " + parsed_data['suspect_carrier']
+     message += "Number of Contacts Corresponded With: %d\n"% (parsed_data['suspect_contact_count'])
+     if parsed_data['suspect_carrier'] != None:
+         message += "Carrier:  " + parsed_data['suspect_carrier']
     response.message(message)
     return response
 
@@ -74,7 +74,7 @@ def lookup_contact(request):
       suspect_information['suspect_contact_count'] = suspect_contact_count
       suspect_information['suspect_carrier'] = suspect_carrier
     except:
-      Contact.DoesNotExist
+     raise Contact.DoesNotExist
     return (suspect_information)
 
 class Error(Exception):
@@ -90,7 +90,7 @@ def is_valid_number(number:str):
     try:
       return phonenumbers.is_possible_number(phnumber)
     except Exception as e:  
-      return e
+      raise e
 
 
 
