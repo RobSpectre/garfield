@@ -17,7 +17,7 @@ from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 
 from contacts.models import Contact
-from lookup.models import Lookup
+from .models import Lookup
 from .decorators import twilio_view
 from garfield import local as local
 import phonenumbers
@@ -57,7 +57,7 @@ def lookup_contact(request):
     contact_number = request.GET.get('Body')
     try:
       valid = is_valid_number(contact_number)
-    except: 
+    except:
       error_message = "Error on input %s \nPhone numbers may only contain +[country code] and numeric characters, please check your syntax\n" % (contact_number)
       raise InputError(contact_number, error_message)
     contact_information = {}
