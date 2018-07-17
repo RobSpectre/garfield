@@ -41,9 +41,9 @@ def index(request):
 
     message += "Number of Calls: %d\n"% (parsed_data['num_calls'])
          
-    message += "Number of Contacts Corresponded With: %d\n"% (parsed_data['suspect_contact_count'])
-    if parsed_data['suspect_carrier'] != None:
-      message += "Carrier:  " + parsed_data['suspect_carrier']
+    message += "Number of Contacts Corresponded With: %d\n"% (parsed_data['contact_contact_count'])
+    if parsed_data['contact_carrier'] != None:
+      message += "Carrier:  " + parsed_data['contact_carrier']
     response.message(message)
     return response
 
@@ -53,27 +53,27 @@ def lookup_contact(request):
         in our db and return meta data
         :param request A query dict from twilio 
     """
-    suspect_number = request.GET.get('Body')
+    contact_number = request.GET.get('Body')
     try:
-      valid = is_valid_number(suspect_number)
+      valid = is_valid_number(contact_number)
     except: 
-      error_message = "Error on input %s \nPhone numbers may only contain +[country code] and numeric characters, please check your syntax\n" % (suspect_number)
-      raise InputError(suspect_number, error_message)
-    suspect_information = {}
+      error_message = "Error on input %s \nPhone numbers may only contain +[country code] and numeric characters, please check your syntax\n" % (contact_number)
+      raise InputError(contact_number, error_message)
+    contact_information = {}
     try:
-      contact = Contact.objects.get(phone_number = suspect_number)
+      contact = Contact.objects.get(phone_number = contact_number)
       num_texts = contact.sms_message_count 
       num_calls = contact.call_count
-      suspect_contact_count = contact.contact_count
-      suspect_carrier = contact.carrier
-      suspect_information['phone_number'] = suspect_number
-      suspect_information['num_texts'] = num_texts
-      suspect_information['num_calls'] = num_calls
-      suspect_information['suspect_contact_count'] = suspect_contact_count
-      suspect_information['suspect_carrier'] = suspect_carrier
+      contact_contact_count = contact.contact_count
+      contact_carrier = contact.carrier
+      contact_information['phone_number'] = contact_number
+      contact_information['num_texts'] = num_texts
+      contact_information['num_calls'] = num_calls
+      contact_information['contact_contact_count'] = contact_contact_count
+      contact_information['contact_carrier'] = contact_carrier
     except:
      raise Contact.DoesNotExist
-    return (suspect_information)
+    return (contact_information)
 
 class Error(Exception):
   pass
