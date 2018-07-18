@@ -25,7 +25,7 @@ SECRET_KEY = 'CHANGE ME'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['tunnel.brooklynhacker.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'c0355f22.ngrok.io', 'tunnel.brooklynhacker.com']
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'contacts',
     'sms',
     'phone_numbers',
+    'lookup',
     'sims',
     'voice',
     'deterrence',

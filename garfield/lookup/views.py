@@ -72,8 +72,10 @@ def lookup_contact(request):
       contact_information['num_calls'] = num_calls
       contact_information['contact_contact_count'] = contact_contact_count
       contact_information['contact_carrier'] = contact_carrier
+      create_lookup_entry(request, contact_number, contact)
     except:
-     raise Contact.DoesNotExist
+      create_lookup_entry(request, contact_number, None)
+      raise Contact.DoesNotExist
     return (contact_information)
 
 class Error(Exception):
@@ -90,6 +92,11 @@ def is_valid_number(number:str):
       return phonenumbers.is_possible_number(phnumber)
     except Exception as e:  
       raise e
+
+def create_lookup_entry(request, contact_phone_number, related_contact): 
+    from_number = request.GET.get('From')
+    lookup_entry = Lookup.objects.create(officer_phone_number=from_number, contact_phone_number=contact_phone_number, related_contact=related_contact)
+    lookup_entry.save()
 
 
 

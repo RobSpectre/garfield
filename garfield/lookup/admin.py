@@ -6,3 +6,4 @@ from .models import Lookup
 @admin.register(Lookup)
 class LookupAdmin(admin.ModelAdmin):
   pass
+
