@@ -1,16 +1,4 @@
-#from celery import chain
-#from celery import shared_task
-
-#from django.conf import settings
-#from django.db.models.signals import post_save
-#from django.dispatch import receiver
-#from django.forms.models import model_to_dict
-#from django.template.loader import render_to_string
-
 import requests
-#import sys
-
-#from django.shortcuts import render
 from django.http import HttpResponse
 
 from twilio.rest import Client
@@ -21,7 +9,7 @@ from .models import Lookup
 from .decorators import twilio_view
 from garfield import local as local
 import phonenumbers
-# Create your views here.
+
 @twilio_view
 def index(request):
     """
@@ -57,8 +45,10 @@ def lookup_contact(request):
     contact_number = request.GET.get('Body')
     try:
       valid = is_valid_number(contact_number)
-    except:
-      error_message = "Error on input %s \nPhone numbers may only contain +[country code] and numeric characters, please check your syntax\n" % (contact_number)
+      if valid is False:
+        raise Exception
+    except Exception as e:
+      error_message = "Error on input %s \nPhone numbers must be formatted +[country code][area code][7 digit identifier], please check your syntax\n" % (contact_number)
       raise InputError(contact_number, error_message)
     contact_information = {}
     try:
@@ -87,10 +77,10 @@ class InputError(Error):
     self.message = message
 
 def is_valid_number(number:str):
-    phnumber = phonenumbers.parse(number)
     try:
-      return phonenumbers.is_possible_number(phnumber)
-    except Exception as e:  
+      phnumber = phonenumbers.parse(number)
+      return(phonenumbers.is_possible_number(phnumber))
+    except Exception as e:
       raise e
 
 def create_lookup_entry(request, contact_phone_number, related_contact): 

@@ -5,5 +5,5 @@ from .models import Lookup
 
 @admin.register(Lookup)
 class LookupAdmin(admin.ModelAdmin):
-  pass
+  list_display = ('officer_phone_number', 'contact_phone_number', 'related_contact')
 
