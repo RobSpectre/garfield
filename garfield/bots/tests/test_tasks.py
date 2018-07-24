@@ -5,8 +5,6 @@ from mock import Mock
 from mock import patch
 
 from phone_numbers.models import PhoneNumber
-from contacts.models import Contact
-from sms.models import SmsMessage
 
 from bots.models import Bot
 from bots import tasks
@@ -38,7 +36,7 @@ class BotsTasksNoContactTestCase(TestCase):
                     'Body': "Test",
                     'MessageSid': "MMxxxx"}
 
-    @patch('bots.tasks.record_inbound_message')
+    @patch('bots.tasks.save_sms_message')
     @patch('bots.tasks.classify_message_intent.apply_async')
     def test_process_bot_response(self,
                                   mock_classify,
@@ -49,7 +47,7 @@ class BotsTasksNoContactTestCase(TestCase):
                                                     self.bot.id])
         mock_record.assert_called_once_with(self.msg)
 
-    @patch('bots.tasks.record_inbound_message')
+    @patch('bots.tasks.save_sms_message')
     @patch('bots.tasks.classify_message_intent.apply_async')
     def test_process_bot_response_debug(self,
                                         mock_classify,
@@ -116,7 +114,7 @@ class BotsTasksNoContactTestCase(TestCase):
         self.assertTrue(mock_deliver.called)
         self.assertTrue(mock_send.called)
 
-    @patch('bots.tasks.record_outbound_message.apply_async')
+    @patch('bots.tasks.save_sms_message.apply_async')
     @patch('bots.tasks.send_sms_message')
     def test_deliver_bot_response(self, mock_send, mock_record):
         tasks.deliver_bot_response("Stuff.",
@@ -126,7 +124,7 @@ class BotsTasksNoContactTestCase(TestCase):
         self.assertTrue(mock_send.called)
         self.assertTrue(mock_record.called)
 
-    @patch('bots.tasks.record_outbound_message.apply_async')
+    @patch('bots.tasks.save_sms_message.apply_async')
     @patch('bots.tasks.send_sms_message')
     def test_deliver_bot_response_debug(self, mock_send, mock_record):
         self.bot.debug = True
@@ -138,32 +136,6 @@ class BotsTasksNoContactTestCase(TestCase):
 
         self.assertTrue(mock_send.called)
         self.assertFalse(mock_record.called)
-
-    @patch('bots.tasks.check_contact.apply_async')
-    def test_record_inbound_message(self, mock_check):
-        test = tasks.record_inbound_message(self.msg)
-
-        self.assertFalse(test)
-
-        msg = SmsMessage.objects.all()[0]
-
-        self.assertEquals(len(SmsMessage.objects.all()),
-                          1)
-        self.assertEquals(msg.sid,
-                          self.msg['MessageSid'])
-        self.assertEquals(msg.to_number,
-                          self.msg['To'])
-        self.assertEquals(msg.from_number,
-                          self.msg['From'])
-        self.assertEquals(msg.body,
-                          self.msg['Body'])
-        self.assertTrue(mock_check.called)
-
-    def test_record_inbound_message_no_number(self):
-        self.msg['To'] = "+15553332222"
-        test = tasks.record_inbound_message(self.msg)
-
-        self.assertFalse(test)
 
     @override_settings(ARBUCKLE_DIR='./bots/tests/assets')
     def test_retrieve_answer(self):
@@ -181,72 +153,6 @@ class BotsTasksNoContactTestCase(TestCase):
         answers = tasks.retrieve_answer([],
                                         self.bot.id)
         self.assertFalse(answers)
-
-
-class BotsTasksContactTestCase(TestCase):
-    def setUp(self):
-        self.bot = Bot.objects.create(alias="Botty McBotface",
-                                      neighborhood="Brooklyn",
-                                      location="Prospect Park",
-                                      rates="$1,000,000",
-                                      model='test_model',
-                                      answers='answers.json')
-
-        self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
-                                                       account_sid="ACxxx",
-                                                       service_sid="SExxx",
-                                                       url="http://exmple.com",
-                                                       e164="+15558675309",
-                                                       formatted="(555) "
-                                                                 "867-5309",
-                                                       friendly_name="Stuff.",
-                                                       country_code="1",
-                                                       number_type="ADV",
-                                                       related_bot=self.bot)
-
-        self.contact = Contact.objects.create(phone_number="+15556667777")
-
-        self.msg = {'From': "+15556667777",
-                    'To': "+15558675309",
-                    'Body': "Test",
-                    'MessageSid': "MMxxxx"}
-
-    @patch('bots.tasks.check_contact.apply_async')
-    def test_record_inbound_message(self, mock_check):
-        tasks.record_inbound_message(self.msg)
-
-        msg = SmsMessage.objects.all()[0]
-
-        self.assertEquals(len(SmsMessage.objects.all()),
-                          1)
-        self.assertEquals(msg.sid,
-                          self.msg['MessageSid'])
-        self.assertEquals(msg.to_number,
-                          self.msg['To'])
-        self.assertEquals(msg.from_number,
-                          self.msg['From'])
-        self.assertEquals(msg.body,
-                          self.msg['Body'])
-        self.assertFalse(mock_check.called)
-
-    def test_record_outbound_message(self):
-        self.msg['From'] = "+15558675309"
-        self.msg['To'] = "+15556667777"
-
-        tasks.record_outbound_message(self.msg)
-
-        msg = SmsMessage.objects.all()[0]
-
-        self.assertEquals(len(SmsMessage.objects.all()),
-                          1)
-        self.assertEquals(msg.sid,
-                          self.msg['MessageSid'])
-        self.assertEquals(msg.to_number,
-                          self.msg['To'])
-        self.assertEquals(msg.from_number,
-                          self.msg['From'])
-        self.assertEquals(msg.body,
-                          self.msg['Body'])
 
 
 class BotsUtilTestCase(TestCase):

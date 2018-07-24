@@ -11,12 +11,8 @@ from django.template import Template
 
 import spacy
 
-from phone_numbers.models import PhoneNumber
-from contacts.models import Contact
-from sms.models import SmsMessage
-
-from sms.tasks import check_contact
 from sms.tasks import send_sms_message
+from sms.tasks import save_sms_message
 
 from .models import Bot
 
@@ -48,7 +44,7 @@ def process_bot_response(message, bot_id):
     bot = Bot.objects.get(id=bot_id)
 
     if not bot.debug:
-        record_inbound_message(message)
+        save_sms_message(message)
 
     classify_message_intent.apply_async(args=[message, bot_id])
 
@@ -120,45 +116,7 @@ def deliver_bot_response(response, message, bot_id):
                            body=response)
 
     if not bot.debug:
-        record_outbound_message.apply_async(args=[msg])
-
-
-@shared_task
-def record_inbound_message(message):
-    try:
-        phone_number = PhoneNumber.objects.get(e164=message['To'])
-    except PhoneNumber.DoesNotExist:
-        return False
-
-    record = SmsMessage(sid=message['MessageSid'],
-                        from_number=message['From'],
-                        to_number=message['To'],
-                        body=message['Body'],
-                        related_phone_number=phone_number)
-    record.save()
-
-    try:
-        contact = Contact.objects.get(phone_number=message['From'])
-        record.related_contact = contact
-        record.save()
-    except Contact.DoesNotExist:
-        check_contact.apply_async(args=[message])
-
-
-@shared_task
-def record_outbound_message(message):
-    phone_number = PhoneNumber.objects.get(e164=message['From'])
-    contact = Contact.objects.get(phone_number=message['To'])
-
-    record = SmsMessage(sid=message['MessageSid'],
-                        from_number=message['From'],
-                        to_number=message['To'],
-                        body=message['Body'],
-                        related_phone_number=phone_number,
-                        related_contact=contact)
-    record.save()
-
-    return record
+        save_sms_message.apply_async(args=[msg])
 
 
 def process_intents(cats, threshold):

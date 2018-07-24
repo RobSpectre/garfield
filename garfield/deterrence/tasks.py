@@ -23,7 +23,7 @@ from .util import lowercase_sentence
 
 
 @shared_task
-def send_deterrence_campaign(absolute_uri, message):
+def send_deterrence_campaign(absolute_uri):
     campaign = \
         DeterrenceCampaign.objects \
         .filter(date_sent=None).latest('date_created')
