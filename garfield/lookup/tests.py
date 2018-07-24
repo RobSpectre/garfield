@@ -5,7 +5,7 @@ import responses
 from .models import Lookup
 from contacts.models import Contact
 from sms.tests.test_sms import GarfieldTwilioTestCase
-
+import .lookup_contacts
 # Create your tests here.
 
 class TestTwilioLookupTests(GarfieldTwilioTestCase):
@@ -30,7 +30,7 @@ class TestTwilioLookupTests(GarfieldTwilioTestCase):
               "Body":self.phoneNumber}
         self.querydict.update(self.params)
         response = self.client.lookup(from_=self.from_number,to=self.to_number,params=self.querydict)
-        self.assertContains(response,"Number of Texts")
+        self.assertContains(response, lookup_constants.number_of_texts)
         self.assertContains(response,self.callCount)
         self.assertContains(response,self.smsMessageCount)
         self.assertContains(response,self.contactCount)
@@ -81,4 +81,4 @@ class TestTwilioLookupTests(GarfieldTwilioTestCase):
               "Body":'+12222222233'}
         self.querydict.update(self.params)
         response = self.client.lookup(from_=self.from_number,to=self.to_number,params=self.querydict)
-        self.assertContains(response,"Contact was not found")
+        self.assertContains(response, lookup_constants.contact_not_found)

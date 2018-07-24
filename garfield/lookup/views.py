@@ -9,6 +9,7 @@ from .models import Lookup
 from .decorators import twilio_view
 from garfield import local as local
 import phonenumbers
+import .lookup_contacts
 
 @twilio_view
 def index(request):
@@ -26,11 +27,11 @@ def index(request):
     except Contact.DoesNotExist as contacexp:
         response.message("Contact was not found")
         return response
-    message += "Number of Texts: %d\n" % (parsed_data['num_texts'])
+    message += "%s %d\n" % (number_of_texts, parsed_data['num_texts'])
 
-    message += "Number of Calls: %d\n"% (parsed_data['num_calls'])
+    message += "%s\n"% (number_of_calls, parsed_data['num_calls'])
          
-    message += "Number of Contacts Corresponded With: %d\n"% (parsed_data['contact_contact_count'])
+    message += "%s %d\n"% (number_of_contacts, parsed_data['contact_contact_count'])
     if parsed_data['contact_carrier'] != None:
       message += "Carrier:  " + parsed_data['contact_carrier']
     response.message(message)
@@ -48,7 +49,7 @@ def lookup_contact(request):
       if valid is False:
         raise Exception
     except Exception as e:
-      error_message = "Error on input %s \nPhone numbers must be formatted +[country code][area code][7 digit identifier], please check your syntax\n" % (contact_number)
+      error_message = "Error on input %s \n%s" % (contact_number, error_message)
       raise InputError(contact_number, error_message)
     contact_information = {}
     try:

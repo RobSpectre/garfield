@@ -1,0 +1,5 @@
+number_of_texts = "Number of Texts:"
+number_of_calls = "Number of Calls:"
+number_of_contacts = "Number of Contacts Corresponded With:"
+contact_not_found = "Contact does not exist in database"
+error_message = "Phone numbers must be formatted +[country code][area code][7 digit identifier], please check your syntax\n"
