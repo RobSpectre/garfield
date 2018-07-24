@@ -35,4 +35,50 @@ class TestTwilioLookupTests(GarfieldTwilioTestCase):
         self.assertContains(response,self.smsMessageCount)
         self.assertContains(response,self.contactCount)
         self.assertContains(response,self.carrier)
-    
+
+    def testFailureNoCountryCode(self): 
+        self.phoneNumber = '2222222222'
+        self.params = {"From":self.from_number,
+              "To":self.to_number,
+              "Body":self.phoneNumber}
+        self.querydict.update(self.params)
+        response = self.client.lookup(from_=self.from_number,to=self.to_number,params=self.querydict)
+        self.assertContains(response,"Error on input")
+
+
+    def testFailurePhoneNumberInvalidLength(self):
+        self.phoneNumber = '+1222222222'
+        self.params = {"From":self.from_number,
+              "To":self.to_number,
+              "Body":self.phoneNumber}
+        self.querydict.update(self.params)
+        response = self.client.lookup(from_=self.from_number,to=self.to_number,params=self.querydict)
+        self.assertContains(response,"Error on input")
+
+    def testStringLookupFailure(self):
+        self.Contact = Contact.objects.create(phone_number=self.phoneNumber,
+               sms_message_count = self.smsMessageCount,
+               call_count = self.callCount,
+               contact_count = self.contactCount,
+               whitepages_first_name = 'contact name',
+               carrier = self.carrier) 
+        self.params = {"From":self.from_number,
+              "To":self.to_number,
+              "Body":'contact name'}
+        self.querydict.update(self.params)
+        response = self.client.lookup(from_=self.from_number,to=self.to_number,params=self.querydict)
+        self.assertContains(response,"Error on input")
+
+    def testPhoneNumberDNE(self):
+        self.phoneNumber= '+1222222222'
+        self.Contact = Contact.objects.create(phone_number=self.phoneNumber,
+               sms_message_count = self.smsMessageCount,
+               call_count = self.callCount,
+               contact_count = self.contactCount,
+               carrier = self.carrier) 
+        self.params = {"From":self.from_number,
+              "To":self.to_number,
+              "Body":'+12222222233'}
+        self.querydict.update(self.params)
+        response = self.client.lookup(from_=self.from_number,to=self.to_number,params=self.querydict)
+        self.assertContains(response,"Contact was not found")
