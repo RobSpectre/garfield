@@ -42,7 +42,7 @@ def lookup_contact(request):
         in our db and return meta data
         :param request A query dict from twilio 
     """
-    contact_number = request.GET.get('Body')
+    contact_number = request.POST.get('Body')
     try:
       valid = is_valid_number(contact_number)
       if valid is False:
@@ -84,7 +84,7 @@ def is_valid_number(number:str):
       raise e
 
 def create_lookup_entry(request, contact_phone_number, related_contact): 
-    from_number = request.GET.get('From')
+    from_number = request.POST.get('From')
     lookup_entry = Lookup.objects.create(officer_phone_number=from_number, contact_phone_number=contact_phone_number, related_contact=related_contact)
     lookup_entry.save()
 
