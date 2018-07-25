@@ -24,3 +24,4 @@ static/
 .tox/
 coverage.xml
 .pytest_cache/
+celerybeat*

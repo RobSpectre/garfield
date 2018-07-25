@@ -44,8 +44,7 @@ def deter(request):
         response.message("Sending deterrence to {0} contacts."
                          "".format(campaign.related_contacts.all().count()))
 
-        send_deterrence_campaign.apply_async(args=[base_uri,
-                                             request.POST])
+        send_deterrence_campaign.apply_async(args=[base_uri])
     except DeterrenceCampaign.DoesNotExist:
         response.message("No contacts are currently queued for "
                          "deterrence.")

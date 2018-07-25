@@ -20,33 +20,34 @@ def save_sms_message(message):
                         body=message['Body'])
     record.save()
 
-    if "sim" in message['From']:
-        result = \
-            SmsMessage.objects.filter(from_number=message['To']) \
-            .filter(related_phone_number__number_type="ADV") \
-            .latest('date_created')
+    for number in [message['To'], message['From']]:
+        if "sim" in number:
+            result = \
+                SmsMessage.objects.filter(from_number=message['To']) \
+                .filter(related_phone_number__number_type="ADV") \
+                .latest('date_created')
+            if result:
+                record.related_phone_number = result.related_phone_number
+                record.save()
+            continue
+
+        result = PhoneNumber.objects.filter(e164=number)
+
         if result:
-            record.related_phone_number = result.related_phone_number
+            record.related_phone_number = result.latest('date_created')
             record.save()
-    else:
-        phone_number = \
-            PhoneNumber.objects.filter(e164=message['To']) \
-            .latest('date_created')
-        if phone_number:
-            record.related_phone_number = phone_number
+            continue
+
+    for number in [message['To'], message['From']]:
+        result = Contact.objects.filter(phone_number=number)
+
+        if result:
+            contact = result.latest('date_created')
+            record.related_contact = contact
             record.save()
 
+    if not record.related_contact:
         check_contact.apply_async(args=[message])
-
-    if Contact.objects.filter(phone_number=message['To']):
-        contact = Contact.objects.get(phone_number=message['To'])
-        record.related_contact = contact
-        record.save()
-
-    if Contact.objects.filter(phone_number=message['From']):
-        contact = Contact.objects.get(phone_number=message['From'])
-        record.related_contact = contact
-        record.save()
 
 
 @shared_task
@@ -64,7 +65,7 @@ def send_sms_message(from_=None,
                                      media_url=media_url,
                                      status_callback=status_callback)
 
-    return {'Sid': message.sid,
+    return {'MessageSid': message.sid,
             'To': message.to,
             'From': message.from_,
             'Body': message.body,

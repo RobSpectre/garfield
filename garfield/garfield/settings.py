@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'voice',
     'deterrence',
     'dashboard',
+    'bots',
     'django_celery_results',
     'django_celery_beat'
 ]

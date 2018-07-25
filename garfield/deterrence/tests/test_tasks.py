@@ -82,8 +82,7 @@ class DeterrenceCampaignTestCase(TestCase):
 
     @patch('deterrence.tasks.send_deterrence.apply_async')
     def test_send_deterrence_campaign(self, mock_send):
-        deterrence.tasks.send_deterrence_campaign("http://example.com",
-                                                  self.message)
+        deterrence.tasks.send_deterrence_campaign("http://example.com")
 
         self.assertEquals(3,
                           mock_send.call_count)
@@ -96,8 +95,7 @@ class DeterrenceCampaignTestCase(TestCase):
         self.contact_a.do_not_deter = True
         self.contact_a.save()
 
-        deterrence.tasks.send_deterrence_campaign("http://example.com",
-                                                  self.message)
+        deterrence.tasks.send_deterrence_campaign("http://example.com")
 
         self.assertEquals(2, mock_send.call_count)
         self.assertFalse(self.phone_number.contact_set.all()[0].deterred)
@@ -110,8 +108,7 @@ class DeterrenceCampaignTestCase(TestCase):
         self.contact_a.arrested = True
         self.contact_a.save()
 
-        deterrence.tasks.send_deterrence_campaign("http://example.com",
-                                                  self.message)
+        deterrence.tasks.send_deterrence_campaign("http://example.com")
 
         self.assertEquals(2, mock_send.call_count)
         self.assertFalse(self.phone_number.contact_set.all()[0].deterred)
@@ -124,8 +121,7 @@ class DeterrenceCampaignTestCase(TestCase):
         self.contact_a.recruiter = True
         self.contact_a.save()
 
-        deterrence.tasks.send_deterrence_campaign("http://example.com",
-                                                  self.message)
+        deterrence.tasks.send_deterrence_campaign("http://example.com")
 
         self.assertEquals(2, mock_send.call_count)
         self.assertFalse(self.phone_number.contact_set.all()[0].deterred)
@@ -192,7 +188,7 @@ class DeterrenceTestCase(TestCase):
 
     @patch('deterrence.tasks.send_sms_message')
     def test_send_deterrence(self, mock_send):
-        mock_send.side_effect = [{'Sid': 'MMxxx',
+        mock_send.side_effect = [{'MessageSid': 'MMxxx',
                                   'Body': 'A message from Garfield.',
                                   'Status': 'queued'}]
 
@@ -218,7 +214,7 @@ class DeterrenceTestCase(TestCase):
 
     @patch('deterrence.tasks.send_sms_message')
     def test_send_deterrence_first_name(self, mock_send):
-        mock_send.side_effect = [{'Sid': 'MMxxx',
+        mock_send.side_effect = [{'MessageSid': 'MMxxx',
                                   'Body': 'John, a message from Garfield.',
                                   'Status': 'queued'}]
 
@@ -245,7 +241,7 @@ class DeterrenceTestCase(TestCase):
 
     @patch('deterrence.tasks.send_sms_message')
     def test_send_deterrence_no_personalize(self, mock_send):
-        mock_send.side_effect = [{'Sid': 'MMxxx',
+        mock_send.side_effect = [{'MessageSid': 'MMxxx',
                                   'Body': 'A message from Garfield.',
                                   'Status': 'queued'}]
 
@@ -357,8 +353,7 @@ class DeterrenceTestCaseMultipleNumbers(TestCase):
 
     @patch('deterrence.tasks.send_deterrence.apply_async')
     def test_send_deterrence_campaign(self, mock_send):
-        deterrence.tasks.send_deterrence_campaign("http://example.com",
-                                                  self.message)
+        deterrence.tasks.send_deterrence_campaign("http://example.com")
 
         self.assertEquals(3, mock_send.call_count)
         for call in mock_send.call_args_list:
@@ -369,8 +364,7 @@ class DeterrenceTestCaseMultipleNumbers(TestCase):
     @override_settings(GARFIELD_NUMBER_OF_DETERRENTS=3)
     @patch('deterrence.tasks.send_deterrence.apply_async')
     def test_send_deterrence_campaign_multiple_deterrents(self, mock_send):
-        deterrence.tasks.send_deterrence_campaign("http://example.com",
-                                                  self.message)
+        deterrence.tasks.send_deterrence_campaign("http://example.com")
 
         self.assertEquals(9, mock_send.call_count)
 

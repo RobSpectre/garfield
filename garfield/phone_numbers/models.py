@@ -1,6 +1,7 @@
 from django.db import models
 
 from sims.models import Sim
+from bots.models import Bot
 
 
 class PhoneNumber(models.Model):
@@ -38,6 +39,13 @@ class PhoneNumber(models.Model):
 
     related_sim = models.ForeignKey(Sim,
                                     null=True,
+                                    blank=True,
+                                    related_name="phone_numbers",
+                                    on_delete=models.CASCADE)
+
+    related_bot = models.ForeignKey(Bot,
+                                    null=True,
+                                    blank=True,
                                     related_name="phone_numbers",
                                     on_delete=models.CASCADE)
 
