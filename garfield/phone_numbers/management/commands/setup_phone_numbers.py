@@ -41,7 +41,8 @@ class Command(BaseCommand):
             parsed = phonenumbers.parse(available[0].phone_number, None)
             formatted = \
                 phonenumbers.format_number(parsed,
-                                           phonenumbers.PhoneNumberFormat.NATIONAL)
+                                           phonenumbers.PhoneNumberFormat
+                                           .NATIONAL)
 
             new_number = self.client.incoming_phone_numbers \
                 .local.create(phone_number=available[0].phone_number,
@@ -59,8 +60,9 @@ class Command(BaseCommand):
                                    service_sid="None",
                                    url=new_number.uri,
                                    e164=new_number.phone_number,
-                                   friendly_name="{0} - {1}".format(number_type,
-                                                                    formatted),
+                                   friendly_name="{0} - {1}"
+                                                 "".format(number_type,
+                                                           formatted),
                                    formatted=formatted,
                                    country_code="1",
                                    number_type=PhoneNumber.AD)
