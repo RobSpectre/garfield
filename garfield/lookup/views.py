@@ -24,7 +24,7 @@ def index(request):
       response.message(message)
       return response
     except Contact.DoesNotExist as contacexp:
-        response.message("Contact was not found")
+        response.message(contact_not_found)
         return response
     message += "%s %d\n" % (number_of_texts, parsed_data['num_texts'])
 
