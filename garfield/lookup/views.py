@@ -8,7 +8,7 @@ from contacts.models import Contact
 from .models import Lookup
 from .decorators import twilio_view
 import phonenumbers
-import .lookup_contacts
+from .lookup_constants import *
 
 @twilio_view
 def index(request):
@@ -28,8 +28,8 @@ def index(request):
         return response
     message += "%s %d\n" % (number_of_texts, parsed_data['num_texts'])
 
-    message += "%s\n"% (number_of_calls, parsed_data['num_calls'])
-         
+    message += "%s %s\n"% (number_of_calls, parsed_data['num_calls'])
+    
     message += "%s %d\n"% (number_of_contacts, parsed_data['contact_contact_count'])
     if parsed_data['contact_carrier'] != None:
       message += "Carrier:  " + parsed_data['contact_carrier']
@@ -48,8 +48,8 @@ def lookup_contact(request):
       if valid is False:
         raise Exception
     except Exception as e:
-      error_message = "Error on input %s \n%s" % (contact_number, error_message)
-      raise InputError(contact_number, error_message)
+      complete_error_message = "Error on input %s \n%s" % (contact_number, error_message)
+      raise InputError(contact_number, complete_error_message)
     contact_information = {}
     try:
       contact = Contact.objects.get(phone_number = contact_number)
