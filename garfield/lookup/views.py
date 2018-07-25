@@ -7,7 +7,6 @@ from twilio.twiml.messaging_response import MessagingResponse
 from contacts.models import Contact
 from .models import Lookup
 from .decorators import twilio_view
-from garfield import local as local
 import phonenumbers
 import .lookup_contacts
 
