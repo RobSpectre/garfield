@@ -65,8 +65,7 @@ class Command(BaseCommand):
                                                            formatted),
                                    number_type=number_type,
                                    formatted=formatted,
-                                   country_code="1",
-                                   number_type=PhoneNumber.AD)
+                                   country_code="1")
         phone_number.save()
 
         return phone_number
