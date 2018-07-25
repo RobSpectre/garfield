@@ -5,7 +5,7 @@ import responses
 from .models import Lookup
 from contacts.models import Contact
 from sms.tests.test_sms import GarfieldTwilioTestCase
-import .lookup_contacts
+from .lookup_constants import *
 # Create your tests here.
 
 class TestTwilioLookupTests(GarfieldTwilioTestCase):
