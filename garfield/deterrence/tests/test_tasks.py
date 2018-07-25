@@ -188,7 +188,7 @@ class DeterrenceTestCase(TestCase):
 
     @patch('deterrence.tasks.send_sms_message')
     def test_send_deterrence(self, mock_send):
-        mock_send.side_effect = [{'Sid': 'MMxxx',
+        mock_send.side_effect = [{'MessageSid': 'MMxxx',
                                   'Body': 'A message from Garfield.',
                                   'Status': 'queued'}]
 
@@ -214,7 +214,7 @@ class DeterrenceTestCase(TestCase):
 
     @patch('deterrence.tasks.send_sms_message')
     def test_send_deterrence_first_name(self, mock_send):
-        mock_send.side_effect = [{'Sid': 'MMxxx',
+        mock_send.side_effect = [{'MessageSid': 'MMxxx',
                                   'Body': 'John, a message from Garfield.',
                                   'Status': 'queued'}]
 
@@ -241,7 +241,7 @@ class DeterrenceTestCase(TestCase):
 
     @patch('deterrence.tasks.send_sms_message')
     def test_send_deterrence_no_personalize(self, mock_send):
-        mock_send.side_effect = [{'Sid': 'MMxxx',
+        mock_send.side_effect = [{'MessageSid': 'MMxxx',
                                   'Body': 'A message from Garfield.',
                                   'Status': 'queued'}]
 
