@@ -17,26 +17,26 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("total_numbers", type=int)
-        parser.add_argument("locality", type=str)
+        parser.add_argument("area_code", type=str)
 
     def handle(self, *args, **options):
         self.stdout.write("Provisioning {0} numbers..."
                           "".format(options['total_numbers'] * 2))
 
         for i in range(options['total_numbers']):
-            number = self.buy_phone_number(options['locality'],
+            number = self.buy_phone_number(options['area_code'],
                                            PhoneNumber.DETERRENCE)
             self.stdout.write("{0} acquired!".format(number.friendly_name))
 
         for i in range(options['total_numbers']):
-            number = self.buy_phone_number(options['locality'],
+            number = self.buy_phone_number(options['area_code'],
                                            PhoneNumber.AD)
             self.stdout.write("{0} acquired!".format(number.friendly_name))
 
-    def buy_phone_number(self, locality, number_type):
+    def buy_phone_number(self, area_code, number_type):
         try:
             available = self.client.available_phone_numbers("US") \
-                .local.list(in_locality=locality)
+                .local.list(area_code=area_code)
 
             parsed = phonenumbers.parse(available[0].phone_number, None)
             formatted = \
