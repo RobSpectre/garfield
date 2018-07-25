@@ -63,6 +63,7 @@ class Command(BaseCommand):
                                    friendly_name="{0} - {1}"
                                                  "".format(number_type,
                                                            formatted),
+                                   number_type=number_type,
                                    formatted=formatted,
                                    country_code="1",
                                    number_type=PhoneNumber.AD)
