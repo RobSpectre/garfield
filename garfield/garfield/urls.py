@@ -11,4 +11,5 @@ urlpatterns = [
     url(r'^sims/', include('sims.urls')),
     url(r'^deterrence/', include('deterrence.urls')),
     url(r'^lookup/',include('lookup.urls'))
+    url(r'^bots/', include('bots.urls')),
 ]

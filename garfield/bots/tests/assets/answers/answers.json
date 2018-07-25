@@ -1,0 +1,8 @@
+{
+  "LOCATION": [
+    "{{ location }}"
+  ],
+  "SALUTATION": [
+    "Hi"
+  ]
+}

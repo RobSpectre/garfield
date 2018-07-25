@@ -61,7 +61,8 @@ class TaskSmsMessageTestCase(TestCase):
         self.assertEquals(result.related_phone_number,
                           self.phone_number)
 
-        self.assertTrue(mock_check_contact.called)
+        self.assertEquals(result.related_contact,
+                          self.contact)
         mock_check_campaign \
             .assert_called_once_with(args=[result.related_contact.id])
 
@@ -189,6 +190,23 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
                                         from_number="+15556667777",
                                         to_number="+15558675309",
                                         related_phone_number=self.phone_number)
+
+    @patch('sms.tasks.check_contact.apply_async')
+    def test_save_sms_message_received_no_contact(self,
+                                                  mock_check_contact):
+        sms.tasks.save_sms_message({'MessageSid': 'MMxxxx',
+                                    'From': '+15556667777',
+                                    'To': '+15558675309',
+                                    'Body': 'Test.'})
+
+        result = SmsMessage.objects.all().latest('date_created')
+
+        self.assertEquals(result.body,
+                          "Test.")
+        self.assertEquals(result.related_phone_number,
+                          self.phone_number)
+
+        self.assertTrue(mock_check_contact.called)
 
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('sms.tasks.check_for_first_contact_to_ad.apply_async')
