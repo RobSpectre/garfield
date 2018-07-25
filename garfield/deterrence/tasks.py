@@ -91,7 +91,7 @@ def send_deterrence(absolute_uri,
                                 'deterrents_received'])
 
     deterrence_message = \
-        DeterrenceMessage(sid=message['Sid'],
+        DeterrenceMessage(sid=message['MessageSid'],
                           body=message['Body'],
                           status=message['Status'],
                           related_deterrent=campaign.related_deterrent,
