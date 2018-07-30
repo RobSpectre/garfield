@@ -50,3 +50,11 @@ class ContactAdmin(admin.ModelAdmin):
                      'whitepages_last_name',
                      'nextcaller_first_name',
                      'nextcaller_last_name')
+    list_display = ('phone_number',
+                    'phone_number_friendly',
+                    'date_created',
+                    'whitepages_first_name',
+                    'whitepages_last_name',
+                    'sms_message_count',
+                    'call_count',
+                    'deterrents_received')
