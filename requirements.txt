@@ -7,3 +7,4 @@ djangorestframework==3.8.2
 phonenumbers==8.9.1
 django-controlcenter==0.2.6
 spacy==2.0.12
+ephem==3.7.6
