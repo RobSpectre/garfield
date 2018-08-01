@@ -6,6 +6,7 @@ from twilio.twiml.voice_response import VoiceResponse
 from phone_numbers.models import PhoneNumber
 
 from sms.decorators import twilio_view
+from sms.tasks import save_sms_message
 
 from .tasks import process_bot_response
 
@@ -20,7 +21,9 @@ def sms(request):
         result = None
         response.message(request.POST['To'])
 
-    if result and result.related_sim:
+    if result and result.number_type == PhoneNumber.DETERRENCE:
+        save_sms_message.apply_async(args=[request.POST])
+    elif result and result.related_sim:
         response.redirect(reverse('sims:sms_receive'))
     elif result and result.related_bot:
         process_bot_response.apply_async(args=[request.POST,

@@ -83,3 +83,34 @@ class BotsViewsTestCaseNoSimBot(GarfieldTwilioTestCase):
 
         self.assert_twiml(response)
         self.assertTrue(mock_bot.called)
+
+
+class BotsViewsTestCaseDeterrenceResponse(GarfieldTwilioTestCase):
+    def setUp(self):
+        self.client = GarfieldTwilioTestClient()
+
+        self.bot = Bot.objects.create(alias="Botty McBotface",
+                                      neighborhood="Brooklyn",
+                                      location="Prospect Park",
+                                      rates="$1,000,000",
+                                      model='test_model')
+
+        self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
+                                                       account_sid="ACxxx",
+                                                       service_sid="SExxx",
+                                                       url="http://exmple.com",
+                                                       e164="+15558675309",
+                                                       formatted="(555) "
+                                                                 "867-5309",
+                                                       friendly_name="Stuff.",
+                                                       country_code="1",
+                                                       number_type="DET",
+                                                       related_bot=self.bot)
+
+    @patch('sms.tasks.save_sms_message.apply_async')
+    def test_sms(self, mock_save):
+        response = self.client.sms('Test.',
+                                   path=reverse('bots:sms'))
+
+        self.assert_twiml(response)
+        self.assertTrue(mock_save.called)
