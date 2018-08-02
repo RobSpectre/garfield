@@ -127,6 +127,23 @@ class GarfieldTestSimSmsCaseExistingContact(GarfieldTestCaseWithContact):
         self.assertFalse(mock_save.called)
 
 
+@override_settings(TWILIO_PHONE_NUMBER="+15558675310", DEBUG=False)
+class GarfieldTestSimSmsCaseErrors(GarfieldTestCaseWithContact):
+    @patch('sms.tasks.save_sms_message.apply_async')
+    def test_sim_send_sms_to_own_number(self, mock_save):
+        response = self.client.sms("Test.",
+                                   from_="sim:DExxxxx",
+                                   to="+15558675309",
+                                   path="/sims/sms/send/")
+
+        self.assert_twiml(response)
+        self.assertFalse(mock_save.called)
+        self.assertContains(response,
+                            'to="sim:DExxxxx"')
+        self.assertContains(response,
+                            "[ERROR]")
+
+
 class SimSmsWhisperTestCase(GarfieldTwilioTestCase):
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.lookup_contact.apply_async')

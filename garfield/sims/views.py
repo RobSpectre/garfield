@@ -63,6 +63,18 @@ def sms_send(request):
         return response
 
     try:
+        check = PhoneNumber.objects.get(e164=request.POST['To'])
+        response.message("[ERROR] Cannot send SMS as {0} is a "
+                         "Garfield number. "
+                         "Are you sure this number is correct?"
+                         "".format(check.e164),
+                         from_=request.POST['To'],
+                         to=request.POST['From'])
+        return response
+    except PhoneNumber.DoesNotExist:
+        pass
+
+    try:
         result = \
             SmsMessage.objects \
             .filter(from_number=request.POST['To']) \

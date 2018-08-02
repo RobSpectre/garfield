@@ -66,6 +66,11 @@ class TaskSmsMessageTestCase(TestCase):
         mock_check_campaign \
             .assert_called_once_with(args=[result.related_contact.id])
 
+        contacts = Contact.objects.all()
+
+        self.assertEquals(len(contacts),
+                          1)
+
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     def test_save_sms_message_sent(self, mock_check_campaign):
         sms.tasks.save_sms_message({'MessageSid': 'MMxxxx',
@@ -81,6 +86,12 @@ class TaskSmsMessageTestCase(TestCase):
                           self.phone_number)
         mock_check_campaign \
             .assert_called_once_with(args=[result.related_contact.id])
+        contacts = Contact.objects.all()
+
+        self.assertEquals(len(contacts),
+                          1)
+        self.assertEquals('+15556667777',
+                          contacts[0].phone_number)
 
     @override_settings(TWILIO_ACCOUNT_SID='ACxxxx',
                        TWILIO_AUTH_TOKEN='yyyyyyy')

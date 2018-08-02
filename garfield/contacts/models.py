@@ -193,7 +193,17 @@ class Contact(models.Model):
                                                    blank=True)
 
     def __str__(self):
-        return "{0}: {1} {2}".format(self.phone_number,
+        if not self.phone_number_friendly:
+            phone_number = self.phone_number
+        else:
+            phone_number = self.phone_number_friendly
+
+        if not self.identified:
+            return "{0}: Unidentified".format(phone_number)
+        elif not self.whitepages_last_name:
+            return "{0}: Identity Not Found" \
+                "".format(phone_number)
+        return "{0}: {1} {2}".format(phone_number,
                                      self.whitepages_first_name,
                                      self.whitepages_last_name)
 

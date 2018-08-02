@@ -3,6 +3,7 @@ import datetime
 from django.db.models import Count
 from django.db.models import Q
 from django.db.models.functions import TruncDay
+from django.utils.timesince import timesince
 
 from controlcenter import Dashboard
 from controlcenter import widgets
@@ -52,7 +53,10 @@ class LatestMessagesList(widgets.ItemList):
     width = widgets.LARGER
 
     queryset = (SmsMessage.objects
-                .filter(date_created__gt=datetime.date.today())
+                .filter(date_created__week=datetime
+                        .date
+                        .today()
+                        .isocalendar()[1])
                 .filter(related_phone_number__number_type='ADV')
                 .order_by('-date_created'))
 
@@ -60,16 +64,35 @@ class LatestMessagesList(widgets.ItemList):
 
     sortable = True
 
-    list_display = ('date_created',
-                    'related_contact',
-                    'related_phone_number',
-                    'from_number',
-                    'to_number',
+    list_display = ('ago',
+                    'from_party',
+                    'to_party',
                     'body')
 
-    list_display_links = ('date_created',
-                          'related_contact',
-                          'related_phone_number')
+    list_display_links = ('ago')
+
+    def ago(self, obj):
+        return timesince(obj.date_created)
+
+    def from_party(self, obj):
+        if obj.from_number.startswith('sim:'):
+            return obj.related_phone_number.related_sim
+        elif obj.from_number == obj.related_phone_number.e164:
+            if obj.related_phone_number.related_bot:
+                return obj.related_phone_number.related_bot
+            else:
+                return obj.related_phone_number.related_sim
+        else:
+            return obj.related_contact
+
+    def to_party(self, obj):
+        if obj.to_number == obj.related_phone_number.e164:
+            if obj.related_phone_number.related_bot:
+                return obj.related_phone_number.related_bot
+            else:
+                return obj.related_phone_number.related_sim
+        else:
+            return obj.related_contact
 
 
 class LatestCallsList(widgets.ItemList):

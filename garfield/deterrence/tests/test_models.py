@@ -126,6 +126,6 @@ class DeterrenceMessageTestCase(TestCase):
 
     def test_string_representation(self):
         self.assertEquals(str(self.deterrence_message),
-                          "Deterrence message queued {0} to +15556667777:"
-                          " None None"
+                          "Deterrence message queued {0} to (555) 666-7777: "
+                          "Unidentified"
                           "".format(self.deterrence_message.date_created))

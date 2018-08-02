@@ -17,4 +17,4 @@ class PhoneNumberModelTestCase(TestCase):
 
     def test_string_representation(self):
         self.assertEquals(str(self.phone_number),
-                          "+15558675309: Stuff.")
+                          "Stuff.")

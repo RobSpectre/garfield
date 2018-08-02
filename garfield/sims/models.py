@@ -15,8 +15,7 @@ class Sim(models.Model):
     receives_whispers = models.BooleanField(default=False)
 
     def __str__(self):
-        return "{0}: {1}".format(self.sid,
-                                 self.friendly_name)
+        return "{0}".format(self.friendly_name)
 
 
 class Whisper(models.Model):

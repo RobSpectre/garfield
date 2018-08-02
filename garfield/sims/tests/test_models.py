@@ -15,7 +15,7 @@ class SimTestCase(TestCase):
 
     def test_string_respresentation(self):
         self.assertEquals(str(self.sim),
-                          "DExxx: TestSim")
+                          "TestSim")
 
 
 class WhisperTestCase(TestCase):

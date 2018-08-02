@@ -50,5 +50,11 @@ class PhoneNumber(models.Model):
                                     on_delete=models.CASCADE)
 
     def __str__(self):
-        return "{0}: {1}".format(self.e164,
-                                 self.friendly_name)
+        if self.related_sim:
+            return "{0} -> {1}".format(self.friendly_name,
+                                       self.related_sim)
+        elif self.related_bot:
+            return "{0} -> {1}".format(self.friendly_name,
+                                       self.related_bot)
+        else:
+            return "{0}".format(self.friendly_name)

@@ -14,7 +14,7 @@ class ContactModelTestCase(TestCase):
 
     def test_string_representation(self):
         self.assertEquals(str(self.contact),
-                          "+15558675309: None None")
+                          "(555) 867-5309: Unidentified")
 
     @patch('contacts.tasks.lookup_contact.apply_async')
     def test_phone_number_validation(self, mock_lookup):
