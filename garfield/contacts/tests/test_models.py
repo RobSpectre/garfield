@@ -21,3 +21,23 @@ class ContactModelTestCase(TestCase):
         contact = Contact(phone_number="1111")
         self.assertRaises(ValidationError,
                           contact.full_clean)
+
+    def test_string_representation_no_friendly(self):
+        self.contact.phone_number_friendly = None
+
+        self.assertEquals(str(self.contact),
+                          "+15558675309: Unidentified")
+
+    def test_string_representation_no_identity_found(self):
+        self.contact.identified = True
+
+        self.assertEquals(str(self.contact),
+                          "(555) 867-5309: Identity Not Found")
+
+    def test_string_representation_identity_found(self):
+        self.contact.identified = True
+        self.contact.whitepages_first_name = "John"
+        self.contact.whitepages_last_name = "Arbuckle"
+
+        self.assertEquals(str(self.contact),
+                          "(555) 867-5309: John Arbuckle")

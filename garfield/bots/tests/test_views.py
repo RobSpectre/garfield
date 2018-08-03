@@ -1,3 +1,4 @@
+from django.test import override_settings
 from django.urls import reverse
 
 from mock import patch
@@ -20,6 +21,8 @@ class BotsViewsTestCaseNoBotNoSim(GarfieldTwilioTestCase):
         response = self.client.call("+15558675309",
                                     path=reverse('bots:voice'))
         self.assert_twiml(response)
+        self.assertContains(response,
+                            "<Response />")
 
 
 class BotsViewsTestCaseNoBotSim(GarfieldTwilioTestCase):
@@ -53,6 +56,18 @@ class BotsViewsTestCaseNoBotSim(GarfieldTwilioTestCase):
         self.assertContains(response,
                             "{0}".format(reverse('sims:sms_receive')))
 
+    @patch('voice.tasks.save_call.apply_async')
+    def test_voice(self, mock_save):
+        response = self.client.call("+15558675309",
+                                    path=reverse('bots:voice'))
+
+        self.assert_twiml(response)
+        self.assertContains(response,
+                            "<Redirect>")
+        self.assertContains(response,
+                            reverse('sims:voice_receive'))
+        self.assertFalse(mock_save.called)
+
 
 class BotsViewsTestCaseNoSimBot(GarfieldTwilioTestCase):
     def setUp(self):
@@ -84,16 +99,22 @@ class BotsViewsTestCaseNoSimBot(GarfieldTwilioTestCase):
         self.assert_twiml(response)
         self.assertTrue(mock_bot.called)
 
+    @patch('voice.tasks.save_call.apply_async')
+    def test_voice(self, mock_save):
+        response = self.client.call("+15558675309",
+                                    path=reverse('bots:voice'))
+
+        self.assert_twiml(response)
+        self.assertContains(response,
+                            "<Play>")
+        self.assertContains(response,
+                            ".mp3")
+        self.assertTrue(mock_save.called)
+
 
 class BotsViewsTestCaseDeterrenceResponse(GarfieldTwilioTestCase):
     def setUp(self):
         self.client = GarfieldTwilioTestClient()
-
-        self.bot = Bot.objects.create(alias="Botty McBotface",
-                                      neighborhood="Brooklyn",
-                                      location="Prospect Park",
-                                      rates="$1,000,000",
-                                      model='test_model')
 
         self.phone_number = PhoneNumber.objects.create(sid="PNxxx",
                                                        account_sid="ACxxx",
@@ -104,8 +125,7 @@ class BotsViewsTestCaseDeterrenceResponse(GarfieldTwilioTestCase):
                                                                  "867-5309",
                                                        friendly_name="Stuff.",
                                                        country_code="1",
-                                                       number_type="DET",
-                                                       related_bot=self.bot)
+                                                       number_type="DET")
 
     @patch('sms.tasks.save_sms_message.apply_async')
     def test_sms(self, mock_save):
@@ -113,4 +133,16 @@ class BotsViewsTestCaseDeterrenceResponse(GarfieldTwilioTestCase):
                                    path=reverse('bots:sms'))
 
         self.assert_twiml(response)
+        self.assertContains(response,
+                            "<Response />")
         self.assertTrue(mock_save.called)
+
+    @override_settings(GARFIELD_JURISDICTION="ChildSafe")
+    @patch('voice.tasks.save_call.apply_async')
+    def test_voice(self, mock_save):
+        response = self.client.call("+15558675309",
+                                    path=reverse('bots:voice'))
+        self.assertContains(response,
+                            "<Say voice")
+        self.assertContains(response,
+                            "ChildSafe")
