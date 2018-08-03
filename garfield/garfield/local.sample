@@ -12,7 +12,7 @@ TWILIO_PHONE_NUMBER = "+15556667777"
 TWILIO_WHISPER_NUMBER = "+15556667778"
 TELLFINDER_API_KEY = "zzzzz"
 ARBUCKLE_DIR = '/path/to/arbuckle/project'
-JURISDICTION = 'Name of jurisdiction'
+GARFIELD_JURISDICTION = 'Name of jurisdiction'
 
 # These users receive tips.
 ADMINS = [('Recipient', 'recipient@example.com')]
