@@ -18,10 +18,11 @@ garfield/db.*
 node_modules
 **/media/**
 local.py
-static/
+./static/
 *.sqlite3
 **.cache**
 .tox/
 coverage.xml
 .pytest_cache/
 celerybeat*
+images/
