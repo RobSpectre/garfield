@@ -24,8 +24,6 @@ class DailyScoreboardTable(widgets.ItemList):
                     'Deterrents']
 
     period = datetime.date.today() - datetime.timedelta(days=limit_to)
-    date_range = daterange(period,
-                           datetime.date.today())
 
     contacts = (Contact.objects
                 .filter(date_created__gt=period)
@@ -53,11 +51,15 @@ class DailyScoreboardTable(widgets.ItemList):
                   .values('date')
                   .annotate(count=Count('id')))
 
+    def dates(self):
+        return daterange(self.period,
+                         datetime.date.today() + datetime.timedelta(days=1))
+
     def get_queryset(self):
         values = {}
         dates = []
 
-        for date in self.date_range:
+        for date in self.dates():
             dates.append(date)
             values[date] = {'Contacts': 0,
                             'SMS Messages': 0,
