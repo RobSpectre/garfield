@@ -429,8 +429,9 @@ class GarfieldTestCaseNoUseOfDeterrenceNumberNoMsgs(GarfieldTwilioTestCase):
 
 @override_settings(TWILIO_PHONE_NUMBER="+15558675309")
 class GarfieldTestCaseBotsandSims(GarfieldTwilioTestCase):
+    @patch('contacts.tasks.lookup_contact.apply_async')
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
-    def setUp(self, mock_check_campaign):
+    def setUp(self, mock_check_campaign, mock_lookup):
         self.client = GarfieldTwilioTestClient()
 
         self.sim = Sim.objects.create(friendly_name="TestSim",
@@ -471,10 +472,11 @@ class GarfieldTestCaseBotsandSims(GarfieldTwilioTestCase):
                                                      number_type="ADV",
                                                      related_bot=self.bot)
 
+    @patch('sms.tasks.check_contact.apply_async')
     @patch('bots.tasks.process_bot_response.apply_async')
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('sms.tasks.save_sms_message.apply_async')
-    def test_sim_then_bot(self, mock_save, mock_check, mock_process):
+    def test_sim_then_bot(self, mock_save, mock_check, mock_process, mock_con):
         self.client.sms("Responding to human.",
                         from_=self.contact.phone_number,
                         to=self.sim_number.e164,
@@ -513,10 +515,11 @@ class GarfieldTestCaseBotsandSims(GarfieldTwilioTestCase):
         self.assertEquals(mock_process.call_count,
                           1)
 
+    @patch('sms.tasks.check_contact.apply_async')
     @patch('bots.tasks.process_bot_response.apply_async')
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('sms.tasks.save_sms_message.apply_async')
-    def test_bot_then_sim(self, mock_save, mock_check, mock_process):
+    def test_bot_then_sim(self, mock_save, mock_check, mock_process, mock_con):
         self.client.sms("Responding to bot.",
                         from_=self.contact.phone_number,
                         to=self.bot_number.e164,
