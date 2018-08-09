@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from mock import patch
 
+from bots.models import Bot
 from contacts.models import Contact
 from phone_numbers.models import PhoneNumber
 from sms.models import SmsMessage
@@ -424,3 +425,132 @@ class GarfieldTestCaseNoUseOfDeterrenceNumberNoMsgs(GarfieldTwilioTestCase):
         self.assertNotContains(response,
                                "+15558675309")
         self.assertTrue(mock_save.called)
+
+
+@override_settings(TWILIO_PHONE_NUMBER="+15558675309")
+class GarfieldTestCaseBotsandSims(GarfieldTwilioTestCase):
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
+    def setUp(self, mock_check_campaign):
+        self.client = GarfieldTwilioTestClient()
+
+        self.sim = Sim.objects.create(friendly_name="TestSim",
+                                      sid="DExxx",
+                                      iccid="asdf",
+                                      status="active",
+                                      rate_plan="RExxx")
+
+        self.sim_number = PhoneNumber.objects.create(sid="PNxxx",
+                                                     account_sid="ACxxx",
+                                                     service_sid="SExxx",
+                                                     url="http://exmple.com",
+                                                     e164="+15558675309",
+                                                     formatted="(555) "
+                                                     "867-5309",
+                                                     friendly_name="Human",
+                                                     country_code="1",
+                                                     number_type="ADV",
+                                                     related_sim=self.sim)
+
+        self.contact = Contact.objects.create(phone_number="+15556667777")
+
+        self.bot = Bot.objects.create(alias="Botty McBotface",
+                                      neighborhood="Brooklyn",
+                                      location="Prospect Park",
+                                      rates="$1,000,000",
+                                      model='test_model')
+
+        self.bot_number = PhoneNumber.objects.create(sid="PNxxx",
+                                                     account_sid="ACxxx",
+                                                     service_sid="SExxx",
+                                                     url="http://exmple.com",
+                                                     e164="+15558675310",
+                                                     formatted="(555) "
+                                                     "867-5310",
+                                                     friendly_name="Bot",
+                                                     country_code="1",
+                                                     number_type="ADV",
+                                                     related_bot=self.bot)
+
+    @patch('bots.tasks.process_bot_response.apply_async')
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
+    @patch('sms.tasks.save_sms_message.apply_async')
+    def test_sim_then_bot(self, mock_save, mock_check, mock_process):
+        self.client.sms("Responding to human.",
+                        from_=self.contact.phone_number,
+                        to=self.sim_number.e164,
+                        path=reverse("sims:sms_receive"))
+
+        SmsMessage.objects.create(sid='MMxxx',
+                                  from_number=self.contact.phone_number,
+                                  to_number=self.sim_number.e164,
+                                  body="Responding to human.",
+                                  related_phone_number=self.sim_number,
+                                  related_contact=self.contact)
+
+        self.client.sms("Responding to bot.",
+                        from_=self.contact.phone_number,
+                        to=self.bot_number.e164,
+                        path=reverse("bots:sms"))
+
+        SmsMessage.objects.create(sid='MMxxx',
+                                  from_number=self.contact.phone_number,
+                                  to_number=self.sim_number.e164,
+                                  related_phone_number=self.bot_number,
+                                  related_contact=self.contact)
+
+        response = self.client.sms("Responding to contact.",
+                                   from_="sim:{0}".format(self.sim.sid),
+                                   to=self.contact.phone_number,
+                                   path=reverse("sims:sms_send"))
+
+        self.assert_twiml(response)
+        self.assertContains(response,
+                            'from="{0}"'.format(self.sim_number.e164))
+        self.assertContains(response,
+                            'to="{0}"'.format(self.contact.phone_number))
+        self.assertEquals(mock_save.call_count,
+                          2)
+        self.assertEquals(mock_process.call_count,
+                          1)
+
+    @patch('bots.tasks.process_bot_response.apply_async')
+    @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
+    @patch('sms.tasks.save_sms_message.apply_async')
+    def test_bot_then_sim(self, mock_save, mock_check, mock_process):
+        self.client.sms("Responding to bot.",
+                        from_=self.contact.phone_number,
+                        to=self.bot_number.e164,
+                        path=reverse("bots:sms"))
+
+        SmsMessage.objects.create(sid='MMxxx',
+                                  from_number=self.contact.phone_number,
+                                  to_number=self.sim_number.e164,
+                                  related_phone_number=self.bot_number,
+                                  related_contact=self.contact)
+
+        self.client.sms("Responding to human.",
+                        from_=self.contact.phone_number,
+                        to=self.sim_number.e164,
+                        path=reverse("sims:sms_receive"))
+
+        SmsMessage.objects.create(sid='MMxxx',
+                                  from_number=self.contact.phone_number,
+                                  to_number=self.sim_number.e164,
+                                  body="Responding to human.",
+                                  related_phone_number=self.sim_number,
+                                  related_contact=self.contact)
+
+        response = self.client.sms("Responding to contact.",
+                                   from_="sim:{0}".format(self.sim.sid),
+                                   to=self.contact.phone_number,
+                                   path=reverse("sims:sms_send"))
+
+        self.assert_twiml(response)
+        self.assertContains(response,
+                            'from="{0}"'.format(self.sim_number.e164))
+        self.assertContains(response,
+                            'to="{0}"'.format(self.contact.phone_number))
+        self.assertEquals(mock_save.call_count,
+                          2)
+        self.assertEquals(mock_process.call_count,
+                          1)

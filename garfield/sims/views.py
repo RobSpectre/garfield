@@ -75,10 +75,13 @@ def sms_send(request):
         pass
 
     try:
+        sim_sid = request.POST['From'].replace("sim:", "")
+
         result = \
             SmsMessage.objects \
             .filter(from_number=request.POST['To']) \
             .filter(related_phone_number__number_type="ADV") \
+            .filter(related_phone_number__related_sim__sid=sim_sid) \
             .latest('date_created')
 
         response.message(request.POST['Body'],
