@@ -18,8 +18,8 @@ def send_daily_statistics(recipient):
 
     body = "Today's stats from {0}:\n".format(settings.GARFIELD_JURISDICTION)
 
-    for key, value in stats.items():
-        body += "\n{0}: {1}".format(key, value)
+    for key in ['Contacts', 'SMS Messages', 'Calls', 'Deterrents']:
+        body += "\n{0}: {1}".format(key, stats[key])
 
     return send_sms_message(from_=settings.TWILIO_PHONE_NUMBER,
                             to=recipient,
