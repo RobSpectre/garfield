@@ -3,11 +3,11 @@ import operator
 from random import choice
 import json
 
-from celery import shared_task
-
 from django.conf import settings
 from django.template import Context
 from django.template import Template
+
+from celery import shared_task
 
 import spacy
 
