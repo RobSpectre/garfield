@@ -1,4 +1,5 @@
 from datetime import date
+from datetime import timedelta
 
 from django.conf import settings
 
@@ -27,15 +28,16 @@ def send_daily_statistics(recipient):
 
 
 def gather_daily_statistics():
-    contacts = Contact.objects.filter(date_created__date=date.today())
+    yesterday = date.today() - timedelta(days=1)
+    contacts = Contact.objects.filter(date_created__date=yesterday)
     messages = \
-        SmsMessage.objects.filter(date_created__date=date.today()) \
+        SmsMessage.objects.filter(date_created__date=yesterday) \
         .filter(related_phone_number__number_type='ADV')
-    calls = Call.objects.filter(date_created__date=date.today()) \
+    calls = Call.objects.filter(date_created__date=yesterday) \
         .filter(related_phone_number__number_type='ADV')
     deterrents = \
         DeterrenceMessage.objects \
-        .filter(date_created__date=date.today())
+        .filter(date_created__date=yesterday)
 
     return {'Contacts': len(contacts),
             'SMS Messages': len(messages),

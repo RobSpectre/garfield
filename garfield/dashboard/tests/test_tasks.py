@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.test import TestCase
 from django.test import override_settings
 
@@ -23,6 +25,8 @@ class TestDailyStatistics(TestCase):
                                       status="active",
                                       rate_plan="RExxx")
         self.contact = Contact.objects.create(phone_number="+15556667777")
+        self.contact.date_created = self.contact.date_created - \
+            timedelta(days=1)
 
         self.adv_phone_number = \
             PhoneNumber.objects.create(sid="PNxxx",
@@ -41,19 +45,23 @@ class TestDailyStatistics(TestCase):
         self.contact.related_phone_numbers.add(self.adv_phone_number)
         self.contact.save()
 
-        SmsMessage \
+        msg = SmsMessage \
             .objects.create(sid="MMxxxx",
                             from_number="+15556667777",
                             to_number="+15558675309",
                             body="Ad response.",
                             related_phone_number=self.adv_phone_number)
+        msg.date_created = msg.date_created - timedelta(days=1)
+        msg.save()
 
-        SmsMessage \
+        msg = SmsMessage \
             .objects.create(sid="MMxxxx",
                             from_number="+15556667777",
                             to_number="+15558675309",
                             body="2nd Ad Response.",
                             related_phone_number=self.adv_phone_number)
+        msg.date_created = msg.date_created - timedelta(days=1)
+        msg.save()
 
     @patch('dashboard.tasks.send_sms_message')
     def test_send_daily_statistics(self, mock_send):
