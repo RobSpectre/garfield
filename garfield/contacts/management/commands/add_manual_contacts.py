@@ -47,7 +47,7 @@ class Command(BaseCommand):
                     timestamp = datetime.strptime(timestamp,
                                                   '%d-%b %Y %H:%M:%S%z')
 
-                    contact = Contact(phone_number=number)
+                    contact = Contact(phone_number=e164)
                     contact.save()
                     contact.date_created = timestamp
                     contact.save()
