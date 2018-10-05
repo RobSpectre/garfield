@@ -7,7 +7,7 @@ from twilio.rest import Client
 
 from contacts.models import Contact
 from phone_numbers.models import PhoneNumber
-from sms.models import SmsMessage 
+from sms.models import SmsMessage
 
 
 class Command(BaseCommand):
