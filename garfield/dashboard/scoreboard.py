@@ -61,11 +61,11 @@ class DailyScoreboard(widgets.ItemList):
                   .annotate(count=Count('id')))
 
     undelivered = (DeterrenceMessage.objects
-                  .filter(date_created__gte=period)
-                  .filter(status='undelivered')
-                  .annotate(date=TruncDay('date_created'))
-                  .values('date')
-                  .annotate(count=Count('id')))
+                   .filter(date_created__gte=period)
+                   .filter(status='undelivered')
+                   .annotate(date=TruncDay('date_created'))
+                   .values('date')
+                   .annotate(count=Count('id')))
 
     contacts_with_name = (Contact.objects
                           .filter(date_created__gte=period)
@@ -75,12 +75,12 @@ class DailyScoreboard(widgets.ItemList):
                           .annotate(count=Count('id')))
 
     contacts_with_address = (Contact.objects
-                            .filter(date_created__gte=period)
-                            .filter(whitepages_last_name__isnull=False)
-                            .filter(whitepages_address__isnull=False)
-                            .annotate(date=TruncDay('date_created'))
-                            .values('date')
-                            .annotate(count=Count('id')))
+                             .filter(date_created__gte=period)
+                             .filter(whitepages_last_name__isnull=False)
+                             .filter(whitepages_address__isnull=False)
+                             .annotate(date=TruncDay('date_created'))
+                             .values('date')
+                             .annotate(count=Count('id')))
 
     def dates(self):
         return daterange(self.period,
@@ -130,7 +130,7 @@ class DailyScoreboard(widgets.ItemList):
 
             if values[date]['Contacts'] == 0 or \
                values[date]['Contacts w/ Name & Address'] == 0:
-                contacts_with_address= 0
+                contacts_with_address = 0
             else:
                 contacts_with_address = \
                     (values[date]['Contacts w/ Name & Address'] /
@@ -198,11 +198,11 @@ class MonthlyScoreboard(widgets.ItemList):
                   .annotate(count=Count('id')))
 
     undelivered = (DeterrenceMessage.objects
-                  .filter(date_created__year__gte=period)
-                  .filter(status='undelivered')
-                  .annotate(date=TruncMonth('date_created'))
-                  .values('date')
-                  .annotate(count=Count('id')))
+                   .filter(date_created__year__gte=period)
+                   .filter(status='undelivered')
+                   .annotate(date=TruncMonth('date_created'))
+                   .values('date')
+                   .annotate(count=Count('id')))
 
     contacts_with_name = (Contact.objects
                           .filter(date_created__year__gte=period)
@@ -212,12 +212,12 @@ class MonthlyScoreboard(widgets.ItemList):
                           .annotate(count=Count('id')))
 
     contacts_with_address = (Contact.objects
-                            .filter(date_created__year__gte=period)
-                            .filter(whitepages_last_name__isnull=False)
-                            .filter(whitepages_address__isnull=False)
-                            .annotate(date=TruncMonth('date_created'))
-                            .values('date')
-                            .annotate(count=Count('id')))
+                             .filter(date_created__year__gte=period)
+                             .filter(whitepages_last_name__isnull=False)
+                             .filter(whitepages_address__isnull=False)
+                             .annotate(date=TruncMonth('date_created'))
+                             .values('date')
+                             .annotate(count=Count('id')))
 
     respondents = \
         (SmsMessage.objects
@@ -282,7 +282,7 @@ class MonthlyScoreboard(widgets.ItemList):
 
             if values[date]['Contacts'] == 0 or \
                values[date]['Contacts w/ Name & Address'] == 0:
-                contacts_with_address= 0
+                contacts_with_address = 0
             else:
                 contacts_with_address = \
                     (values[date]['Contacts w/ Name & Address'] /
@@ -292,8 +292,9 @@ class MonthlyScoreboard(widgets.ItemList):
                values[date]['Responded to Deterrent'] == 0:
                 responded_to_deterrent = 0
             else:
-                responded_to_deterrent = (values[date]['Responded to Deterrent'] /
-                                          values[date]['Contacts'])
+                responded_to_deterrent = \
+                    (values[date]['Responded to Deterrent'] /
+                     values[date]['Contacts'])
 
             item = {'Date': date,
                     'Contacts': values[date]['Contacts'],
@@ -307,8 +308,9 @@ class MonthlyScoreboard(widgets.ItemList):
                     'Contacts w/ Name '
                     '& Address': "{0:.0%}"
                                  "".format(contacts_with_address),
-                    'Responded to Deterrent': "{0:.0%}"
-                                              "".format(responded_to_deterrent)}
+                    'Responded to '
+                    'Deterrent': "{0:.0%}"
+                                 "".format(responded_to_deterrent)}
             series.append(item)
 
         return series
