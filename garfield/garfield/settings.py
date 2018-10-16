@@ -148,7 +148,7 @@ CELERY_RESULT_BACKEND = 'django-db'
 CONTROLCENTER_DASHBOARDS = (
     ('weekly', 'dashboard.weekly.WeeklyDashboard'),
     ('monthly', 'dashboard.monthly.MonthlyDashboard'),
-    ('daily_scoreboard', 'dashboard.scoreboard.DailyScoreboard')
+    ('scoreboard', 'dashboard.scoreboard.Scoreboard')
 )
 
 CONTROLCENTER_CHARTIST_COLORS = "material"
