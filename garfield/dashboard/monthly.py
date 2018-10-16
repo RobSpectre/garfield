@@ -12,6 +12,8 @@ from voice.models import Call
 
 
 class MonthlyChart(widgets.SingleBarChart):
+    limit_to = 12
+
     class Chartist:
         options = {'axisX': {'onlyInteger': True}}
 
@@ -33,9 +35,9 @@ class MonthlyContactChart(MonthlyChart):
 
     queryset = (Contact.objects
                 .annotate(month_created=TruncMonth('date_created'))
-                .order_by('month_created')
                 .values('month_created')
-                .annotate(count=Count('id')))
+                .annotate(count=Count('id'))
+                .order_by('month_created'))
 
 
 class MonthlyMessageChart(MonthlyChart):
