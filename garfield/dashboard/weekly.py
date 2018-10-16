@@ -21,6 +21,7 @@ class ContactList(widgets.ItemList):
     model = Contact
 
     width = widgets.FULL
+    cache_timeout = 21600
 
     queryset = \
         Contact.objects.filter(date_created__week=datetime
@@ -51,6 +52,7 @@ class LatestMessagesList(widgets.ItemList):
     model = SmsMessage
 
     width = widgets.LARGER
+    cache_timeout = 21600
 
     queryset = (SmsMessage.objects
                 .filter(date_created__week=datetime
@@ -99,6 +101,7 @@ class LatestCallsList(widgets.ItemList):
     title = "Latest Calls"
 
     model = Call
+    cache_timeout = 21600
 
     width = widgets.LARGE
 
@@ -124,6 +127,7 @@ class LatestCallsList(widgets.ItemList):
 class LatestDeterrenceResponseList(widgets.ItemList):
     title = "Latest Deterrence Responses"
     width = widgets.LARGE
+    cache_timeout = 21600
 
     queryset = (SmsMessage.objects
                 .filter(related_phone_number__number_type='DET')
@@ -146,6 +150,7 @@ class DailyChart(widgets.SingleBarChart):
         options = {"axisX": {"onlyInteger": True}}
 
     width = widgets.SMALL
+    cache_timeout = 21600
 
     iso_today = datetime.datetime.today().isocalendar()
 
@@ -301,6 +306,7 @@ class DeterrenceMessageChart(widgets.BarChart):
     title = "Daily Deterrence Messages"
 
     width = widgets.SMALL
+    cache_timeout = 21600
 
     iso_today = datetime.datetime.today().isocalendar()
 
