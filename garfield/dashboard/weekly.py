@@ -62,7 +62,7 @@ class LatestMessagesList(widgets.ItemList):
                 .filter(related_phone_number__number_type='ADV')
                 .order_by('-date_created'))
 
-    limit_to = 20
+    limit_to = 30
 
     sortable = True
 
@@ -249,6 +249,7 @@ class DeterrenceResponseChart(DailyChart):
 
     def series(self):
         queryset = (SmsMessage.objects
+                    .filter(date_created__week=self.iso_today[1])
                     .filter(related_phone_number__number_type='DET')
                     .annotate(day_created=TruncDay('date_created'))
                     .values('day_created')
@@ -276,6 +277,7 @@ class DeterrenceCallChart(DailyChart):
 
     def series(self):
         queryset = (Call.objects
+                    .filter(date_created__week=self.iso_today[1])
                     .filter(related_phone_number__number_type='DET')
                     .annotate(day_created=TruncDay('date_created'))
                     .values('day_created')
@@ -363,12 +365,37 @@ class DeterrenceMessageChart(widgets.BarChart):
         return series
 
 
+class PhoneNumberChart(widgets.SingleBarChart):
+    class Chartist:
+        options = {'horizontalBars': True,
+                   'reverseData': True,
+                   'axisX': {'onlyInteger': True},
+                   'axisY': {'offset': 85}}
+
+    title = "Contacts By Phone Number"
+    width = widgets.SMALL
+
+    iso_today = datetime.datetime.today().isocalendar()
+
+    values_list = ('related_phone_number__friendly_name',
+                   'count')
+
+    queryset = (SmsMessage.objects
+                .filter(date_created__week=iso_today[1])
+                .filter(related_phone_number__number_type='ADV')
+                .values('related_phone_number__friendly_name')
+                .annotate(count=Count('related_contact__id',
+                                      distinct=True))
+                .order_by('-count'))
+
+
 class WeeklyDashboard(Dashboard):
     widgets = (ContactChart,
                SmsMessageChart,
                CallChart,
                DeterrenceMessageChart,
                LatestMessagesList,
+               PhoneNumberChart,
                DeterrenceResponseChart,
                DeterrenceCallChart,
                LatestCallsList,

@@ -226,6 +226,27 @@ class TopContactsRespondingToDeterrence(widgets.SingleBarChart):
                 .order_by('-count'))
 
 
+class PhoneNumberChart(widgets.SingleBarChart):
+    class Chartist:
+        options = {'horizontalBars': True,
+                   'reverseData': True,
+                   'axisX': {'onlyInteger': True},
+                   'axisY': {'offset': 85}}
+
+    title = "Contacts By Phone Number"
+    width = widgets.FULL
+
+    values_list = ('related_phone_number__friendly_name',
+                   'count')
+
+    queryset = (SmsMessage.objects
+                .filter(related_phone_number__number_type='ADV')
+                .values('related_phone_number__friendly_name')
+                .annotate(count=Count('related_contact__id',
+                                      distinct=True))
+                .order_by('-count'))
+
+
 class MonthlyDashboard(Dashboard):
     widgets = [MonthlyContactChart,
                MonthlyMessageChart,
@@ -235,4 +256,5 @@ class MonthlyDashboard(Dashboard):
                MonthlyDeterrenceResponseChart,
                MonthlyDeterrenceCallChart,
                TopContacts,
-               TopContactsRespondingToDeterrence]
+               TopContactsRespondingToDeterrence,
+               PhoneNumberChart]
