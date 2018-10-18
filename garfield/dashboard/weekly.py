@@ -51,7 +51,7 @@ class LatestMessagesList(widgets.ItemList):
 
     model = SmsMessage
 
-    width = widgets.LARGER
+    width = widgets.LARGE
     cache_timeout = 21600
 
     queryset = (SmsMessage.objects
@@ -373,7 +373,7 @@ class PhoneNumberChart(widgets.SingleBarChart):
                    'axisY': {'offset': 85}}
 
     title = "Contacts By Phone Number"
-    width = widgets.SMALL
+    width = widgets.LARGE
 
     iso_today = datetime.datetime.today().isocalendar()
 
@@ -395,9 +395,9 @@ class WeeklyDashboard(Dashboard):
                CallChart,
                DeterrenceMessageChart,
                LatestMessagesList,
-               PhoneNumberChart,
                DeterrenceResponseChart,
                DeterrenceCallChart,
+               PhoneNumberChart,
                LatestCallsList,
                LatestDeterrenceResponseList,
                ContactList)
