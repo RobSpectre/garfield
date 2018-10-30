@@ -45,10 +45,14 @@ class Command(BaseCommand):
                                       "".format(timestamp))
 
                     timestamp = datetime.strptime(timestamp,
-                                                  '%d-%b %Y %H:%M:%S%z')
+                                                  '%m/%d/%Y %H:%M:%S%z')
 
                     contact = Contact(phone_number=e164)
                     contact.save()
                     contact.date_created = timestamp
+
+                    if 'Y' in row['arrested'].upper():
+                        contact.arrested = True
+
                     contact.save()
                     self.stdout.write("Contact added.")
