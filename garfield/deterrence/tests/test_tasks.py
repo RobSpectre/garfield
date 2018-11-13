@@ -269,6 +269,42 @@ class DeterrenceTestCase(TestCase):
         contact = Contact.objects.get(pk=self.contact_a.id)
         self.assertTrue(contact.deterred)
 
+    def test_send_deterrence_do_not_deter(self):
+        self.contact_a.do_not_deter = True
+        self.contact_a.save()
+
+        result = \
+            deterrence.tasks.send_deterrence("http://example.com",
+                                             self.deterrence_campaign.id,
+                                             self.contact_a.id)
+
+        self.assertFalse(result)
+        self.assertFalse(self.contact_a.deterred)
+
+    def test_send_deterrence_arrested(self):
+        self.contact_a.arrested = True
+        self.contact_a.save()
+
+        result = \
+            deterrence.tasks.send_deterrence("http://example.com",
+                                             self.deterrence_campaign.id,
+                                             self.contact_a.id)
+
+        self.assertFalse(result)
+        self.assertFalse(self.contact_a.deterred)
+
+    def test_send_deterrence_recruiter(self):
+        self.contact_a.recruiter = True
+        self.contact_a.save()
+
+        result = \
+            deterrence.tasks.send_deterrence("http://example.com",
+                                             self.deterrence_campaign.id,
+                                             self.contact_a.id)
+
+        self.assertFalse(result)
+        self.assertFalse(self.contact_a.deterred)
+
 
 @override_settings(GARFIELD_NUMBER_OF_DETERRENTS=1,
                    GARFIELD_DETERRENT_INTERVAL=300)

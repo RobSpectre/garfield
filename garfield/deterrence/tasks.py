@@ -54,6 +54,9 @@ def send_deterrence(absolute_uri,
     campaign = DeterrenceCampaign.objects.get(pk=campaign_id)
     contact = Contact.objects.get(pk=contact_id)
 
+    if contact.do_not_deter or contact.arrested or contact.recruiter:
+        return False
+
     media_url = "{0}/{1}{2}" \
                 "".format(absolute_uri,
                           settings.MEDIA_ROOT,
