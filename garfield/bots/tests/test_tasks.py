@@ -142,13 +142,13 @@ class BotsTasksNoContactTestCase(TestCase):
         answers = tasks.retrieve_answer([('SALUTATION', 10),
                                          ('LOCATION', 20)],
                                         self.bot.id)
-        self.assertEquals(answers,
-                          "Hi Prospect Park")
+        self.assertEqual(answers,
+                         "Hi Prospect Park")
 
         answers = tasks.retrieve_answer([('SALUTATION', 10)],
                                         self.bot.id)
-        self.assertEquals(answers,
-                          "Hi")
+        self.assertEqual(answers,
+                         "Hi")
 
         answers = tasks.retrieve_answer([],
                                         self.bot.id)
@@ -162,17 +162,17 @@ class BotsUtilTestCase(TestCase):
                                          "WOO": 0.95},
                                         0.7)
 
-        self.assertEquals(intents,
-                          {"WOO": 0.95, "STUFF": 0.9})
+        self.assertEqual(intents,
+                         {"WOO": 0.95, "STUFF": 0.9})
 
         intents = tasks.process_intents({"STUFF": 0.9,
                                          "THINGS": 0.7},
                                         0.7)
-        self.assertEquals(intents,
-                          {"STUFF": 0.9, "THINGS": 0.7})
+        self.assertEqual(intents,
+                         {"STUFF": 0.9, "THINGS": 0.7})
 
     def test_order_intents(self):
         order = tasks.order_intents({"AVAILABILITY": 0.9,
                                      "SALUTATION": 0.8})
-        self.assertEquals([i[0] for i in order],
-                          ['SALUTATION', 'AVAILABILITY'])
+        self.assertEqual([i[0] for i in order],
+                         ['SALUTATION', 'AVAILABILITY'])

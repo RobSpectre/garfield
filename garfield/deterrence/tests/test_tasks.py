@@ -84,8 +84,8 @@ class DeterrenceCampaignTestCase(TestCase):
     def test_send_deterrence_campaign(self, mock_send):
         deterrence.tasks.send_deterrence_campaign("http://example.com")
 
-        self.assertEquals(3,
-                          mock_send.call_count)
+        self.assertEqual(3,
+                         mock_send.call_count)
 
         campaign = DeterrenceCampaign.objects.latest('date_created')
         self.assertFalse(campaign.date_sent is None)
@@ -97,7 +97,7 @@ class DeterrenceCampaignTestCase(TestCase):
 
         deterrence.tasks.send_deterrence_campaign("http://example.com")
 
-        self.assertEquals(2, mock_send.call_count)
+        self.assertEqual(2, mock_send.call_count)
         self.assertFalse(self.phone_number.contact_set.all()[0].deterred)
 
         campaign = DeterrenceCampaign.objects.latest('date_created')
@@ -110,7 +110,7 @@ class DeterrenceCampaignTestCase(TestCase):
 
         deterrence.tasks.send_deterrence_campaign("http://example.com")
 
-        self.assertEquals(2, mock_send.call_count)
+        self.assertEqual(2, mock_send.call_count)
         self.assertFalse(self.phone_number.contact_set.all()[0].deterred)
 
         campaign = DeterrenceCampaign.objects.latest('date_created')
@@ -123,7 +123,7 @@ class DeterrenceCampaignTestCase(TestCase):
 
         deterrence.tasks.send_deterrence_campaign("http://example.com")
 
-        self.assertEquals(2, mock_send.call_count)
+        self.assertEqual(2, mock_send.call_count)
         self.assertFalse(self.phone_number.contact_set.all()[0].deterred)
 
         campaign = DeterrenceCampaign.objects.latest('date_created')
@@ -205,12 +205,12 @@ class DeterrenceTestCase(TestCase):
             status_callback="http://example.com"
                             "{0}".format(reverse('deterrence:deterrence'
                                                  '_message_status_callback')))
-        self.assertEquals(1,
-                          len(DeterrenceMessage.objects.all()))
+        self.assertEqual(1,
+                         len(DeterrenceMessage.objects.all()))
         contact = Contact.objects.get(pk=self.contact_a.id)
         self.assertTrue(contact.deterred)
-        self.assertEquals(1,
-                          contact.deterrents_received)
+        self.assertEqual(1,
+                         contact.deterrents_received)
 
     @patch('deterrence.tasks.send_sms_message')
     def test_send_deterrence_first_name(self, mock_send):
@@ -234,8 +234,8 @@ class DeterrenceTestCase(TestCase):
             status_callback="http://example.com"
                             "{0}".format(reverse('deterrence:deterrence'
                                                  '_message_status_callback')))
-        self.assertEquals(1,
-                          len(DeterrenceMessage.objects.all()))
+        self.assertEqual(1,
+                         len(DeterrenceMessage.objects.all()))
         contact = Contact.objects.get(pk=self.contact_a.id)
         self.assertTrue(contact.deterred)
 
@@ -264,8 +264,8 @@ class DeterrenceTestCase(TestCase):
             status_callback="http://example.com"
                             "{0}".format(reverse('deterrence:deterrence'
                                                  '_message_status_callback')))
-        self.assertEquals(1,
-                          len(DeterrenceMessage.objects.all()))
+        self.assertEqual(1,
+                         len(DeterrenceMessage.objects.all()))
         contact = Contact.objects.get(pk=self.contact_a.id)
         self.assertTrue(contact.deterred)
 
@@ -391,18 +391,18 @@ class DeterrenceTestCaseMultipleNumbers(TestCase):
     def test_send_deterrence_campaign(self, mock_send):
         deterrence.tasks.send_deterrence_campaign("http://example.com")
 
-        self.assertEquals(3, mock_send.call_count)
+        self.assertEqual(3, mock_send.call_count)
         for call in mock_send.call_args_list:
             args, kwargs = call
-            self.assertEquals(kwargs['args'][1],
-                              self.deterrence_campaign.id)
+            self.assertEqual(kwargs['args'][1],
+                             self.deterrence_campaign.id)
 
     @override_settings(GARFIELD_NUMBER_OF_DETERRENTS=3)
     @patch('deterrence.tasks.send_deterrence.apply_async')
     def test_send_deterrence_campaign_multiple_deterrents(self, mock_send):
         deterrence.tasks.send_deterrence_campaign("http://example.com")
 
-        self.assertEquals(9, mock_send.call_count)
+        self.assertEqual(9, mock_send.call_count)
 
     def test_unused_deterrence_phone_number(self):
         test_1 = \
@@ -422,8 +422,8 @@ class DeterrenceTestCaseMultipleNumbers(TestCase):
             deterrence.tasks \
             .get_unused_deterrence_phone_number(self.contact_a)
 
-        self.assertEquals(test_1, self.det_number_2)
-        self.assertEquals(test_2, self.det_number_1)
+        self.assertEqual(test_1, self.det_number_2)
+        self.assertEqual(test_2, self.det_number_1)
 
     def test_unused_deterrence_phone_number_overload(self):
         test_1 = \
@@ -456,9 +456,9 @@ class DeterrenceTestCaseMultipleNumbers(TestCase):
             deterrence.tasks \
             .get_unused_deterrence_phone_number(self.contact_a)
 
-        self.assertEquals(test_1, self.det_number_2)
-        self.assertEquals(test_2, self.det_number_1)
-        self.assertEquals(test_3, self.det_number_2)
+        self.assertEqual(test_1, self.det_number_2)
+        self.assertEqual(test_2, self.det_number_1)
+        self.assertEqual(test_3, self.det_number_2)
 
 
 class DeterrenceCheckCampaignTestCase(TestCase):
@@ -519,10 +519,10 @@ class DeterrenceCheckCampaignTestCase(TestCase):
             DeterrenceCampaign.objects.get(pk=self.deterrence_campaign.id)
 
         self.assertFalse(test)
-        self.assertEquals(1,
-                          len(DeterrenceCampaign.objects.all()))
-        self.assertEquals(campaign.related_contacts.all()[0],
-                          self.contact_a)
+        self.assertEqual(1,
+                         len(DeterrenceCampaign.objects.all()))
+        self.assertEqual(campaign.related_contacts.all()[0],
+                         self.contact_a)
 
     def test_check_campaign_for_contact_already_present(self):
         self.deterrence_campaign.related_contacts.add(self.contact_b)
@@ -539,8 +539,8 @@ class DeterrenceCheckCampaignTestCase(TestCase):
             DeterrenceCampaign.objects.get(pk=self.deterrence_campaign.id)
 
         self.assertTrue(second_test)
-        self.assertEquals(2,
-                          len(campaign.related_contacts.all()))
+        self.assertEqual(2,
+                         len(campaign.related_contacts.all()))
 
     def test_check_campaign_for_contact_campaign_does_not_exist(self):
         self.deterrence_campaign.delete()
@@ -550,10 +550,10 @@ class DeterrenceCheckCampaignTestCase(TestCase):
         campaigns = DeterrenceCampaign.objects.all()
 
         self.assertFalse(test)
-        self.assertEquals(1,
-                          len(campaigns))
-        self.assertEquals(campaigns[0].related_contacts.all()[0],
-                          self.contact_a)
+        self.assertEqual(1,
+                         len(campaigns))
+        self.assertEqual(campaigns[0].related_contacts.all()[0],
+                         self.contact_a)
 
     def test_check_campaign_for_contact_multiple_attempts(self):
         self.deterrence_campaign.related_contacts.add(self.contact_a)
@@ -564,12 +564,12 @@ class DeterrenceCheckCampaignTestCase(TestCase):
 
         campaigns = DeterrenceCampaign.objects.all()
 
-        self.assertEquals(1,
-                          len(campaigns))
-        self.assertEquals(1,
-                          len(campaigns[0].related_contacts.all()))
-        self.assertEquals(campaigns[0].related_contacts.all()[0],
-                          self.contact_a)
+        self.assertEqual(1,
+                         len(campaigns))
+        self.assertEqual(1,
+                         len(campaigns[0].related_contacts.all()))
+        self.assertEqual(campaigns[0].related_contacts.all()[0],
+                         self.contact_a)
 
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     def test_only_add_to_campaign_if_sms_advertising_number(self,
@@ -648,5 +648,5 @@ class DeterrenceMessageStatusCallbackTestCase(TestCase):
             .handle_deterrence_message_status_callback("MMxxxx",
                                                        "delivered")
         message = DeterrenceMessage.objects.get(sid="MMxxxx")
-        self.assertEquals("delivered",
-                          message.status)
+        self.assertEqual("delivered",
+                         message.status)

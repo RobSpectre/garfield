@@ -268,15 +268,15 @@ class TaskLookupContactWhitepagesTestCase(TestCase):
                                                                  mock_lookup)
 
         self.assertTrue(test.identified)
-        self.assertEquals(test.whitepages_first_name,
-                          "John")
-        self.assertEquals(test.whitepages_last_name,
-                          "Doe")
-        self.assertEquals(test.whitepages_address,
-                          "123 Johnny Street")
-        self.assertEquals(test.whitepages_latitude,
-                          40.328487)
-        self.assertEquals(test.carrier, "Test.")
+        self.assertEqual(test.whitepages_first_name,
+                         "John")
+        self.assertEqual(test.whitepages_last_name,
+                         "Doe")
+        self.assertEqual(test.whitepages_address,
+                         "123 Johnny Street")
+        self.assertEqual(test.whitepages_latitude,
+                         40.328487)
+        self.assertEqual(test.carrier, "Test.")
 
     def test_apply_lookup_whitepages_to_contact_person_no_address(self):
         payload = json.loads(self.add_ons_person)
@@ -296,15 +296,15 @@ class TaskLookupContactWhitepagesTestCase(TestCase):
                                                                  mock_lookup)
 
         self.assertTrue(test.identified)
-        self.assertEquals(test.whitepages_first_name,
-                          "John")
-        self.assertEquals(test.whitepages_last_name,
-                          "Doe")
-        self.assertEquals(test.whitepages_entity_type,
-                          "Person")
+        self.assertEqual(test.whitepages_first_name,
+                         "John")
+        self.assertEqual(test.whitepages_last_name,
+                         "Doe")
+        self.assertEqual(test.whitepages_entity_type,
+                         "Person")
         self.assertFalse(test.whitepages_address)
         self.assertFalse(test.whitepages_latitude)
-        self.assertEquals(test.carrier, "Test.")
+        self.assertEqual(test.carrier, "Test.")
 
     def test_apply_lookup_whitepages_to_contact_person_no_belongs(self):
         payload = json.loads(self.add_ons_person)
@@ -326,7 +326,7 @@ class TaskLookupContactWhitepagesTestCase(TestCase):
         self.assertTrue(test.identified)
         self.assertFalse(test.whitepages_first_name)
         self.assertFalse(test.whitepages_last_name)
-        self.assertEquals(test.carrier, "Test.")
+        self.assertEqual(test.carrier, "Test.")
 
     def test_apply_lookup_whitepages_to_contact_business(self):
         payload = json.loads(self.add_ons_business)
@@ -342,15 +342,15 @@ class TaskLookupContactWhitepagesTestCase(TestCase):
                                                                  mock_lookup)
 
         self.assertTrue(test.identified)
-        self.assertEquals(test.whitepages_entity_type,
-                          "Business")
-        self.assertEquals(test.whitepages_business_name,
-                          "The John Store")
-        self.assertEquals(test.whitepages_address,
-                          "123 Johnny Street")
-        self.assertEquals(test.whitepages_latitude,
-                          40.328487)
-        self.assertEquals(test.carrier, "Test.")
+        self.assertEqual(test.whitepages_entity_type,
+                         "Business")
+        self.assertEqual(test.whitepages_business_name,
+                         "The John Store")
+        self.assertEqual(test.whitepages_address,
+                         "123 Johnny Street")
+        self.assertEqual(test.whitepages_latitude,
+                         40.328487)
+        self.assertEqual(test.carrier, "Test.")
 
     def test_apply_lookup_whitepages_to_contact_voip(self):
         payload = json.loads(self.add_ons_voip)
@@ -368,11 +368,11 @@ class TaskLookupContactWhitepagesTestCase(TestCase):
         self.assertTrue(test.identified)
         self.assertFalse(test.whitepages_first_name)
         self.assertFalse(test.whitepages_address)
-        self.assertEquals(test.whitepages_latitude,
-                          40.328487)
-        self.assertEquals(test.carrier, "Test.")
-        self.assertEquals(test.whitepages_phone_type, "NonFixedVOIP")
-        self.assertEquals(test.phone_number_type, "Test.")
+        self.assertEqual(test.whitepages_latitude,
+                         40.328487)
+        self.assertEqual(test.carrier, "Test.")
+        self.assertEqual(test.whitepages_phone_type, "NonFixedVOIP")
+        self.assertEqual(test.phone_number_type, "Test.")
 
 
 class TaskLookupContactNextCallerTestCase(TestCase):
@@ -524,14 +524,14 @@ class TaskLookupContactNextCallerTestCase(TestCase):
         test.save()
 
         self.assertTrue(test.identified)
-        self.assertEquals(test.nextcaller_first_name,
-                          "John")
-        self.assertEquals(test.nextcaller_last_name,
-                          "Doe")
-        self.assertEquals(test.nextcaller_address,
-                          "123 Johnny Street")
-        self.assertEquals(test.nextcaller_email,
-                          "johndoe@john.com")
+        self.assertEqual(test.nextcaller_first_name,
+                         "John")
+        self.assertEqual(test.nextcaller_last_name,
+                         "Doe")
+        self.assertEqual(test.nextcaller_address,
+                         "123 Johnny Street")
+        self.assertEqual(test.nextcaller_email,
+                         "johndoe@john.com")
 
     def test_apply_lookup_nextcaller_to_contact_person_no_records(self):
         payload = json.loads(self.add_on_person)
@@ -558,8 +558,8 @@ class TaskLookupContactNextCallerTestCase(TestCase):
                                                                  mock_lookup)
 
         self.assertTrue(test.identified)
-        self.assertEquals(test.nextcaller_business_name,
-                          "The Contact Store")
+        self.assertEqual(test.nextcaller_business_name,
+                         "The Contact Store")
 
     def test_apply_lookup_nextcaller_to_contact_voip(self):
         payload = json.loads(self.add_on_voip)
@@ -571,8 +571,8 @@ class TaskLookupContactNextCallerTestCase(TestCase):
                                                                  mock_lookup)
 
         self.assertTrue(test.identified)
-        self.assertEquals(test.nextcaller_carrier,
-                          "Level 3 Communications Llc ")
+        self.assertEqual(test.nextcaller_carrier,
+                         "Level 3 Communications Llc ")
 
     @patch('contacts.tasks.send_whisper.apply_async')
     def test_notification_nextcaller(self, mock_whisper):
@@ -677,10 +677,10 @@ class TaskLookupContactTellfinderTestCase(TestCase):
 
         test = contacts.tasks.lookup_contact_tellfinder(self.contact.id)
 
-        self.assertEquals(len(responses.calls), 1)
+        self.assertEqual(len(responses.calls), 1)
         self.assertTrue(mock_notification.called)
         self.assertFalse(mock_whisper.called)
-        self.assertEquals(test['total'], 31)
+        self.assertEqual(test['total'], 31)
 
     @responses.activate
     @patch('contacts.tasks.send_whisper.apply_async')
@@ -696,7 +696,7 @@ class TaskLookupContactTellfinderTestCase(TestCase):
 
         contacts.tasks.lookup_contact_tellfinder(self.contact.id)
 
-        self.assertEquals(len(responses.calls), 1)
+        self.assertEqual(len(responses.calls), 1)
         self.assertFalse(mock_notification.called)
         self.assertFalse(mock_whisper.called)
 

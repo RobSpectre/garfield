@@ -89,33 +89,33 @@ class CalculateNumberOfContactsTestCase(TestCase):
         call_command('calculate_number_of_contacts', stdout=out)
 
         contact_1 = Contact.objects.get(phone_number="+15556667777")
-        self.assertEquals(3,
-                          contact_1.sms_message_count)
-        self.assertEquals(0,
-                          contact_1.call_count)
-        self.assertEquals(3,
-                          contact_1.contact_count)
+        self.assertEqual(3,
+                         contact_1.sms_message_count)
+        self.assertEqual(0,
+                         contact_1.call_count)
+        self.assertEqual(3,
+                         contact_1.contact_count)
 
         contact_2 = Contact.objects.get(phone_number="+15556667778")
-        self.assertEquals(5,
-                          contact_2.sms_message_count)
-        self.assertEquals(0,
-                          contact_2.call_count)
-        self.assertEquals(5,
-                          contact_2.contact_count)
+        self.assertEqual(5,
+                         contact_2.sms_message_count)
+        self.assertEqual(0,
+                         contact_2.call_count)
+        self.assertEqual(5,
+                         contact_2.contact_count)
 
         contact_3 = Contact.objects.get(phone_number="+15556667779")
-        self.assertEquals(2,
-                          contact_3.sms_message_count)
-        self.assertEquals(2,
-                          contact_3.call_count)
-        self.assertEquals(4,
-                          contact_3.contact_count)
+        self.assertEqual(2,
+                         contact_3.sms_message_count)
+        self.assertEqual(2,
+                         contact_3.call_count)
+        self.assertEqual(4,
+                         contact_3.contact_count)
 
         contact_4 = Contact.objects.get(phone_number="+15556667780")
-        self.assertEquals(5,
-                          contact_4.sms_message_count)
-        self.assertEquals(2,
-                          contact_4.call_count)
-        self.assertEquals(7,
-                          contact_4.contact_count)
+        self.assertEqual(5,
+                         contact_4.sms_message_count)
+        self.assertEqual(2,
+                         contact_4.call_count)
+        self.assertEqual(7,
+                         contact_4.contact_count)

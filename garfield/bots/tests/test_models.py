@@ -12,6 +12,6 @@ class BotModelTestCase(TestCase):
                                       model="buyer_intent_full")
 
     def test_string_representation(self):
-        self.assertEquals(str(self.bot),
-                          "Rosa - buyer_intent_full: Times Square,"
-                          " 42nd and Broadway")
+        self.assertEqual(str(self.bot),
+                         "Rosa - buyer_intent_full: Times Square,"
+                         " 42nd and Broadway")

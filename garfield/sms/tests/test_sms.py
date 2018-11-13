@@ -71,7 +71,7 @@ class GarfieldTwilioTestCase(TestCase):
         self.client = GarfieldTwilioTestClient()
 
     def assert_twiml(self, response):
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertContains(response, "<Response")
 
 

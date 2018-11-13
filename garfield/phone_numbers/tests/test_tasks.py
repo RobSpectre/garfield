@@ -50,9 +50,9 @@ class TaskPhoneNumbersTestCase(TestCase):
 
         results = PhoneNumber.objects.all()
 
-        self.assertEquals(len(results), 1)
-        self.assertEquals(results[0].e164, "+15552223333")
-        self.assertEquals(results[0].formatted, "(555) 222-3333")
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0].e164, "+15552223333")
+        self.assertEqual(results[0].formatted, "(555) 222-3333")
         mock_send.assert_called_once_with(kwargs={"from_": "+15552223333",
                                                   "to": "+15556667777",
                                                   "body": "This is your new"
@@ -60,7 +60,7 @@ class TaskPhoneNumbersTestCase(TestCase):
                                                           "number."})
         self.assertTrue(mock_search.called)
         self.assertTrue(mock_buy.called)
-        self.assertEquals(results[0].related_sim, self.sim)
+        self.assertEqual(results[0].related_sim, self.sim)
         self.assertTrue(test)
 
     @patch('contacts.tasks.send_whisper.apply_async')

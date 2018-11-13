@@ -30,18 +30,18 @@ class PhoneNumberModelTestCase(TestCase):
                                       model="buyer_intent_full")
 
     def test_string_representation(self):
-        self.assertEquals(str(self.phone_number),
-                          "Stuff.")
+        self.assertEqual(str(self.phone_number),
+                         "Stuff.")
 
     def test_string_representation_with_sim(self):
         self.phone_number.related_sim = self.sim
 
-        self.assertEquals(str(self.phone_number),
-                          "Stuff. -> TestSim")
+        self.assertEqual(str(self.phone_number),
+                         "Stuff. -> TestSim")
 
     def test_string_representation_with_bot(self):
         self.phone_number.related_bot = self.bot
 
-        self.assertEquals(str(self.phone_number),
-                          "Stuff. -> Rosa - buyer_intent_full: Times Square,"
-                          " 42nd and Broadway")
+        self.assertEqual(str(self.phone_number),
+                         "Stuff. -> Rosa - buyer_intent_full: Times Square,"
+                         " 42nd and Broadway")

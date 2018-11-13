@@ -56,20 +56,20 @@ class TaskSmsMessageTestCase(TestCase):
 
         result = SmsMessage.objects.all().latest('date_created')
 
-        self.assertEquals(result.body,
-                          "Test.")
-        self.assertEquals(result.related_phone_number,
-                          self.phone_number)
+        self.assertEqual(result.body,
+                         "Test.")
+        self.assertEqual(result.related_phone_number,
+                         self.phone_number)
 
-        self.assertEquals(result.related_contact,
-                          self.contact)
+        self.assertEqual(result.related_contact,
+                         self.contact)
         mock_check_campaign \
             .assert_called_once_with(args=[result.related_contact.id])
 
         contacts = Contact.objects.all()
 
-        self.assertEquals(len(contacts),
-                          1)
+        self.assertEqual(len(contacts),
+                         1)
 
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     def test_save_sms_message_sent(self, mock_check_campaign):
@@ -80,18 +80,18 @@ class TaskSmsMessageTestCase(TestCase):
 
         result = SmsMessage.objects.all().latest('date_created')
 
-        self.assertEquals(result.body,
-                          "Test.")
-        self.assertEquals(result.related_phone_number,
-                          self.phone_number)
+        self.assertEqual(result.body,
+                         "Test.")
+        self.assertEqual(result.related_phone_number,
+                         self.phone_number)
         mock_check_campaign \
             .assert_called_once_with(args=[result.related_contact.id])
         contacts = Contact.objects.all()
 
-        self.assertEquals(len(contacts),
-                          1)
-        self.assertEquals('+15556667777',
-                          contacts[0].phone_number)
+        self.assertEqual(len(contacts),
+                         1)
+        self.assertEqual('+15556667777',
+                         contacts[0].phone_number)
 
     @override_settings(TWILIO_ACCOUNT_SID='ACxxxx',
                        TWILIO_AUTH_TOKEN='yyyyyyy')
@@ -163,10 +163,10 @@ class SendSMSMessageCorrectAttributionTestCase(TestCase):
 
         result = SmsMessage.objects.all().latest('date_created')
 
-        self.assertEquals(result.body,
-                          "Test.")
-        self.assertEquals(result.related_phone_number,
-                          self.phone_number)
+        self.assertEqual(result.body,
+                         "Test.")
+        self.assertEqual(result.related_phone_number,
+                         self.phone_number)
         self.assertTrue(mock_check.called)
 
 
@@ -212,10 +212,10 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
 
         result = SmsMessage.objects.all().latest('date_created')
 
-        self.assertEquals(result.body,
-                          "Test.")
-        self.assertEquals(result.related_phone_number,
-                          self.phone_number)
+        self.assertEqual(result.body,
+                         "Test.")
+        self.assertEqual(result.related_phone_number,
+                         self.phone_number)
 
         self.assertTrue(mock_check_contact.called)
 
@@ -233,13 +233,13 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
 
         result = Contact.objects.all().latest('date_created')
 
-        self.assertEquals(result.phone_number,
-                          '+15556667777')
+        self.assertEqual(result.phone_number,
+                         '+15556667777')
         self.assertTrue(mock_lookup_contact.called)
 
         message = SmsMessage.objects.get(from_number=result.phone_number)
-        self.assertEquals(message.related_contact,
-                          result)
+        self.assertEqual(message.related_contact,
+                         result)
 
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('sms.tasks.check_for_first_contact_to_ad.apply_async')
@@ -254,13 +254,13 @@ class TaskLookupContactContactDoesNotExistTestCase(TestCase):
 
         result = Contact.objects.all().latest('date_created')
 
-        self.assertEquals(result.phone_number,
-                          '+15556667777')
+        self.assertEqual(result.phone_number,
+                         '+15556667777')
         self.assertTrue(mock_contact.called)
 
         call = Call.objects.get(from_number=result.phone_number)
-        self.assertEquals(call.related_contact,
-                          result)
+        self.assertEqual(call.related_contact,
+                         result)
 
 
 class TaskLookupContactTestCase(TestCase):
@@ -353,8 +353,8 @@ class CheckForFirstContactToAdTestCase(TestCase):
                           "".format(self.phone_number.friendly_name)}
         mock_whisper.assert_called_once_with(kwargs=kwargs)
         contact = Contact.objects.get(pk=self.contact.id)
-        self.assertEquals(contact.sms_message_count, 0)
-        self.assertEquals(contact.contact_count, 0)
+        self.assertEqual(contact.sms_message_count, 0)
+        self.assertEqual(contact.contact_count, 0)
 
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.send_whisper.apply_async')
@@ -377,9 +377,9 @@ class CheckForFirstContactToAdTestCase(TestCase):
                                                 self.phone_number.id)
         self.assertFalse(mock_whisper.called)
         contact = Contact.objects.get(pk=self.contact.id)
-        self.assertEquals(contact.sms_message_count, 2)
-        self.assertEquals(contact.call_count, 0)
-        self.assertEquals(contact.contact_count, 2)
+        self.assertEqual(contact.sms_message_count, 2)
+        self.assertEqual(contact.call_count, 0)
+        self.assertEqual(contact.contact_count, 2)
 
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
     @patch('contacts.tasks.send_whisper.apply_async')
@@ -405,9 +405,9 @@ class CheckForFirstContactToAdTestCase(TestCase):
         sms.tasks.check_for_first_contact_to_ad(self.contact.id,
                                                 self.phone_number_2.id)
 
-        self.assertEquals(mock_whisper.call_count, 2)
+        self.assertEqual(mock_whisper.call_count, 2)
 
         contact = Contact.objects.get(pk=self.contact.id)
-        self.assertEquals(contact.sms_message_count, 2)
-        self.assertEquals(contact.call_count, 0)
-        self.assertEquals(contact.contact_count, 2)
+        self.assertEqual(contact.sms_message_count, 2)
+        self.assertEqual(contact.call_count, 0)
+        self.assertEqual(contact.contact_count, 2)

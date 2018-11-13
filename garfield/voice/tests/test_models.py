@@ -11,6 +11,6 @@ class CallModelTestCase(TestCase):
         self.call.save()
 
     def test_string_representation(self):
-        self.assertEquals(str(self.call),
-                          "{0}: from +15558675309 to "
-                          "+15556667777".format(self.call.date_created))
+        self.assertEqual(str(self.call),
+                         "{0}: from +15558675309 to "
+                         "+15556667777".format(self.call.date_created))

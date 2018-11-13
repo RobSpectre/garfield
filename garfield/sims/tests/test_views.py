@@ -510,10 +510,10 @@ class GarfieldTestCaseBotsandSims(GarfieldTwilioTestCase):
                             'from="{0}"'.format(self.sim_number.e164))
         self.assertContains(response,
                             'to="{0}"'.format(self.contact.phone_number))
-        self.assertEquals(mock_save.call_count,
-                          2)
-        self.assertEquals(mock_process.call_count,
-                          1)
+        self.assertEqual(mock_save.call_count,
+                         2)
+        self.assertEqual(mock_process.call_count,
+                         1)
 
     @patch('sms.tasks.check_contact.apply_async')
     @patch('bots.tasks.process_bot_response.apply_async')
@@ -553,7 +553,7 @@ class GarfieldTestCaseBotsandSims(GarfieldTwilioTestCase):
                             'from="{0}"'.format(self.sim_number.e164))
         self.assertContains(response,
                             'to="{0}"'.format(self.contact.phone_number))
-        self.assertEquals(mock_save.call_count,
-                          2)
-        self.assertEquals(mock_process.call_count,
-                          1)
+        self.assertEqual(mock_save.call_count,
+                         2)
+        self.assertEqual(mock_process.call_count,
+                         1)

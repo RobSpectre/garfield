@@ -74,9 +74,9 @@ class DeterrenceCampaignTestCase(TestCase):
 
     def test_date_sent_string_representation(self):
         self.deterrence_campaign.date_sent = timezone.now()
-        self.assertEquals("Deterrence Campaign: Sent {0} to 2 contacts"
-                          "".format(self.deterrence_campaign.date_sent),
-                          str(self.deterrence_campaign))
+        self.assertEqual("Deterrence Campaign: Sent {0} to 2 contacts"
+                         "".format(self.deterrence_campaign.date_sent),
+                         str(self.deterrence_campaign))
 
 
 class DeterrenceMessageTestCase(TestCase):
@@ -125,7 +125,7 @@ class DeterrenceMessageTestCase(TestCase):
                     related_contact=self.contact_1)
 
     def test_string_representation(self):
-        self.assertEquals(str(self.deterrence_message),
-                          "Deterrence message queued {0} to (555) 666-7777: "
-                          "Unidentified"
-                          "".format(self.deterrence_message.date_created))
+        self.assertEqual(str(self.deterrence_message),
+                         "Deterrence message queued {0} to (555) 666-7777: "
+                         "Unidentified"
+                         "".format(self.deterrence_message.date_created))

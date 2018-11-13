@@ -29,12 +29,12 @@ class SmsMessageInlineTestCase(TestCase):
     def test_sms_message_inline_get_extra(self):
         test = SmsMessageInline.get_extra(None, self.request)
 
-        self.assertEquals(test, 1)
+        self.assertEqual(test, 1)
 
     def test_sms_message_inline_get_extra_obj_exists(self):
         test = SmsMessageInline.get_extra(None, self.request, obj=True)
 
-        self.assertEquals(test, 0)
+        self.assertEqual(test, 0)
 
 
 class CallInlineTestCase(TestCase):
@@ -46,9 +46,9 @@ class CallInlineTestCase(TestCase):
     def test_call_inline_get_extra(self):
         test = CallInline.get_extra(None, self.request)
 
-        self.assertEquals(test, 1)
+        self.assertEqual(test, 1)
 
     def test_call_inline_get_extra_obj_exists(self):
         test = CallInline.get_extra(None, self.request, obj=True)
 
-        self.assertEquals(test, 0)
+        self.assertEqual(test, 0)

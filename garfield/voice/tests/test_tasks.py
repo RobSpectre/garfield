@@ -43,7 +43,7 @@ class CallTestCaseContactDoesNotExist(TestCase):
 
         calls = Call.objects.all()
 
-        self.assertEquals(len(calls), 1)
+        self.assertEqual(len(calls), 1)
         self.assertTrue(mock_contact.called)
 
 
@@ -85,10 +85,10 @@ class SaveCallTestCasePhoneNumberExists(TestCase):
         test = Call.objects.all()
 
         self.assertTrue(test)
-        self.assertEquals(test[0].sid, "CAtesting")
-        self.assertEquals(test[0].to_number, "+15558675309")
-        self.assertEquals(test[0].related_contact,
-                          self.contact)
+        self.assertEqual(test[0].sid, "CAtesting")
+        self.assertEqual(test[0].to_number, "+15558675309")
+        self.assertEqual(test[0].related_contact,
+                         self.contact)
         self.assertTrue(mock_check_contact.called)
 
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
@@ -108,10 +108,10 @@ class SaveCallTestCasePhoneNumberExists(TestCase):
         test = Call.objects.all()
 
         self.assertTrue(test)
-        self.assertEquals(test[1].sid, "CAtesting")
-        self.assertEquals(test[1].to_number, "+15556667777")
-        self.assertEquals(test[1].related_contact,
-                          self.contact)
+        self.assertEqual(test[1].sid, "CAtesting")
+        self.assertEqual(test[1].to_number, "+15556667777")
+        self.assertEqual(test[1].related_contact,
+                         self.contact)
         self.assertFalse(mock_check_contact.called)
 
     @patch('deterrence.tasks.check_campaign_for_contact.apply_async')
@@ -132,5 +132,5 @@ class SaveCallTestCasePhoneNumberExists(TestCase):
 
         test_call = Call.objects.all()[0]
 
-        self.assertEquals("example.com", test_call.recording_url)
-        self.assertEquals(15, test_call.duration)
+        self.assertEqual("example.com", test_call.recording_url)
+        self.assertEqual(15, test_call.duration)

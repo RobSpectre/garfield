@@ -13,11 +13,11 @@ class DeterrenceInlineTestCase(TestCase):
     def test_deterrence_message_inline_get_extra(self):
         test = DeterrenceMessageInline.get_extra(None, self.request)
 
-        self.assertEquals(test, 1)
+        self.assertEqual(test, 1)
 
     def test_deterrence_message_inline_get_extra_obj_exists(self):
         test = DeterrenceMessageInline.get_extra(None,
                                                  self.request,
                                                  obj=True)
 
-        self.assertEquals(test, 0)
+        self.assertEqual(test, 0)

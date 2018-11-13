@@ -14,8 +14,8 @@ class SimTestCase(TestCase):
                                       rate_plan="RExxx")
 
     def test_string_respresentation(self):
-        self.assertEquals(str(self.sim),
-                          "TestSim")
+        self.assertEqual(str(self.sim),
+                         "TestSim")
 
 
 class WhisperTestCase(TestCase):
@@ -35,6 +35,6 @@ class WhisperTestCase(TestCase):
                     related_phone_number=self.phone_number)
 
     def test_string_representation(self):
-        self.assertEquals(str(self.whisper),
-                          "Whisper for +15558675309: "
-                          "{0}".format(self.whisper.date_created))
+        self.assertEqual(str(self.whisper),
+                         "Whisper for +15558675309: "
+                         "{0}".format(self.whisper.date_created))

@@ -15,5 +15,5 @@ class SmsMessageModelTestCase(TestCase):
 
     def test_string_representation(self):
         date = self.sms_message.date_created
-        self.assertEquals(str(self.sms_message),
-                          "{0}: from from to to".format(date))
+        self.assertEqual(str(self.sms_message),
+                         "{0}: from from to to".format(date))
