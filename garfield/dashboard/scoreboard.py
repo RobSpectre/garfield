@@ -21,7 +21,6 @@ class DailyScoreboard(widgets.ItemList):
     limit_to = 21
     sortable = True
     width = widgets.LARGE
-    cache_timeout = 21600
 
     list_display = ['Date',
                     'Contacts',
@@ -157,7 +156,6 @@ class MonthlyScoreboard(widgets.ItemList):
     limit_to = 12
     sortable = True
     width = widgets.LARGE
-    cache_timeout = 21600
 
     list_display = ['Date',
                     'Contacts',

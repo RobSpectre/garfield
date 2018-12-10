@@ -13,7 +13,6 @@ from voice.models import Call
 
 class MonthlyChart(widgets.SingleBarChart):
     limit_to = 12
-    cache_timeout = 21600
 
     class Chartist:
         options = {'axisX': {'onlyInteger': True}}
@@ -75,7 +74,6 @@ class MonthlyDeterrenceMessageChart(widgets.BarChart):
     title = "Monthly Deterrence Messages"
 
     width = widgets.SMALL
-    cache_timeout = 21600
 
     failed = Count('id', filter=Q(status='failed'))
     delivered = Count('id', filter=Q(status='delivered'))
@@ -166,7 +164,6 @@ class TopContacts(widgets.SingleBarChart):
     title = "Contacts With Most Messages"
 
     width = widgets.LARGE
-    cache_timeout = 21600
 
     values_list = ('related_contact__phone_number',
                    'count')
@@ -189,7 +186,6 @@ class TopDeterredContacts(widgets.SingleBarChart):
     title = "Contacts Receiving Most Deterrents"
 
     width = widgets.LARGER
-    cache_timeout = 21600
 
     values_list = ('related_contact__phone_number',
                    'count')
@@ -212,7 +208,6 @@ class TopContactsRespondingToDeterrence(widgets.SingleBarChart):
     title = "Contacts With Most Responses To Deterrence"
 
     width = widgets.LARGE
-    cache_timeout = 21600
 
     values_list = ('related_contact__phone_number',
                    'count')
