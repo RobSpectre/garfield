@@ -3,8 +3,15 @@ import pytz
 
 
 def daterange(start_date, end_date):
-    for n in range(int((end_date - start_date).days)):
-        yield start_date + datetime.timedelta(n)
+    dates = []
+    for n in range(int((end_date - start_date).days + 1)):
+        dates.append((start_date +
+                      datetime.timedelta(days=n)).replace(hour=0,
+                                                          minute=0,
+                                                          second=0,
+                                                          microsecond=0))
+
+    return dates
 
 
 def daterange_by_week(year, week):

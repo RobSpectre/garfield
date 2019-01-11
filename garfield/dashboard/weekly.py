@@ -1,4 +1,5 @@
 import datetime
+import pytz
 
 from django.db.models import Count
 from django.db.models import Q
@@ -13,7 +14,7 @@ from deterrence.models import DeterrenceMessage
 from sms.models import SmsMessage
 from voice.models import Call
 
-from .util import daterange_by_week
+from .util import daterange
 
 
 class ContactList(widgets.ItemList):
@@ -23,7 +24,10 @@ class ContactList(widgets.ItemList):
     width = widgets.FULL
 
     queryset = \
-        Contact.objects.filter(date_created__week=datetime
+        Contact.objects.filter(date_created__year=datetime
+                               .datetime.today()
+                               .isocalendar()[0]) \
+                       .filter(date_created__week=datetime
                                .datetime
                                .today()
                                .isocalendar()[1]) \
@@ -53,10 +57,9 @@ class LatestMessagesList(widgets.ItemList):
     width = widgets.LARGE
 
     queryset = (SmsMessage.objects
-                .filter(date_created__week=datetime
-                        .date
-                        .today()
-                        .isocalendar()[1])
+                .filter(date_created__gte=datetime.
+                        datetime.now(tz=pytz.utc) - datetime
+                        .timedelta(days=3))
                 .filter(related_phone_number__number_type='ADV')
                 .order_by('-date_created'))
 
@@ -147,11 +150,13 @@ class DailyChart(widgets.SingleBarChart):
 
     width = widgets.SMALL
 
-    iso_today = datetime.datetime.today().isocalendar()
+    past_week = (datetime.datetime.now(tz=pytz.utc) -
+                 datetime.timedelta(days=7))
+    current = datetime.datetime.now(tz=pytz.utc)
 
     def labels(self):
-        labels = daterange_by_week(self.iso_today[0],
-                                   self.iso_today[1])
+        labels = daterange(self.past_week,
+                           self.current)
 
         return [label.strftime("%d %b") for label in labels]
 
@@ -161,7 +166,7 @@ class ContactChart(DailyChart):
 
     def series(self):
         queryset = (Contact.objects
-                    .filter(date_created__week=self.iso_today[1])
+                    .filter(date_created__gte=self.past_week)
                     .annotate(day_created=TruncDay('date_created'))
                     .values('day_created')
                     .annotate(count=Count('id')))
@@ -171,8 +176,8 @@ class ContactChart(DailyChart):
         for row in queryset:
             values[row['day_created']] = row['count']
 
-        dates = daterange_by_week(self.iso_today[0],
-                                  self.iso_today[1])
+        dates = daterange(self.past_week,
+                          self.current)
 
         series = []
 
@@ -188,7 +193,7 @@ class SmsMessageChart(DailyChart):
 
     def series(self):
         queryset = (SmsMessage.objects
-                    .filter(date_created__week=self.iso_today[1])
+                    .filter(date_created__gte=self.past_week)
                     .filter(related_phone_number__number_type='ADV')
                     .annotate(day_created=TruncDay('date_created'))
                     .values('day_created')
@@ -199,8 +204,8 @@ class SmsMessageChart(DailyChart):
         for row in queryset:
             values[row['day_created']] = row['count']
 
-        dates = daterange_by_week(self.iso_today[0],
-                                  self.iso_today[1])
+        dates = daterange(self.past_week,
+                          self.current)
 
         series = []
 
@@ -216,7 +221,7 @@ class CallChart(DailyChart):
 
     def series(self):
         queryset = (Call.objects
-                    .filter(date_created__week=self.iso_today[1])
+                    .filter(date_created__gte=self.past_week)
                     .filter(related_phone_number__number_type='ADV')
                     .annotate(day_created=TruncDay('date_created'))
                     .values('day_created')
@@ -227,8 +232,8 @@ class CallChart(DailyChart):
         for row in queryset:
             values[row['day_created']] = row['count']
 
-        dates = daterange_by_week(self.iso_today[0],
-                                  self.iso_today[1])
+        dates = daterange(self.past_week,
+                          self.current)
 
         series = []
 
@@ -244,7 +249,7 @@ class DeterrenceResponseChart(DailyChart):
 
     def series(self):
         queryset = (SmsMessage.objects
-                    .filter(date_created__week=self.iso_today[1])
+                    .filter(date_created__gte=self.past_week)
                     .filter(related_phone_number__number_type='DET')
                     .annotate(day_created=TruncDay('date_created'))
                     .values('day_created')
@@ -255,8 +260,8 @@ class DeterrenceResponseChart(DailyChart):
         for row in queryset:
             values[row['day_created']] = row['count']
 
-        dates = daterange_by_week(self.iso_today[0],
-                                  self.iso_today[1])
+        dates = daterange(self.past_week,
+                          self.current)
 
         series = []
 
@@ -272,7 +277,7 @@ class DeterrenceCallChart(DailyChart):
 
     def series(self):
         queryset = (Call.objects
-                    .filter(date_created__week=self.iso_today[1])
+                    .filter(date_created__gte=self.past_week)
                     .filter(related_phone_number__number_type='DET')
                     .annotate(day_created=TruncDay('date_created'))
                     .values('day_created')
@@ -283,8 +288,8 @@ class DeterrenceCallChart(DailyChart):
         for row in queryset:
             values[row['day_created']] = row['count']
 
-        dates = daterange_by_week(self.iso_today[0],
-                                  self.iso_today[1])
+        dates = daterange(self.past_week,
+                          self.current)
 
         series = []
 
@@ -304,11 +309,13 @@ class DeterrenceMessageChart(widgets.BarChart):
 
     width = widgets.SMALL
 
-    iso_today = datetime.datetime.today().isocalendar()
+    past_week = (datetime.datetime.now(tz=pytz.utc) -
+                 datetime.timedelta(days=7))
+    current = datetime.datetime.now(tz=pytz.utc)
 
     def labels(self):
-        labels = daterange_by_week(self.iso_today[0],
-                                   self.iso_today[1])
+        labels = daterange(self.past_week,
+                           self.current)
 
         return [label.strftime("%d %b") for label in labels]
 
@@ -325,7 +332,7 @@ class DeterrenceMessageChart(widgets.BarChart):
 
     def series(self):
         queryset = (DeterrenceMessage.objects
-                    .filter(date_created__week=self.iso_today[1])
+                    .filter(date_created__gte=self.past_week)
                     .annotate(day_created=TruncDay('date_created'))
                     .values('day_created')
                     .annotate(delivered=self.delivered)
@@ -341,8 +348,8 @@ class DeterrenceMessageChart(widgets.BarChart):
                                           'undelivered': row['undelivered'],
                                           'failed': row['failed']}
 
-        dates = daterange_by_week(self.iso_today[0],
-                                  self.iso_today[1])
+        dates = daterange(self.past_week,
+                          self.current)
 
         series = []
 
@@ -369,13 +376,14 @@ class PhoneNumberChart(widgets.SingleBarChart):
     title = "Contacts By Phone Number"
     width = widgets.LARGE
 
-    iso_today = datetime.datetime.today().isocalendar()
+    past_week = (datetime.datetime.now(tz=pytz.utc) -
+                 datetime.timedelta(days=7))
 
     values_list = ('related_phone_number__friendly_name',
                    'count')
 
     queryset = (SmsMessage.objects
-                .filter(date_created__week=iso_today[1])
+                .filter(date_created__gte=past_week)
                 .filter(related_phone_number__number_type='ADV')
                 .values('related_phone_number__friendly_name')
                 .annotate(count=Count('related_contact__id',
