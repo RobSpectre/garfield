@@ -63,7 +63,6 @@ class MonthlyMessageChart(MonthlyChart):
                                                   second=0,
                                                   microsecond=0)
 
-
     queryset = (SmsMessage.objects
                 .filter(date_created__gte=past)
                 .filter(related_phone_number__number_type='ADV')
