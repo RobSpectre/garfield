@@ -1,3 +1,6 @@
+import datetime
+import pytz
+
 from django.db.models import Count
 from django.db.models import Q
 from django.db.models.functions import TruncMonth
@@ -33,7 +36,15 @@ class MonthlyContactChart(MonthlyChart):
 
     values_list = ('month_created', 'count')
 
+    past = (datetime.datetime.now(tz=pytz.utc) -
+            datetime.timedelta(days=335)).replace(day=1,
+                                                  hour=0,
+                                                  minute=0,
+                                                  second=0,
+                                                  microsecond=0)
+
     queryset = (Contact.objects
+                .filter(date_created__gte=past)
                 .annotate(month_created=TruncMonth('date_created'))
                 .values('month_created')
                 .annotate(count=Count('id'))
@@ -45,7 +56,16 @@ class MonthlyMessageChart(MonthlyChart):
 
     values_list = ('month_created', 'count')
 
+    past = (datetime.datetime.now(tz=pytz.utc) -
+            datetime.timedelta(days=335)).replace(day=1,
+                                                  hour=0,
+                                                  minute=0,
+                                                  second=0,
+                                                  microsecond=0)
+
+
     queryset = (SmsMessage.objects
+                .filter(date_created__gte=past)
                 .filter(related_phone_number__number_type='ADV')
                 .annotate(month_created=TruncMonth('date_created'))
                 .order_by('month_created')
@@ -58,7 +78,15 @@ class MonthlyCallChart(MonthlyChart):
 
     values_list = ('month_created', 'count')
 
+    past = (datetime.datetime.now(tz=pytz.utc) -
+            datetime.timedelta(days=335)).replace(day=1,
+                                                  hour=0,
+                                                  minute=0,
+                                                  second=0,
+                                                  microsecond=0)
+
     queryset = (Call.objects
+                .filter(date_created__gte=past)
                 .filter(related_phone_number__number_type='ADV')
                 .annotate(month_created=TruncMonth('date_created'))
                 .order_by('month_created')
@@ -80,7 +108,15 @@ class MonthlyDeterrenceMessageChart(widgets.BarChart):
     sent = Count('id', filter=Q(status='sent'))
     undelivered = Count('id', filter=Q(status='undelivered'))
 
+    past = (datetime.datetime.now(tz=pytz.utc) -
+            datetime.timedelta(days=335)).replace(day=1,
+                                                  hour=0,
+                                                  minute=0,
+                                                  second=0,
+                                                  microsecond=0)
+
     queryset = (DeterrenceMessage.objects
+                .filter(date_created__gte=past)
                 .annotate(month_created=TruncMonth('date_created'))
                 .order_by('month_created')
                 .values('month_created')
@@ -133,7 +169,15 @@ class MonthlyDeterrenceResponseChart(MonthlyChart):
 
     values_list = ('month_created', 'count')
 
+    past = (datetime.datetime.now(tz=pytz.utc) -
+            datetime.timedelta(days=335)).replace(day=1,
+                                                  hour=0,
+                                                  minute=0,
+                                                  second=0,
+                                                  microsecond=0)
+
     queryset = (SmsMessage.objects
+                .filter(date_created__gte=past)
                 .filter(related_phone_number__number_type='DET')
                 .annotate(month_created=TruncMonth('date_created'))
                 .order_by('month_created')
@@ -146,7 +190,15 @@ class MonthlyDeterrenceCallChart(MonthlyChart):
 
     values_list = ('month_created', 'count')
 
+    past = (datetime.datetime.now(tz=pytz.utc) -
+            datetime.timedelta(days=335)).replace(day=1,
+                                                  hour=0,
+                                                  minute=0,
+                                                  second=0,
+                                                  microsecond=0)
+
     queryset = (Call.objects
+                .filter(date_created__gte=past)
                 .filter(related_phone_number__number_type='DET')
                 .annotate(month_created=TruncMonth('date_created'))
                 .order_by('month_created')
@@ -192,7 +244,15 @@ class TopDeterredContacts(widgets.SingleBarChart):
 
     limit_to = 14
 
+    past = (datetime.datetime.now(tz=pytz.utc) -
+            datetime.timedelta(days=335)).replace(day=1,
+                                                  hour=0,
+                                                  minute=0,
+                                                  second=0,
+                                                  microsecond=0)
+
     queryset = (DeterrenceMessage.objects
+                .filter(date_created__gte=past)
                 .values('related_contact__phone_number')
                 .annotate(count=Count('sid'))
                 .order_by('-count'))
@@ -214,7 +274,15 @@ class TopContactsRespondingToDeterrence(widgets.SingleBarChart):
 
     limit_to = 14
 
+    past = (datetime.datetime.now(tz=pytz.utc) -
+            datetime.timedelta(days=335)).replace(day=1,
+                                                  hour=0,
+                                                  minute=0,
+                                                  second=0,
+                                                  microsecond=0)
+
     queryset = (SmsMessage.objects
+                .filter(date_created__gte=past)
                 .filter(related_phone_number__number_type='DET')
                 .values('related_contact__phone_number')
                 .annotate(count=Count('sid'))
@@ -234,7 +302,15 @@ class PhoneNumberChart(widgets.SingleBarChart):
     values_list = ('related_phone_number__friendly_name',
                    'count')
 
+    past = (datetime.datetime.now(tz=pytz.utc) -
+            datetime.timedelta(days=335)).replace(day=1,
+                                                  hour=0,
+                                                  minute=0,
+                                                  second=0,
+                                                  microsecond=0)
+
     queryset = (SmsMessage.objects
+                .filter(date_created__gte=past)
                 .filter(related_phone_number__number_type='ADV')
                 .values('related_phone_number__friendly_name')
                 .annotate(count=Count('related_contact__id',

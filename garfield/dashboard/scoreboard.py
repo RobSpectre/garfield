@@ -1,4 +1,5 @@
 import datetime
+import pytz
 
 from django.db.models import Count
 from django.db.models import OuterRef
@@ -18,7 +19,7 @@ from .util import daterange
 
 
 class DailyScoreboard(widgets.ItemList):
-    limit_to = 21
+    limit_to = 31
     sortable = True
     width = widgets.LARGE
 
@@ -31,7 +32,7 @@ class DailyScoreboard(widgets.ItemList):
                     'Contacts w/ Name',
                     'Contacts w/ Name & Address']
 
-    period = datetime.date.today() - datetime.timedelta(days=limit_to)
+    period = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(days=30)
 
     contacts = (Contact.objects
                 .filter(date_created__gte=period)
@@ -83,7 +84,7 @@ class DailyScoreboard(widgets.ItemList):
 
     def dates(self):
         return daterange(self.period,
-                         datetime.date.today() + datetime.timedelta(days=1))
+                         datetime.datetime.now(tz=pytz.utc))
 
     def get_queryset(self):
         values = {}
@@ -107,7 +108,7 @@ class DailyScoreboard(widgets.ItemList):
                                       self.contacts_with_name,
                                       self.contacts_with_address]):
             for row in queryset:
-                values[row['date'].date()][self.list_display[i + 1]] = \
+                values[row['date']][self.list_display[i + 1]] = \
                     row['count']
 
         series = []
@@ -153,7 +154,7 @@ class DailyScoreboard(widgets.ItemList):
 
 
 class MonthlyScoreboard(widgets.ItemList):
-    limit_to = 12
+    limit_to = 13
     sortable = True
     width = widgets.LARGE
 
@@ -167,50 +168,50 @@ class MonthlyScoreboard(widgets.ItemList):
                     'Contacts w/ Name & Address',
                     'Responded to Deterrent']
 
-    period = datetime.date.today().year
+    period = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(days=365)
 
     contacts = (Contact.objects
-                .filter(date_created__year__gte=period)
+                .filter(date_created__gte=period)
                 .annotate(date=TruncMonth('date_created'))
                 .values('date')
                 .annotate(count=Count('id')))
 
     sms_messages = (SmsMessage.objects
-                    .filter(date_created__year__gte=period)
+                    .filter(date_created__gte=period)
                     .filter(related_phone_number__number_type='ADV')
                     .annotate(date=TruncMonth('date_created'))
                     .values('date')
                     .annotate(count=Count('id')))
 
     calls = (Call.objects
-             .filter(date_created__year__gte=period)
+             .filter(date_created__gte=period)
              .filter(related_phone_number__number_type='ADV')
              .annotate(date=TruncMonth('date_created'))
              .values('date')
              .annotate(count=Count('id')))
 
     deterrents = (DeterrenceMessage.objects
-                  .filter(date_created__year__gte=period)
+                  .filter(date_created__gte=period)
                   .annotate(date=TruncMonth('date_created'))
                   .values('date')
                   .annotate(count=Count('id')))
 
     undelivered = (DeterrenceMessage.objects
-                   .filter(date_created__year__gte=period)
+                   .filter(date_created__gte=period)
                    .filter(status='undelivered')
                    .annotate(date=TruncMonth('date_created'))
                    .values('date')
                    .annotate(count=Count('id')))
 
     contacts_with_name = (Contact.objects
-                          .filter(date_created__year__gte=period)
+                          .filter(date_created__gte=period)
                           .filter(whitepages_last_name__isnull=False)
                           .annotate(date=TruncMonth('date_created'))
                           .values('date')
                           .annotate(count=Count('id')))
 
     contacts_with_address = (Contact.objects
-                             .filter(date_created__year__gte=period)
+                             .filter(date_created__gte=period)
                              .filter(whitepages_last_name__isnull=False)
                              .filter(whitepages_address__isnull=False)
                              .annotate(date=TruncMonth('date_created'))
@@ -219,7 +220,7 @@ class MonthlyScoreboard(widgets.ItemList):
 
     respondents = \
         (SmsMessage.objects
-         .filter(date_created__year__gte=period)
+         .filter(date_created__gte=period)
          .filter(related_phone_number__number_type='DET')
          .annotate(date=TruncMonth('date_created'))
          .filter(related_contact__id__in=Subquery(
