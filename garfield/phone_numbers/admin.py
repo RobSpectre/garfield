@@ -63,3 +63,14 @@ class CallInline(admin.TabularInline):
 @admin.register(PhoneNumber)
 class PhoneNumberAdmin(admin.ModelAdmin):
     inlines = [SmsMessageInline, CallInline]
+    search_fields = ('e164',
+                     'sid',
+                     'formatted',
+                     'friendly_name')
+    list_display = ('date_created',
+                    'e164',
+                    'formatted',
+                    'number_type',
+                    'friendly_name',
+                    'related_sim',
+                    'related_bot')
