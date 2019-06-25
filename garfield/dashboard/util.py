@@ -23,3 +23,8 @@ def daterange_by_week(year, week):
 
     return [x for x in daterange(start_date,
                                  start_date + datetime.timedelta(days=7))]
+
+
+def start_of_week():
+    return datetime.date.today() - \
+        datetime.timedelta(days=datetime.date.today().isoweekday() % 7)

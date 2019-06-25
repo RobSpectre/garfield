@@ -15,6 +15,7 @@ from sms.models import SmsMessage
 from voice.models import Call
 
 from .util import daterange
+from .util import start_of_week
 
 
 class ContactList(widgets.ItemList):
@@ -24,14 +25,11 @@ class ContactList(widgets.ItemList):
     width = widgets.FULL
 
     queryset = \
-        Contact.objects.filter(date_created__year=datetime
-                               .datetime.today()
-                               .isocalendar()[0]) \
-                       .filter(date_created__week=datetime
-                               .datetime
-                               .today()
-                               .isocalendar()[1]) \
-                       .order_by('-date_created')
+        Contact.objects \
+               .filter(Q(sms_messages__date_created__gte=start_of_week()) |
+                       Q(calls__date_created__gte=start_of_week())) \
+               .distinct() \
+               .order_by('-date_created')
     list_display = ('date_created',
                     'phone_number',
                     'whitepages_first_name',
