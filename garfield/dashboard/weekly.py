@@ -34,8 +34,6 @@ class ContactList(widgets.ItemList):
                     'phone_number',
                     'whitepages_first_name',
                     'whitepages_last_name',
-                    'nextcaller_first_name',
-                    'nextcaller_last_name',
                     'sms_message_count',
                     'call_count',
                     'contact_count')

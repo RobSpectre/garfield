@@ -20,6 +20,11 @@ class Contact(models.Model):
     date_modified = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)
 
+    phone_number_quick_copy = models.CharField(max_length=255,
+                                               db_index=True,
+                                               blank=True,
+                                               null=True)
+
     whitepages_first_name = models.CharField(max_length=255,
                                              db_index=True,
                                              blank=True,
@@ -87,7 +92,6 @@ class Contact(models.Model):
                                              db_index=True,
                                              blank=True,
                                              null=True)
-
     nextcaller_first_name = models.CharField(max_length=255,
                                              db_index=True,
                                              blank=True,
@@ -218,5 +222,7 @@ class Contact(models.Model):
             phonenumbers.format_number(parsed,
                                        phonenumbers.PhoneNumberFormat
                                        .NATIONAL)
+        self.phone_number_quick_copy = \
+            self.phone_number_friendly[2:]
 
         super(Contact, self).save(force_insert, force_update)
