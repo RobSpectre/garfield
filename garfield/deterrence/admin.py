@@ -1,7 +1,5 @@
 from django.contrib import admin
 
-from contacts.models import Contact
-
 from .models import Deterrent
 from .models import DeterrenceCampaign
 from .models import DeterrenceMessage
@@ -23,6 +21,7 @@ class DeterrenceMessageInline(admin.TabularInline):
                           'related_phone_number',
                           'related_deterrent')
     exclude = ['sid', 'deleted']
+    can_delete = False
 
     def get_extra(self, request, obj=None, **kwargs):
         if obj:
