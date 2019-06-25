@@ -16,6 +16,11 @@ class PhoneNumber(models.Model):
     e164 = models.CharField(max_length=255)
     formatted = models.CharField(max_length=255)
     friendly_name = models.CharField(max_length=255)
+    website = models.CharField(max_length=255,
+                               blank=True,
+                               null=True)
+    website_uri = models.URLField(blank=True,
+                                  null=True)
     country_code = models.CharField(max_length=255)
     burned = models.BooleanField(default=False)
 
