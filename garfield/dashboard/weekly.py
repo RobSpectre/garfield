@@ -29,6 +29,8 @@ class ContactList(widgets.ItemList):
                .filter(Q(sms_messages__date_created__gte=start_of_week()) |
                        Q(calls__date_created__gte=start_of_week())) \
                .distinct() \
+               .annotate(deterrence_count=Count('deterrence_messages',
+                                                distinct=True)) \
                .order_by('-date_created')
     list_display = ('date_created',
                     'phone_number',
@@ -36,7 +38,7 @@ class ContactList(widgets.ItemList):
                     'whitepages_last_name',
                     'sms_message_count',
                     'call_count',
-                    'contact_count')
+                    'deterrence_count')
 
     list_display_links = ('phone_number')
     sortable = True
