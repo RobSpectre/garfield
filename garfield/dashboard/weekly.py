@@ -31,16 +31,21 @@ class ContactList(widgets.ItemList):
                .distinct() \
                .annotate(deterrence_count=Count('deterrence_messages',
                                                 distinct=True)) \
+               .annotate(sms_count=Count('sms_messages',
+                                         distinct=True)) \
+               .annotate(voice_count=Count('calls',
+                                           distinct=True)) \
                .order_by('-date_created')
     list_display = ('date_created',
-                    'phone_number',
+                    'phone_number_friendly',
+                    'phone_number_quick_copy',
                     'whitepages_first_name',
                     'whitepages_last_name',
-                    'sms_message_count',
-                    'call_count',
+                    'sms_count',
+                    'voice_count',
                     'deterrence_count')
 
-    list_display_links = ('phone_number')
+    list_display_links = ('phone_number_friendly')
     sortable = True
     limit_to = None
 

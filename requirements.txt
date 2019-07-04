@@ -8,3 +8,4 @@ phonenumbers==8.9.1
 django-controlcenter==0.2.9
 spacy==2.0.18
 ephem==3.7.6
+django-debug-toolbar==2.0.0

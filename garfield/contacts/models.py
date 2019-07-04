@@ -223,6 +223,6 @@ class Contact(models.Model):
                                        phonenumbers.PhoneNumberFormat
                                        .NATIONAL)
         self.phone_number_quick_copy = \
-            self.phone_number_friendly[2:]
+            self.phone_number[2:]
 
         super(Contact, self).save(force_insert, force_update)

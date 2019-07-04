@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'dashboard',
     'bots',
     'django_celery_results',
-    'django_celery_beat'
+    'django_celery_beat',
+    'debug_toolbar'
 ]
 
 MIDDLEWARE = [
@@ -58,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
 
 ROOT_URLCONF = 'garfield.urls'
