@@ -1,9 +1,9 @@
-Django==2.2.2
+Django==2.2.3
 twilio==6.28.0
 Pillow==3.4.1
 django-celery-beat==1.1.1
 django-celery-results==1.0.1
-djangorestframework==3.8.2
+djangorestframework==3.9.4
 phonenumbers==8.9.1
 django-controlcenter==0.2.9
 spacy==2.0.18
