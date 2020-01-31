@@ -1,6 +1,6 @@
-Django==2.2.8
+Django==2.2.9
 twilio==6.28.0
-Pillow==3.4.1
+Pillow==6.2.0
 django-celery-beat==1.1.1
 django-celery-results==1.0.1
 djangorestframework==3.9.4

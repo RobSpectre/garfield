@@ -115,75 +115,94 @@ class TaskLookupContactWhitepagesTestCase(TestCase):
 
         self.contact.related_phone_numbers.add(self.phone_number)
 
-        self.add_ons_person = '{"whitepages_pro_caller_id":{"code":null,' \
-                              '"result":{"belongs_to":[{"link_to_phone_s' \
-                              'tart_date":null,"middlename":null,"type":' \
-                              '"Person","age_range":null,"name":"John Do' \
-                              'e","id":"Person.xxx.Durable","firstname":' \
-                              '"John","lastname":"Doe","gender":"Male"}]' \
-                              ',"carrier":"AT&T","historical_addresses":' \
-                              '[],"is_valid":true,"current_addresses":[{' \
-                              '"state_code":"PA","city":"Johnstown","lat' \
-                              '_long":{"latitude":40.328487,"accuracy":"' \
-                              'RoofTop","longitude":-78.914452},"id":"Lo' \
-                              'cation.xxx.Durable","street_line_2":null,' \
-                              '"postal_code":"15901","location_type":"Ad' \
-                              'dress","is_active":true,"zip4":null,"link' \
-                              '_to_person_start_date":null,"delivery_poi' \
-                              'nt":"SingleUnit","street_line_1":"123 Joh' \
-                              'nny Street","country_code":"US"}],"phone_' \
-                              'number":"5556667777","id":"Phone.xxx.Dura' \
-                              'ble","alternate_phones":[],"is_prepaid":n' \
-                              'ull,"line_type":"Mobile","warnings":[],"c' \
-                              'ountry_calling_code":"1","associated_peop' \
-                              'le":[],"error":null,"is_commercial":false' \
-                              '},"request_sid":"xxx","status":"successfu' \
-                              'l","message":null}}'
+        self.add_ons_person = '{"whitepages_pro_caller_id": {"status": "' \
+                              'successful", "request_sid": "asdf", "mess' \
+                              'age": null, "code": null, "result": {"pho' \
+                              'ne_number": "+15558675309", "warnings": [' \
+                              '], "historical_addresses": [], "alternate' \
+                              '_phones": [], "error": null, "is_commerci' \
+                              'al": false, "associated_people": [{"name"' \
+                              ': "Jack Doe", "firstname": "JohJackn", "m' \
+                              'iddlename": "Q", "lastname": "Doe", "rela' \
+                              'tion": "Household", "id": "Person.asdf"},' \
+                              '{"name": "Jane Doe", "firstname": "Jane",' \
+                              '"middlename": "", "lastname": "Doe", "rel' \
+                              'ation": "Household", "id": "Person.qwer"}' \
+                              '], "country_calling_code": "1", "belongs_' \
+                              'to": {"age_range": {"to": 67, "from": 60}' \
+                              ', "name": "Mr. John Doe", "firstname": "J' \
+                              'ohn", "middlename": "Q", "lastname": "Doe' \
+                              '", "industry": null, "alternate_names": [' \
+                              '], "gender": "Male", "link_to_phone_start' \
+                              '_date": "2018-04-06", "type": "Person", "' \
+                              'id": "Person.zxcv"}, "is_valid": true, "l' \
+                              'ine_type": "Mobile", "carrier": "childsaf' \
+                              'e.ai", "current_addresses": [{"city": "Ne' \
+                              'w York", "lat_long": {"latitude": 40.328487,' \
+                              '"longitude": -73.9855, "accuracy": "RoofT' \
+                              'op"}, "is_active": true, "location_type":' \
+                              '"Address", "street_line_2": null, "link_t' \
+                              'o_person_start_date": "2019-03-01", "stre' \
+                              'et_line_1": "123 Johnny Street", "postal_cod' \
+                              'e": "10036", "delivery_point": "MultiUnit' \
+                              '", "country_code": "US", "state_code": "N' \
+                              'Y", "id": "Location.asdf", "zip4": "0000"' \
+                              '}], "id": "Phone.lkj", "is_prepaid": null' \
+                              '}}}'
 
-        self.add_ons_business = '{"whitepages_pro_caller_id":{"code":nul' \
-                                'l,"result":{"belongs_to":[{"link_to_pho' \
-                                'ne_start_date":null,"middlename":null,"' \
-                                'type":"Business","age_range":null,"name' \
-                                '":"The John Store","id":"Business.xxxx.' \
-                                'Durable","firstname":null,"lastname":nu' \
-                                'll,"gender":null}],"carrier":"Verizon",' \
-                                '"historical_addresses":[],"is_valid":tr' \
-                                'ue,"current_addresses":[{"state_code":"' \
-                                'PA","city":"Johnstown","lat_long":{"lat' \
-                                'itude":40.328487,"accuracy":"RoofTop","' \
-                                'longitude":-78.914452},"id":"Location.x' \
-                                'xx.Durable","street_line_2":null,"posta' \
-                                'l_code":"15901","location_type":"Addres' \
-                                's","is_active":null,"zip4":null,"link_t' \
-                                'o_person_start_date":null,"delivery_poi' \
-                                'nt":null,"street_line_1":"123 Johnny St' \
-                                'reet","country_code":"US"}],"phone_numb' \
-                                'er":"5556667778","id":"Phone.xxxxx.Dura' \
-                                'ble","alternate_phones":[],"is_prepaid"' \
-                                ':false,"line_type":"Landline","warnings' \
-                                '":[],"country_calling_code":"1","associ' \
-                                'ated_people":[],"error":null,"is_commer' \
-                                'cial":true},"request_sid":"xxx","status' \
-                                '":"successful","message":null}}'
+        self.add_ons_business = '{"whitepages_pro_caller_id": {"status": "' \
+                                'successful", "request_sid": "asdf", "mess' \
+                                'age": null, "code": null, "result": {"pho' \
+                                'ne_number": "+18888675309", "warnings": [' \
+                                '], "historical_addresses": [], "alternate' \
+                                '_phones": [], "error": null, "is_commerci' \
+                                'al": true, "associated_people": [], "coun' \
+                                'try_calling_code": "1", "belongs_to": {"a' \
+                                'ge_range": null, "name": "The John Store"' \
+                                ', "firstname": null, "middlename": null, ' \
+                                '"lastname": null, "industry": null, "alte' \
+                                'rnate_names": [], "gender": null, "link_t' \
+                                'o_phone_start_date": null, "type": "Busin' \
+                                'ess", "id": "Business.asdf"}, "is_valid":' \
+                                'true, "line_type": "TollFree", "carrier":' \
+                                '"Test.", "current_addresses": [{"city": "' \
+                                'New York", "lat_long": {"latitude": 40.32' \
+                                '8487, "longitude": -73.9855, "accuracy": ' \
+                                '"Rooftop"}, "is_active": null, "location_' \
+                                'type": "Address", "street_line_2": null, ' \
+                                '"link_to_person_start_date": null, "stree' \
+                                't_line_1": "123 Johnny Street", "postal_c' \
+                                'ode": null, "delivery_point": null, "coun' \
+                                'try_code": "US", "state_code": null, "id"' \
+                                ': "Location.asdf", "zip4": null}], "id": ' \
+                                '"Phone.asdf", "is_prepaid": null}}}'
 
-        self.add_ons_voip = '{"whitepages_pro_caller_id":{"code":null,"r' \
-                            'esult":{"belongs_to":[],"carrier":"Bandwidt' \
-                            'h","historical_addresses":[],"is_valid":tru' \
-                            'e,"current_addresses":[{"state_code":"PA","' \
-                            'city":"Johnstown","lat_long":{"latitude":40' \
-                            '.328487,"accuracy":"PostalCode","longitude"' \
-                            ':-78.914452},"id":"Location.xxxx.Durable","' \
-                            'street_line_2":null,"postal_code":"15901","' \
-                            'location_type":"PostalCode","is_active":nul' \
-                            'l,"zip4":null,"link_to_person_start_date":n' \
-                            'ull,"delivery_point":null,"street_line_1":n' \
-                            'ull,"country_code":"US"}],"phone_number":"5' \
-                            '556667779","id":"Phone.xxx.Durable","altern' \
-                            'ate_phones":[],"is_prepaid":null,"line_type' \
-                            '":"NonFixedVOIP","warnings":[],"country_cal' \
-                            'ling_code":"1","associated_people":[],"erro' \
-                            'r":null,"is_commercial":null},"request_sid"' \
-                            ':"xxxx","status":"successful","message":null}}'
+        self.add_ons_voip = '{"whitepages_pro_caller_id": {"status": "' \
+                            'successful", "request_sid": "asdf", "mess' \
+                            'age": null, "code": null, "result": {"pho' \
+                            'ne_number": "+15558675309", "warnings": [' \
+                            '], "historical_addresses": [], "alternate' \
+                            '_phones": [], "error": null, "is_commerci' \
+                            'al": false, "associated_people": [], "cou' \
+                            'ntry_calling_code": "1", "belongs_to": {"' \
+                            'age_range": null, "name": "John Doe", "fi' \
+                            'rstname": null, "middlename": null, "la' \
+                            'stname": "Doe", "industry": null, "altern' \
+                            'ate_names": [], "gender": null, "link_to_' \
+                            'phone_start_date": null, "type": "Person"' \
+                            ', "id": "Person.asdf"}, "is_valid": true,' \
+                            ' "line_type": "NonFixedVOIP", "carrier": ' \
+                            '"Test.", "current_addresses": [{"city": "' \
+                            'New York", "lat_long": {"latitude": 40.32' \
+                            '8487, "longitude": -73.9672, "accuracy": ' \
+                            '"PostalCode"}, "is_active": null, "locati' \
+                            'on_type": "PostalCode", "street_line_2": ' \
+                            'null, "link_to_person_start_date": null, ' \
+                            '"street_line_1": null, "postal_code": "10' \
+                            '025", "delivery_point": null, "country_co' \
+                            'de": "US", "state_code": "NY", "id": "Loc' \
+                            'ation.asdf", "zip4": null}], "id": "Phone' \
+                            '.asdf", "is_prepaid": null}}}'
 
     @patch('contacts.tasks.send_notification_whitepages.apply_async')
     @patch('contacts.tasks.apply_lookup_whitepages_to_contact')

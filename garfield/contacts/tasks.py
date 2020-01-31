@@ -60,17 +60,17 @@ def apply_lookup_whitepages_to_contact(contact, lookup):
     result = lookup.add_ons['results']["whitepages_pro_caller_id"]['result']
 
     if result['belongs_to']:
-        contact.whitepages_entity_type = result['belongs_to'][0]['type']
+        contact.whitepages_entity_type = result['belongs_to']['type']
 
         if contact.whitepages_entity_type == "Person":
             contact.whitepages_first_name = result['belongs_to'
-                                                   ][0]['firstname']
+                                                   ]['firstname']
             contact.whitepages_middle_name = result['belongs_to'
-                                                    ][0]['middlename']
-            contact.whitepages_last_name = result['belongs_to'][0]['lastname']
-            contact.whitepages_gender = result['belongs_to'][0]['gender']
+                                                    ]['middlename']
+            contact.whitepages_last_name = result['belongs_to']['lastname']
+            contact.whitepages_gender = result['belongs_to']['gender']
         else:
-            contact.whitepages_business_name = result['belongs_to'][0]['name']
+            contact.whitepages_business_name = result['belongs_to']['name']
 
     if result['current_addresses']:
         contact.whitepages_address = \
