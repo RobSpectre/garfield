@@ -258,9 +258,12 @@ class MonthlyScoreboard(widgets.ItemList):
                                       self.contacts_with_name,
                                       self.contacts_with_address,
                                       self.respondents]):
-            for row in queryset:
-                values[row['date']][self.list_display[i + 1]] = \
-                    row['count']
+            try:
+                for row in queryset:
+                    values[row['date']][self.list_display[i + 1]] = \
+                        row['count']
+            except KeyError:
+                continue
 
         series = []
 
