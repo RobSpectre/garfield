@@ -1,11 +1,11 @@
 dist: xenial
 language: python
 python:
-  - "3.5"
+  - "3.8"
 install:
   - pip install tox 
   - pip install codecov
 script:
   - tox
 env:
-  - TOXENV: py35
+  - TOXENV: py38
