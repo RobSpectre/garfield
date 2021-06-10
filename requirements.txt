@@ -1,4 +1,4 @@
-Django==2.2.22
+Django==2.2.24
 twilio==6.28.0
 Pillow==8.1.2
 django-celery-beat==1.1.1
