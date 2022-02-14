@@ -63,6 +63,22 @@ class GarfieldTwilioTestClient(Client):
                          HTTP_X_TWILIO_SIGNATURE=signature,
                          HTTP_HOST=HTTP_HOST)
 
+    def lookup(self, to, from_,params,
+             path="/lookup/",extra_params=None):
+        if extra_params:
+            for k, v in extra_params.items():
+                params[k] = v
+
+        HTTP_HOST = "example.com"
+        validator = RequestValidator("yyyyyyyy")
+        absolute_url = "http://{0}{1}".format(HTTP_HOST,
+                                              path)
+        signature = validator.compute_signature(absolute_url,
+                                                params)
+        return self.post(path, params,
+                         HTTP_X_TWILIO_SIGNATURE=signature,
+                         HTTP_HOST=HTTP_HOST)
+
 
 @override_settings(TWILIO_AUTH_TOKEN="yyyyyyyy",
                    ALLOWED_HOSTS=['example.com'])

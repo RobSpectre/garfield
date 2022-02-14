@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'contacts',
     'sms',
     'phone_numbers',
+    'lookup',
     'sims',
     'voice',
     'deterrence',
